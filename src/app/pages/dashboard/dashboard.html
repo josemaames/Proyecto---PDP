@@ -137,6 +137,51 @@
     </div>
   </div>
 
+  <!-- DETALLE DEL EXPEDIENTE -->
+
+  <div *ngIf="expedienteSeleccionado" class="detalle-expediente">
+    <div class="box-header">
+      <h3>📁 Detalle del Expediente PDP</h3>
+    </div>
+
+    <div class="detalle-grid">
+      <div class="detalle-card">
+        <strong>Expediente</strong>
+        <p>{{ expedienteSeleccionado.expediente }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Capacitación</strong>
+        <p>{{ expedienteSeleccionado.capacitacion }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Estado</strong>
+        <p>{{ expedienteSeleccionado.estado }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Responsable</strong>
+        <p>{{ expedienteSeleccionado.responsable }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Beneficiarios</strong>
+        <p>{{ expedienteSeleccionado.beneficiarios }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Presupuesto</strong>
+        <p>{{ formatearMoneda(expedienteSeleccionado.presupuesto) }}</p>
+      </div>
+
+      <div class="detalle-card">
+        <strong>Semáforo</strong>
+        <p>{{ expedienteSeleccionado.semaforo }}</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ALERTAS -->
 
   <div class="alertas-box">

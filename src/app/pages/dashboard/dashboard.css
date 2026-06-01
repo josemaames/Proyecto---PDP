@@ -631,3 +631,53 @@ tr:hover {
   color: #005baa;
   margin-bottom: 15px;
 }
+
+.detalle-expediente {
+  background: white;
+  margin: 30px 0;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.detalle-card {
+  background: #f8fafc;
+  border-left: 4px solid #005baa;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.detalle-card strong {
+  color: #005baa;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.detalle-card p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modo-detalle {
+  background: #e8f4ff;
+  color: #005baa;
+  padding: 12px 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  font-weight: 600;
+}
+
+.modo-detalle {
+  background: #e8f4ff;
+  color: #005baa;
+  padding: 12px 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  font-weight: 600;
+}

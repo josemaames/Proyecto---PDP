@@ -22,6 +22,15 @@ export class Dashboard implements OnInit, AfterViewInit {
   menuItems: string[] = [];
 
   textoBusqueda = '';
+  expedienteSeleccionado: any = null;
+
+  modoDetalle = false;
+
+  estadisticasOriginales = {
+    totalExpedientes: 0,
+    presupuestoTotal: 0,
+    beneficiariosTotal: 0,
+  };
 
   // Configuraciones de gráficos
   chartConfigEstado: any;
@@ -117,7 +126,14 @@ export class Dashboard implements OnInit, AfterViewInit {
       (sum, e) => sum + (e.beneficiarios || 0),
       0,
     );
+
     this.estadisticasPorResponsable = responsableStats;
+
+    this.estadisticasOriginales = {
+      totalExpedientes: this.estadisticasTotales.totalExpedientes,
+      presupuestoTotal: this.estadisticasTotales.presupuestoTotal,
+      beneficiariosTotal: this.estadisticasTotales.beneficiariosTotal,
+    };
 
     // Configuración de gráfico de pastel - Estados
     this.chartConfigEstado = {
@@ -244,15 +260,84 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   buscar() {
-    const texto = this.textoBusqueda.toLowerCase();
+    const texto = this.textoBusqueda.toLowerCase().trim();
 
-    this.expedientesFiltrados = this.expedientes.filter(
+    if (!texto) {
+      this.expedienteSeleccionado = null;
+      this.modoDetalle = false;
+
+      this.estadisticasTotales = {
+        ...this.estadisticasOriginales,
+      };
+
+      this.cargarGraficos();
+
+      return;
+    }
+
+    const encontrado = this.expedientesConEstadisticas.find(
       (e) =>
-        e.expediente.toLowerCase().includes(texto) ||
-        e.capacitacion.toLowerCase().includes(texto) ||
-        e.estado.toLowerCase().includes(texto) ||
-        e.responsable.toLowerCase().includes(texto),
+        e.expediente.toLowerCase().includes(texto) || e.capacitacion.toLowerCase().includes(texto),
     );
+
+    if (encontrado) {
+      this.expedienteSeleccionado = encontrado;
+      this.modoDetalle = true;
+
+      this.estadisticasTotales = {
+        totalExpedientes: 1,
+        presupuestoTotal: encontrado.presupuesto || 0,
+        beneficiariosTotal: encontrado.beneficiarios || 0,
+      };
+
+      this.chartConfigEstado = {
+        ...this.chartConfigEstado,
+        data: {
+          labels: [encontrado.estado],
+          datasets: [
+            {
+              data: [1],
+              backgroundColor: ['#36A2EB'],
+            },
+          ],
+        },
+      };
+
+      this.chartConfigSemaforo = {
+        ...this.chartConfigSemaforo,
+        data: {
+          labels: [encontrado.semaforo],
+          datasets: [
+            {
+              data: [1],
+              backgroundColor: [
+                encontrado.semaforo === 'verde'
+                  ? '#4CAF50'
+                  : encontrado.semaforo === 'amarillo'
+                    ? '#FFC107'
+                    : '#F44336',
+              ],
+            },
+          ],
+        },
+      };
+
+      this.chartConfigResponsable = {
+        ...this.chartConfigResponsable,
+        data: {
+          labels: [encontrado.responsable],
+          datasets: [
+            {
+              label: 'Expedientes',
+              data: [1],
+              backgroundColor: '#36A2EB',
+            },
+          ],
+        },
+      };
+    } else {
+      alert('No se encontró el expediente');
+    }
   }
 
   formatearMoneda(valor: number): string {
