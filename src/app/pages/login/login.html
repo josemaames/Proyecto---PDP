@@ -1,0 +1,38 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="logo-section">
+      <h1>Sistema PDP - EsSalud</h1>
+
+      <p>Seguimiento Integral de Acciones de Capacitación</p>
+    </div>
+
+    <div class="input-group">
+      <label>DNI</label>
+
+      <input type="text" placeholder="Ingrese su DNI" [(ngModel)]="dni" />
+    </div>
+
+    <div class="input-group">
+      <label>Contraseña</label>
+
+      <input type="password" placeholder="Ingrese su contraseña" [(ngModel)]="password" />
+    </div>
+
+    <div *ngIf="error" class="error">
+      {{ error }}
+    </div>
+
+    <button (click)="ingresar()">Ingresar</button>
+
+    <div class="usuarios-demo">
+      <h4>Usuarios de Prueba</h4>
+
+      <p><strong>Administrador:</strong> 99999999 / admin123</p>
+      <p><strong>Capacitación:</strong> 11111111 / capa123</p>
+      <p><strong>Logística:</strong> 22222222 / logi123</p>
+      <p><strong>Gerencia:</strong> 33333333 / geren123</p>
+    </div>
+
+    <div class="footer">EsSalud - Gerencia Central de Gestión de las Personas</div>
+  </div>
+</div>

@@ -1,0 +1,331 @@
+.ruta-container {
+  padding: 30px;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.ruta-container h1 {
+  color: #005baa;
+  margin-bottom: 25px;
+  font-size: 30px;
+}
+
+/* ==========================
+   EXPEDIENTE
+========================== */
+
+.expediente-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.encabezado h2 {
+  color: #005baa;
+  margin-bottom: 5px;
+}
+
+.estado-actual {
+  text-align: right;
+}
+
+.estado-actual span {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.estado-actual strong {
+  color: #0f4c81;
+  font-size: 18px;
+}
+
+/* ==========================
+   AVANCE
+========================== */
+
+.avance-box {
+  margin-bottom: 30px;
+}
+
+.avance-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.avance-info strong {
+  color: #005baa;
+}
+
+.barra-avance {
+  height: 18px;
+  background: #e5e7eb;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.progreso {
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, #005baa, #4f8fd3);
+}
+
+/* ==========================
+   INFORMACIÓN GENERAL
+========================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.info-card {
+  background: #f8fafc;
+  border-left: 4px solid #005baa;
+  padding: 16px;
+  border-radius: 10px;
+}
+
+.info-card h4 {
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.info-card p {
+  font-weight: 600;
+  color: #111827;
+}
+
+.info-card.alerta {
+  border-left: 4px solid #b8860b;
+}
+
+/* ==========================
+   TIMELINE
+========================== */
+
+.timeline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+}
+
+.circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.completado .circle {
+  background: #2e7d32;
+  color: white;
+}
+
+.proceso .circle {
+  background: #005baa;
+  color: white;
+}
+
+.pendiente .circle {
+  background: #d1d5db;
+  color: #6b7280;
+}
+
+.line {
+  width: 60px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 20px;
+}
+
+.step span {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* PENDIENTES MÁS PROFESIONALES */
+
+.pendiente span {
+  color: #111827;
+}
+
+.proceso span {
+  color: #005baa;
+  font-weight: 600;
+}
+
+.completado span {
+  color: #111827;
+}
+
+/* ==========================
+   DOCUMENTOS
+========================== */
+
+.documentos-box {
+  margin-top: 40px;
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.documentos-box h3 {
+  color: #005baa;
+  margin-bottom: 20px;
+}
+
+.documentos-box table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.documentos-box th {
+  background: #005baa;
+  color: white;
+  padding: 14px;
+  text-align: left;
+}
+
+.documentos-box td {
+  padding: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.estado-doc {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.cargado {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.estado-doc.pendiente {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-ver {
+  background: #005baa;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-ver:hover {
+  background: #004080;
+}
+
+.btn-cargar {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cargar:hover {
+  background: #4b5563;
+}
+
+/* ==========================
+   HISTORIAL
+========================== */
+
+.historial-box {
+  margin-top: 40px;
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.historial-box h3 {
+  color: #005baa;
+  margin-bottom: 20px;
+}
+
+.evento {
+  display: flex;
+  gap: 20px;
+  padding: 15px;
+  border-left: 4px solid #2e7d32;
+  background: #fafafa;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+
+.fecha {
+  min-width: 120px;
+  font-weight: 600;
+  color: #005baa;
+}
+
+.contenido {
+  flex: 1;
+  color: #111827;
+}
+
+.pendiente-evento {
+  border-left: 4px solid #005baa;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 1200px) {
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .encabezado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .timeline {
+    justify-content: flex-start;
+  }
+}

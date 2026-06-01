@@ -1,0 +1,148 @@
+<div class="topbar">
+  <div class="topbar-left">
+    <h2>Sistema PDP - EsSalud</h2>
+    <span>Seguimiento Integral de Acciones de Capacitación</span>
+  </div>
+
+  <div class="topbar-right">
+    <div class="usuario-info">
+      <strong>{{ nombre }}</strong>
+      <small>Rol: {{ rol }}</small>
+    </div>
+
+    <button class="btn-sesion" (click)="cerrarSesion()">Cerrar Sesión</button>
+  </div>
+</div>
+
+<!-- NAVBAR DINÁMICA -->
+
+<div class="navbar">
+  <a *ngFor="let item of menuItems" href="#" class="menu-link">
+    {{ item }}
+  </a>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+
+<div class="dashboard-container">
+  <!-- BUSCADOR -->
+
+  <div class="buscador-principal">
+    <input
+      type="text"
+      [(ngModel)]="textoBusqueda"
+      placeholder="Buscar expediente, capacitación, responsable o red asistencial..."
+    />
+
+    <button (click)="buscar()">🔍 Buscar</button>
+  </div>
+
+  <!-- KPIs -->
+
+  <div class="cards">
+    <div class="card">
+      <h2>120</h2>
+      <span>Acciones PDP</span>
+    </div>
+
+    <div class="card">
+      <h2>35</h2>
+      <span>En TDR</span>
+    </div>
+
+    <div class="card">
+      <h2>22</h2>
+      <span>En Logística</span>
+    </div>
+
+    <div class="card">
+      <h2>18</h2>
+      <span>Convocatoria</span>
+    </div>
+
+    <div class="card">
+      <h2>45</h2>
+      <span>Finalizadas</span>
+    </div>
+  </div>
+
+  <!-- LEYENDA -->
+
+  <div class="leyenda">
+    <span>
+      <span class="semaforo verde"></span>
+      Dentro del plazo
+    </span>
+
+    <span>
+      <span class="semaforo amarillo"></span>
+      Próximo a vencer
+    </span>
+
+    <span>
+      <span class="semaforo rojo"></span>
+      Retrasado
+    </span>
+  </div>
+
+  <!-- ALERTAS -->
+
+  <div class="alertas-box">
+    <h3>🚨 Alertas Prioritarias</h3>
+
+    <div class="alerta rojo-alerta">PDP-2026-015 - Retraso de 8 días en Logística</div>
+
+    <div class="alerta amarillo-alerta">PDP-2026-021 - Convocatoria vence en 2 días</div>
+
+    <div class="alerta rojo-alerta">PDP-2026-030 - Pendiente de aprobación TDR</div>
+  </div>
+
+  <!-- TABLA -->
+
+  <div class="acciones-box">
+    <div class="box-header">
+      <h3>Acciones de Capacitación Recientes</h3>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Expediente</th>
+          <th>Capacitación</th>
+          <th>Estado</th>
+          <th>Semáforo</th>
+          <th>Responsable</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of expedientesFiltrados">
+          <td>
+            {{ item.expediente }}
+          </td>
+
+          <td>
+            {{ item.capacitacion }}
+          </td>
+
+          <td class="estado">
+            {{ item.estado }}
+          </td>
+
+          <td>
+            <span class="semaforo" [ngClass]="item.semaforo"></span>
+          </td>
+
+          <td>
+            {{ item.responsable }}
+          </td>
+
+          <td>
+            <button class="btn-ruta" (click)="verRuta()">Ver Ruta</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

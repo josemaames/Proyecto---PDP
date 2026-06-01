@@ -1,0 +1,472 @@
+/* ==========================
+   CONTENEDOR GENERAL
+========================== */
+
+.dashboard-container {
+  padding: 35px;
+  background: #f4f6f9;
+  min-height: calc(100vh - 80px);
+}
+
+/* ==========================
+   TOPBAR
+========================== */
+
+.topbar {
+  background: #005baa;
+  color: white;
+
+  height: 80px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 40px;
+}
+
+.topbar-left h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.topbar-left span {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.usuario-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: white;
+}
+
+.usuario-info strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.usuario-info small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.btn-sesion {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  padding: 10px 18px;
+  border-radius: 8px;
+
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-sesion:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================
+   BUSCADOR
+========================== */
+
+.buscador-principal {
+  display: flex;
+  gap: 15px;
+
+  margin-bottom: 35px;
+}
+
+.buscador-principal input {
+  flex: 1;
+
+  padding: 16px 20px;
+
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+
+  background: white;
+
+  font-size: 15px;
+}
+
+.buscador-principal input:focus {
+  outline: none;
+  border-color: #005baa;
+}
+
+.buscador-principal button {
+  background: #005baa;
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+
+  padding: 0 25px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.buscador-principal button:hover {
+  background: #004080;
+}
+
+/* ==========================
+   TARJETAS KPI
+========================== */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+
+  border-top: 4px solid #005baa;
+  border-radius: 18px;
+
+  padding: 25px;
+
+  text-align: center;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h2 {
+  color: #005baa;
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.card span {
+  color: #444;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* ==========================
+   LEYENDA
+========================== */
+
+.leyenda {
+  display: flex;
+  gap: 35px;
+
+  margin-bottom: 30px;
+
+  font-weight: 600;
+}
+
+.leyenda span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.semaforo {
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  display: inline-block;
+}
+
+.verde {
+  background: #2e7d32;
+}
+
+.amarillo {
+  background: #b8860b;
+}
+
+.rojo {
+  background: #c62828;
+}
+
+/* ==========================
+   ALERTAS
+========================== */
+
+.alertas-box {
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 25px;
+
+  margin-bottom: 30px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.alertas-box h3 {
+  color: #005baa;
+  margin-bottom: 18px;
+}
+
+.alerta {
+  padding: 14px;
+
+  border-radius: 10px;
+
+  margin-bottom: 12px;
+
+  font-weight: 600;
+}
+
+.rojo-alerta {
+  background: #fdf2f2;
+  color: #991b1b;
+  border-left: 5px solid #c62828;
+}
+
+.amarillo-alerta {
+  background: #fffbeb;
+  color: #92400e;
+  border-left: 5px solid #b8860b;
+}
+
+/* ==========================
+   TABLA
+========================== */
+
+.acciones-box {
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 25px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.box-header {
+  margin-bottom: 20px;
+}
+
+.box-header h3 {
+  color: #003d73;
+  font-size: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #005baa;
+  color: white;
+
+  padding: 16px;
+
+  text-align: left;
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid #ececec;
+}
+
+tr:hover {
+  background: #f8fafc;
+}
+
+.estado {
+  font-weight: bold;
+}
+
+.tdr {
+  color: #8c6d1f;
+}
+
+.logistica {
+  color: #0f4c81;
+}
+
+.convocatoria {
+  color: #2e7d32;
+}
+
+/* ==========================
+   BOTON RUTA
+========================== */
+
+.btn-ruta {
+  background: #004b8d;
+  color: white;
+
+  border: none;
+
+  border-radius: 10px;
+
+  padding: 10px 18px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: 0.3s;
+}
+
+.btn-ruta:hover {
+  background: #003d73;
+  transform: scale(1.03);
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .buscador-principal {
+    flex-direction: column;
+  }
+
+  .topbar {
+    flex-direction: column;
+    height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+}
+
+.usuario-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: white;
+}
+
+.usuario-info strong {
+  font-size: 15px;
+}
+
+.usuario-info small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ==========================
+   NAVBAR
+========================== */
+
+.navbar {
+  background: white;
+
+  display: flex;
+  gap: 35px;
+
+  padding: 0 40px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.navbar a {
+  padding: 18px 0;
+
+  color: #4b5563;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  text-decoration: none;
+
+  border-bottom: 3px solid transparent;
+
+  transition: 0.3s;
+}
+
+.navbar a:hover {
+  color: #005baa;
+}
+
+.navbar a.active {
+  color: #005baa;
+
+  border-bottom: 3px solid #005baa;
+}
+
+.usuario-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: white;
+  line-height: 1.2;
+}
+
+.usuario-info strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.usuario-info small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.navbar {
+  background: white;
+  display: flex;
+  gap: 35px;
+  padding: 0 40px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.menu-link {
+  padding: 18px 0;
+  text-decoration: none;
+  color: #4b5563;
+  font-weight: 600;
+  border-bottom: 3px solid transparent;
+  transition: 0.3s;
+}
+
+.menu-link:hover {
+  color: #005baa;
+  border-bottom: 3px solid #005baa;
+}
