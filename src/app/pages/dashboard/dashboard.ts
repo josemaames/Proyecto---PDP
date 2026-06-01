@@ -76,20 +76,12 @@ export class Dashboard {
         ];
         break;
 
-      case 'Capacitación':
+      case 'Sectorista':
         this.menuItems = ['Dashboard', 'Expedientes PDP', 'Hoja de Ruta', 'Reportes'];
         break;
 
-      case 'Logística':
-        this.menuItems = ['Dashboard', 'Expedientes PDP', 'Convocatorias', 'Hoja de Ruta'];
-        break;
-
-      case 'Gerencia':
-        this.menuItems = ['Dashboard', 'Reportes', 'Indicadores'];
-        break;
-
-      case 'Médico':
-        this.menuItems = ['Mis Capacitaciones', 'Estado de Solicitudes'];
+      case 'Ejecutor':
+        this.menuItems = ['Dashboard', 'Expedientes PDP', 'Hoja de Ruta'];
         break;
 
       default:
@@ -107,6 +99,25 @@ export class Dashboard {
         e.estado.toLowerCase().includes(texto) ||
         e.responsable.toLowerCase().includes(texto),
     );
+  }
+
+  irModulo(modulo: string) {
+    if (modulo === 'Dashboard') {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    if (modulo === 'Expedientes PDP') {
+      this.router.navigate(['/expedientes']);
+      return;
+    }
+
+    if (modulo === 'Hoja de Ruta') {
+      this.router.navigate(['/hoja-ruta']);
+      return;
+    }
+
+    alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
   }
 
   verRuta() {

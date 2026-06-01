@@ -14,15 +14,15 @@
   </div>
 </div>
 
-<!-- NAVBAR DINÁMICA -->
+<!-- NAVBAR -->
 
 <div class="navbar">
-  <a *ngFor="let item of menuItems" href="#" class="menu-link">
+  <a *ngFor="let item of menuItems" class="menu-link" (click)="irModulo(item)">
     {{ item }}
   </a>
 </div>
 
-<!-- CONTENIDO PRINCIPAL -->
+<!-- CONTENIDO -->
 
 <div class="dashboard-container">
   <!-- BUSCADOR -->
@@ -118,13 +118,9 @@
 
       <tbody>
         <tr *ngFor="let item of expedientesFiltrados">
-          <td>
-            {{ item.expediente }}
-          </td>
+          <td>{{ item.expediente }}</td>
 
-          <td>
-            {{ item.capacitacion }}
-          </td>
+          <td>{{ item.capacitacion }}</td>
 
           <td class="estado">
             {{ item.estado }}
@@ -134,9 +130,7 @@
             <span class="semaforo" [ngClass]="item.semaforo"></span>
           </td>
 
-          <td>
-            {{ item.responsable }}
-          </td>
+          <td>{{ item.responsable }}</td>
 
           <td>
             <button class="btn-ruta" (click)="verRuta()">Ver Ruta</button>
