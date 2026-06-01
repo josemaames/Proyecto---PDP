@@ -1,60 +1,92 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-expedientes-pdp',
-  imports: [FormsModule],
+  imports: [NgFor, NgIf, FormsModule],
   templateUrl: './expedientes-pdp.html',
   styleUrl: './expedientes-pdp.css',
 })
 export class ExpedientesPdp {
-  textoBusqueda = '';
+  mostrarFormulario = false;
+
+  nuevoExpediente = {
+    expediente: '',
+    capacitacion: '',
+    responsable: '',
+    estado: 'TDR',
+    presupuesto: 0,
+    beneficiarios: 0,
+  };
 
   expedientes = [
     {
-      codigo: 'PDP-2026-001',
-      accion: 'Seguridad del Paciente',
-      estado: 'TDR',
+      expediente: 'PDP-2026-001',
+      capacitacion: 'Seguridad del Paciente',
       responsable: 'Oficina Central',
+      estado: 'TDR',
+      presupuesto: 25000,
+      beneficiarios: 120,
     },
-
     {
-      codigo: 'PDP-2026-002',
-      accion: 'Atención al Usuario',
-      estado: 'Logística',
+      expediente: 'PDP-2026-002',
+      capacitacion: 'Atención al Usuario',
       responsable: 'Red Rebagliati',
+      estado: 'Logística',
+      presupuesto: 18000,
+      beneficiarios: 90,
     },
-
     {
-      codigo: 'PDP-2026-003',
-      accion: 'Gestión Hospitalaria',
-      estado: 'Convocatoria',
+      expediente: 'PDP-2026-003',
+      capacitacion: 'Gestión Hospitalaria',
       responsable: 'Red Almenara',
+      estado: 'Convocatoria',
+      presupuesto: 32000,
+      beneficiarios: 150,
     },
   ];
 
-  expedientesFiltrados = [...this.expedientes];
+  ngOnInit() {
+    const expedientesGuardados = localStorage.getItem('expedientes');
 
-  constructor(private router: Router) {}
-
-  buscar() {
-    const texto = this.textoBusqueda.toLowerCase();
-
-    this.expedientesFiltrados = this.expedientes.filter(
-      (e) =>
-        e.codigo.toLowerCase().includes(texto) ||
-        e.accion.toLowerCase().includes(texto) ||
-        e.estado.toLowerCase().includes(texto) ||
-        e.responsable.toLowerCase().includes(texto),
-    );
+    if (expedientesGuardados) {
+      this.expedientes = JSON.parse(expedientesGuardados);
+    }
   }
 
-  verRuta() {
-    this.router.navigate(['/hoja-ruta']);
+  abrirFormulario() {
+    this.mostrarFormulario = true;
   }
 
-  nuevoExpediente() {
-    alert('Próximamente: Registro de nuevo expediente');
+  cancelar() {
+    this.mostrarFormulario = false;
+  }
+
+  guardarExpediente() {
+    this.expedientes.push({
+      ...this.nuevoExpediente,
+    });
+
+    localStorage.setItem('expedientes', JSON.stringify(this.expedientes));
+
+    this.nuevoExpediente = {
+      expediente: '',
+      capacitacion: '',
+      responsable: '',
+      estado: 'TDR',
+      presupuesto: 0,
+      beneficiarios: 0,
+    };
+
+    this.mostrarFormulario = false;
+  }
+
+  verExpediente(expediente: string) {
+    alert(`Ver expediente: ${expediente}`);
+  }
+
+  editarExpediente(expediente: string) {
+    alert(`Editar expediente: ${expediente}`);
   }
 }

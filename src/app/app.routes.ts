@@ -28,12 +28,18 @@ export const routes: Routes = [
   },
 
   {
+    path: 'expedientes',
+    component: ExpedientesPdp,
+  },
+
+  {
     path: 'hoja-ruta',
     component: HojaRuta,
   },
 
+  // Ruta comodín (opcional pero recomendada)
   {
-    path: 'expedientes',
-    component: ExpedientesPdp,
+    path: '**',
+    redirectTo: 'dashboard',
   },
 ];

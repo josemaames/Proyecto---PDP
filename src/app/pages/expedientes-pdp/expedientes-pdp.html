@@ -1,46 +1,78 @@
 <div class="expedientes-container">
-  <div class="header-expedientes">
-    <h2>Expedientes PDP</h2>
+  <div class="header">
+    <div *ngIf="mostrarFormulario" class="formulario-box">
+      <h3>Nuevo Expediente PDP</h3>
 
-    <button class="btn-nuevo">+ Nuevo Expediente</button>
+      <div class="form-grid">
+        <input type="text" placeholder="Código PDP" [(ngModel)]="nuevoExpediente.expediente" />
+
+        <input type="text" placeholder="Capacitación" [(ngModel)]="nuevoExpediente.capacitacion" />
+
+        <input type="text" placeholder="Responsable" [(ngModel)]="nuevoExpediente.responsable" />
+
+        <select [(ngModel)]="nuevoExpediente.estado">
+          <option>TDR</option>
+          <option>Logística</option>
+          <option>Convocatoria</option>
+          <option>Ejecución</option>
+          <option>Finalizado</option>
+        </select>
+
+        <input type="number" placeholder="Presupuesto" [(ngModel)]="nuevoExpediente.presupuesto" />
+
+        <input
+          type="number"
+          placeholder="Beneficiarios"
+          [(ngModel)]="nuevoExpediente.beneficiarios"
+        />
+      </div>
+
+      <div class="acciones-formulario">
+        <button class="btn-guardar" (click)="guardarExpediente()">Guardar</button>
+
+        <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+      </div>
+    </div>
+    <h2>📁 Expedientes PDP</h2>
+
+    <button class="btn-nuevo" (click)="abrirFormulario()">+ Nuevo Expediente</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Código</th>
-        <th>Capacitación</th>
-        <th>Red</th>
-        <th>Estado</th>
-        <th>Responsable</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
+  <div class="tabla-box">
+    <table>
+      <thead>
+        <tr>
+          <th>Expediente</th>
+          <th>Capacitación</th>
+          <th>Responsable</th>
+          <th>Estado</th>
+          <th>Presupuesto</th>
+          <th>Beneficiarios</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      <tr>
-        <td>PDP-2026-001</td>
-        <td>Seguridad del Paciente</td>
-        <td>Rebagliati</td>
-        <td>TDR</td>
-        <td>José Manuel Ames</td>
+      <tbody>
+        <tr *ngFor="let item of expedientes">
+          <td>{{ item.expediente }}</td>
 
-        <td>
-          <button>Ver</button>
-        </td>
-      </tr>
+          <td>{{ item.capacitacion }}</td>
 
-      <tr>
-        <td>PDP-2026-002</td>
-        <td>Atención al Usuario</td>
-        <td>Almenara</td>
-        <td>Logística</td>
-        <td>María Torres</td>
+          <td>{{ item.responsable }}</td>
 
-        <td>
-          <button>Ver</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <td>{{ item.estado }}</td>
+
+          <td>S/. {{ item.presupuesto }}</td>
+
+          <td>{{ item.beneficiarios }}</td>
+
+          <td>
+            <button class="btn-ver" (click)="verExpediente(item.expediente)">Ver</button>
+
+            <button class="btn-editar" (click)="editarExpediente(item.expediente)">Editar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
