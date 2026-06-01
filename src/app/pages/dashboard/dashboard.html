@@ -37,9 +37,26 @@
     <button (click)="buscar()">🔍 Buscar</button>
   </div>
 
-  <!-- KPIs -->
+  <!-- KPIs PARA ADMINISTRADOR -->
+  <div *ngIf="rol === 'Administrador'" class="estadisticas-admin">
+    <div class="card">
+      <h2>{{ estadisticasTotales.totalExpedientes }}</h2>
+      <span>Expedientes PDP</span>
+    </div>
 
-  <div class="cards">
+    <div class="card">
+      <h2>{{ estadisticasTotales.presupuestoTotal | number: '1.0-0' }}</h2>
+      <span>Presupuesto Total (S/.)</span>
+    </div>
+
+    <div class="card">
+      <h2>{{ estadisticasTotales.beneficiariosTotal | number: '1.0-0' }}</h2>
+      <span>Beneficiarios Totales</span>
+    </div>
+  </div>
+
+  <!-- KPIs PARA OTROS ROLES -->
+  <div *ngIf="rol !== 'Administrador'" class="cards">
     <div class="card">
       <h2>120</h2>
       <span>Acciones PDP</span>
@@ -85,6 +102,50 @@
     </span>
   </div>
 
+  <!-- GRÁFICOS PARA ADMINISTRADOR -->
+  <div *ngIf="rol === 'Administrador'" class="graficos-admin">
+    <div class="graficos-container">
+      <!-- Gráfico de Pastel - Estados -->
+      <div class="grafico-box">
+        <h3>Expedientes por Estado</h3>
+        <canvas
+          baseChart
+          #pieChartEstado
+          [type]="'pie'"
+          [data]="pieChartDataEstado"
+          [options]="pieChartOptionsEstado"
+          [plugins]="[]"
+        ></canvas>
+      </div>
+
+      <!-- Gráfico de Pastel - Semáforo -->
+      <div class="grafico-box">
+        <h3>Estado de Cumplimiento</h3>
+        <canvas
+          baseChart
+          #pieChartSemaforo
+          [type]="'pie'"
+          [data]="pieChartDataSemaforo"
+          [options]="pieChartOptionsSemaforo"
+          [plugins]="[]"
+        ></canvas>
+      </div>
+
+      <!-- Gráfico de Barras - Responsable -->
+      <div class="grafico-box">
+        <h3>Expedientes por Responsable</h3>
+        <canvas
+          baseChart
+          #barChartResponsable
+          [type]="'bar'"
+          [data]="barChartDataResponsable"
+          [options]="barChartOptionsResponsable"
+          [plugins]="[]"
+        ></canvas>
+      </div>
+    </div>
+  </div>
+
   <!-- ALERTAS -->
 
   <div class="alertas-box">
@@ -97,11 +158,11 @@
     <div class="alerta rojo-alerta">PDP-2026-030 - Pendiente de aprobación TDR</div>
   </div>
 
-  <!-- TABLA -->
+  <!-- TABLA DE EXPEDIENTES -->
 
   <div class="acciones-box">
     <div class="box-header">
-      <h3>Acciones de Capacitación Recientes</h3>
+      <h3>Expedientes de Capacitación</h3>
     </div>
 
     <table>
@@ -112,12 +173,14 @@
           <th>Estado</th>
           <th>Semáforo</th>
           <th>Responsable</th>
+          <th *ngIf="rol === 'Administrador'">Beneficiarios</th>
+          <th *ngIf="rol === 'Administrador'">Presupuesto</th>
           <th>Acciones</th>
         </tr>
       </thead>
 
       <tbody>
-        <tr *ngFor="let item of expedientesFiltrados">
+        <tr *ngFor="let item of expedientesConEstadisticas">
           <td>{{ item.expediente }}</td>
 
           <td>{{ item.capacitacion }}</td>
@@ -132,9 +195,42 @@
 
           <td>{{ item.responsable }}</td>
 
+          <td *ngIf="rol === 'Administrador'">{{ item.beneficiarios }}</td>
+
+          <td *ngIf="rol === 'Administrador'">
+            {{ formatearMoneda(item.presupuesto) }}
+          </td>
+
           <td>
             <button class="btn-ruta" (click)="verRuta()">Ver Ruta</button>
           </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TABLA DE ESTADÍSTICAS POR RESPONSABLE (SOLO ADMIN) -->
+  <div *ngIf="rol === 'Administrador'" class="estadisticas-responsable-box">
+    <div class="box-header">
+      <h3>Resumen por Responsable</h3>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Responsable</th>
+          <th>Expedientes</th>
+          <th>Beneficiarios</th>
+          <th>Presupuesto</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of estadisticasPorResponsable">
+          <td>{{ item.responsable }}</td>
+          <td>{{ item.cantidad }}</td>
+          <td>{{ item.beneficiarios }}</td>
+          <td>{{ formatearMoneda(item.presupuesto) }}</td>
         </tr>
       </tbody>
     </table>

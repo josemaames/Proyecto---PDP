@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-expedientes-pdp',
-  imports: [NgFor, FormsModule],
+  imports: [FormsModule],
   templateUrl: './expedientes-pdp.html',
   styleUrl: './expedientes-pdp.css',
 })

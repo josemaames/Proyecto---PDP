@@ -470,3 +470,145 @@ tr:hover {
   color: #005baa;
   border-bottom: 3px solid #005baa;
 }
+
+/* ==========================
+   GRÁFICOS PARA ADMINISTRADOR
+========================== */
+
+.estadisticas-admin {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.graficos-admin {
+  margin-bottom: 30px;
+}
+
+.graficos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.grafico-box {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: 0.3s;
+}
+
+.grafico-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.grafico-box h3 {
+  color: #003d73;
+  margin-bottom: 20px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.grafico-box canvas {
+  max-height: 350px;
+}
+
+/* ==========================
+   TABLA DE ESTADÍSTICAS
+========================== */
+
+.estadisticas-responsable-box {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+}
+
+.estadisticas-responsable-box table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.estadisticas-responsable-box th {
+  background: #005baa;
+  color: white;
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.estadisticas-responsable-box td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #ececec;
+}
+
+.estadisticas-responsable-box tr:hover {
+  background: #f8fafc;
+}
+
+/* ==========================
+   RESPONSIVE PARA GRÁFICOS
+========================== */
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .estadisticas-admin {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .graficos-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .estadisticas-admin {
+    grid-template-columns: 1fr;
+  }
+
+  .graficos-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .estadisticas-admin {
+    grid-template-columns: 1fr;
+  }
+
+  .buscador-principal {
+    flex-direction: column;
+  }
+
+  .topbar {
+    flex-direction: column;
+    height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .grafico-box {
+    padding: 15px;
+  }
+
+  .grafico-box h3 {
+    font-size: 16px;
+  }
+}
+
