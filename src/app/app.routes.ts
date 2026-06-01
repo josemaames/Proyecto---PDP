@@ -23,6 +23,11 @@ export const routes: Routes = [
   },
 
   {
+    path: 'hoja-ruta/:expediente',
+    component: HojaRuta,
+  },
+
+  {
     path: 'hoja-ruta',
     component: HojaRuta,
   },

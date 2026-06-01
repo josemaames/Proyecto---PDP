@@ -49,26 +49,52 @@ export class Dashboard implements OnInit, AfterViewInit {
   expedientes = [
     {
       expediente: 'PDP-2026-001',
-      capacitacion: 'Seguridad del Paciente',
+      capacitacion: 'GOBIERNO DIGITAL EN LA GESTIÓN PÚBLICA',
       estado: 'TDR',
       responsable: 'Oficina Central',
       semaforo: 'verde',
+      beneficiarios: 30,
+      presupuesto: 15000,
     },
 
     {
       expediente: 'PDP-2026-002',
-      capacitacion: 'Atención al Usuario',
+      capacitacion: 'DERECHO ADMINISTRATIVO Y SEGURIDAD SOCIAL',
       estado: 'Logística',
       responsable: 'Red Rebagliati',
       semaforo: 'amarillo',
+      beneficiarios: 19,
+      presupuesto: 5000,
     },
 
     {
       expediente: 'PDP-2026-003',
-      capacitacion: 'Gestión Hospitalaria',
+      capacitacion: 'ARBITRAJE CON LA NUEVA LEY GENERAL DE CONTRATACIONES PUBLICAS',
       estado: 'Convocatoria',
       responsable: 'Red Almenara',
       semaforo: 'rojo',
+      beneficiarios: 19,
+      presupuesto: 5000,
+    },
+
+    {
+      expediente: 'PDP-2026-004',
+      capacitacion: 'REDACCION DE DOCUMENTOS TECNICOS',
+      estado: 'TDR',
+      responsable: 'Oficina Central',
+      semaforo: 'verde',
+      beneficiarios: 33,
+      presupuesto: 15000,
+    },
+
+    {
+      expediente: 'PDP-2026-005',
+      capacitacion: 'TALLER EDUCACION INICIA: JUEGOS, INTERACCIONES Y PROYECTOS',
+      estado: 'Finalizado',
+      responsable: 'Red Vitarte',
+      semaforo: 'verde',
+      beneficiarios: 37,
+      presupuesto: 5000,
     },
   ];
 
