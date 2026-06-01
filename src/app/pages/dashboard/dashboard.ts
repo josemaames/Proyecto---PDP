@@ -39,6 +39,29 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   // Datos para tablas
   expedientesConEstadisticas: any[] = [];
+
+  cargarExpedientesLocalStorage() {
+    const expedientesGuardados = localStorage.getItem('expedientes');
+
+    if (expedientesGuardados) {
+      this.expedientesConEstadisticas = JSON.parse(expedientesGuardados);
+    }
+  }
+
+  calcularEstadisticas() {
+    this.estadisticasTotales = {
+      totalExpedientes: this.expedientesConEstadisticas.length,
+      presupuestoTotal: this.expedientesConEstadisticas.reduce(
+        (sum, e) => sum + (e.presupuesto || 0),
+        0,
+      ),
+      beneficiariosTotal: this.expedientesConEstadisticas.reduce(
+        (sum, e) => sum + (e.beneficiarios || 0),
+        0,
+      ),
+    };
+  }
+
   estadisticasPorResponsable: any[] = [];
   estadisticasTotales = {
     totalExpedientes: 0,
@@ -89,15 +112,13 @@ export class Dashboard implements OnInit, AfterViewInit {
       this.rol = datos.rol;
 
       this.cargarMenuPorRol();
+      this.cargarExpedientesLocalStorage();
 
       // Cargar datos de expedientes
       const expedientes = this.expedienteService.getExpedientes();
       this.expedientesConEstadisticas = expedientes;
-
-      // Cargar gráficos si es Administrador
-      if (this.rol === 'Administrador') {
-        this.cargarGraficos();
-      }
+      this.calcularEstadisticas();
+      this.cargarGraficos();
     } else {
       this.router.navigate(['/login']);
     }
