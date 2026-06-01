@@ -20,11 +20,21 @@ export class Login {
     const usuarios = [
       {
         id: 1,
-        dni: '99999999',
+        dni: '90642735',
         password: 'admin123',
         nombre: 'Administrador General',
         numeroPlantilla: 'PL-0001',
-        tipo: 'Administrador',
+        tipo: 'Administrativo',
+        rol: 'Administrador',
+      },
+
+      {
+        id: 2,
+        dni: '70435255',
+        password: 'admin123',
+        nombre: 'Administrador Secundario',
+        numeroPlantilla: 'PL-0002',
+        tipo: 'Administrativo',
         rol: 'Administrador',
       },
 
