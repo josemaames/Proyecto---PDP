@@ -1,26 +1,21 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgFor, NgClass, NgIf, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
-import {
-  Chart,
-  ChartConfiguration,
-  ChartEvent,
-  registerables,
-} from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { ExpedienteService } from '../../services/expediente.service';
 
-// Registrar todos los elementos de Chart.js
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
-  imports: [NgFor, NgClass, FormsModule, NgIf, BaseChartDirective, DecimalPipe],
+  standalone: true,
+  imports: [NgFor, NgClass, FormsModule, NgIf, DecimalPipe, BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements AfterViewInit {
+export class Dashboard implements OnInit, AfterViewInit {
   nombre = '';
   rol = '';
 
@@ -28,23 +23,10 @@ export class Dashboard implements AfterViewInit {
 
   textoBusqueda = '';
 
-  @ViewChild('pieChartEstado') pieChartEstado: BaseChartDirective | undefined;
-  @ViewChild('pieChartSemaforo') pieChartSemaforo: BaseChartDirective | undefined;
-  @ViewChild('barChartResponsable')
-  barChartResponsable: BaseChartDirective | undefined;
-
-  // Datos para gráficos
-  pieChartDataEstado: any;
-  pieChartLabelEstado: string[] = [];
-  pieChartOptionsEstado: ChartConfiguration['options'];
-
-  pieChartDataSemaforo: any;
-  pieChartLabelSemaforo: string[] = [];
-  pieChartOptionsSemaforo: ChartConfiguration['options'];
-
-  barChartDataResponsable: any;
-  barChartLabelResponsable: string[] = [];
-  barChartOptionsResponsable: ChartConfiguration['options'];
+  // Configuraciones de gráficos
+  chartConfigEstado: any;
+  chartConfigSemaforo: any;
+  chartConfigResponsable: any;
 
   // Datos para tablas
   expedientesConEstadisticas: any[] = [];
@@ -86,57 +68,7 @@ export class Dashboard implements AfterViewInit {
   constructor(
     private router: Router,
     private expedienteService: ExpedienteService,
-  ) {
-    this.pieChartOptionsEstado = {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-        },
-        title: {
-          display: true,
-          text: 'Expedientes por Estado',
-        },
-      },
-    };
-
-    this.pieChartOptionsSemaforo = {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-        },
-        title: {
-          display: true,
-          text: 'Estado de Cumplimiento',
-        },
-      },
-    };
-
-    this.barChartOptionsResponsable = {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        title: {
-          display: true,
-          text: 'Expedientes por Responsable',
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1,
-          },
-        },
-      },
-    };
-  }
+  ) {}
 
   ngOnInit() {
     const usuario = localStorage.getItem('usuario');
@@ -149,7 +81,11 @@ export class Dashboard implements AfterViewInit {
 
       this.cargarMenuPorRol();
 
-      // Cargar datos de gráficos si es Administrador
+      // Cargar datos de expedientes
+      const expedientes = this.expedienteService.getExpedientes();
+      this.expedientesConEstadisticas = expedientes;
+
+      // Cargar gráficos si es Administrador
       if (this.rol === 'Administrador') {
         this.cargarGraficos();
       }
@@ -159,7 +95,7 @@ export class Dashboard implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Los gráficos se inicializan automáticamente
+    // Inicializar
   }
 
   cargarGraficos() {
@@ -181,81 +117,104 @@ export class Dashboard implements AfterViewInit {
       (sum, e) => sum + (e.beneficiarios || 0),
       0,
     );
+    this.estadisticasPorResponsable = responsableStats;
 
-    // Preparar datos para gráfico de pastel - Estados
-    this.pieChartLabelEstado = estadoStats.map((s) => s.estado);
-    this.pieChartDataEstado = {
-      labels: this.pieChartLabelEstado,
-      datasets: [
-        {
-          data: estadoStats.map((s) => s.cantidad),
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-          ],
-          borderColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-          ],
-          borderWidth: 1,
+    // Configuración de gráfico de pastel - Estados
+    this.chartConfigEstado = {
+      type: 'pie',
+      data: {
+        labels: estadoStats.map((s) => s.estado),
+        datasets: [
+          {
+            data: estadoStats.map((s) => s.cantidad),
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+            borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          title: {
+            display: true,
+            text: 'Expedientes por Estado',
+          },
         },
-      ],
+      },
     };
 
-    // Preparar datos para gráfico de pastel - Semáforo
-    this.pieChartLabelSemaforo = semaforoStats.map((s) => s.color);
-    this.pieChartDataSemaforo = {
-      labels: this.pieChartLabelSemaforo,
-      datasets: [
-        {
-          data: semaforoStats.map((s) => s.cantidad),
-          backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
-          borderColor: ['#4CAF50', '#FFC107', '#F44336'],
-          borderWidth: 1,
+    // Configuración de gráfico de pastel - Semáforo
+    this.chartConfigSemaforo = {
+      type: 'pie',
+      data: {
+        labels: semaforoStats.map((s) => s.color),
+        datasets: [
+          {
+            data: semaforoStats.map((s) => s.cantidad),
+            backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
+            borderColor: ['#4CAF50', '#FFC107', '#F44336'],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          title: {
+            display: true,
+            text: 'Estado de Cumplimiento',
+          },
         },
-      ],
+      },
     };
 
-    // Preparar datos para gráfico de barras - Responsable
-    this.barChartLabelResponsable = responsableStats.map((s) => s.responsable);
-    this.barChartDataResponsable = {
-      labels: this.barChartLabelResponsable,
-      datasets: [
-        {
-          label: 'Cantidad de Expedientes',
-          data: responsableStats.map((s) => s.cantidad),
-          backgroundColor: '#36A2EB',
-          borderColor: '#36A2EB',
-          borderWidth: 1,
+    // Configuración de gráfico de barras - Responsable
+    this.chartConfigResponsable = {
+      type: 'bar',
+      data: {
+        labels: responsableStats.map((s) => s.responsable),
+        datasets: [
+          {
+            label: 'Cantidad de Expedientes',
+            data: responsableStats.map((s) => s.cantidad),
+            backgroundColor: '#36A2EB',
+            borderColor: '#36A2EB',
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: 'Expedientes por Responsable',
+          },
         },
-      ],
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+            },
+          },
+        },
+      },
     };
-
-    // Preparar datos para tabla
-    this.expedientesConEstadisticas = expedientes;
-    this.estadisticasPorResponsable = responsableStats.map((r) => {
-      const presupuesto = presupuestoStats.find(
-        (p) => p.estado === r.responsable,
-      )?.presupuesto || 0;
-      const beneficiarios = beneficiarioStats.find(
-        (b) => b.estado === r.responsable,
-      )?.beneficiarios || 0;
-      return {
-        ...r,
-        presupuesto,
-        beneficiarios,
-      };
-    });
   }
-
 
   cargarMenuPorRol() {
     switch (this.rol) {

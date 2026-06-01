@@ -105,42 +105,33 @@
   <!-- GRÁFICOS PARA ADMINISTRADOR -->
   <div *ngIf="rol === 'Administrador'" class="graficos-admin">
     <div class="graficos-container">
-      <!-- Gráfico de Pastel - Estados -->
-      <div class="grafico-box">
+      <div class="grafico-box" *ngIf="chartConfigEstado">
         <h3>Expedientes por Estado</h3>
         <canvas
           baseChart
-          #pieChartEstado
-          [type]="'pie'"
-          [data]="pieChartDataEstado"
-          [options]="pieChartOptionsEstado"
-          [plugins]="[]"
+          [type]="chartConfigEstado.type"
+          [data]="chartConfigEstado.data"
+          [options]="chartConfigEstado.options"
         ></canvas>
       </div>
 
-      <!-- Gráfico de Pastel - Semáforo -->
-      <div class="grafico-box">
+      <div class="grafico-box" *ngIf="chartConfigSemaforo">
         <h3>Estado de Cumplimiento</h3>
         <canvas
           baseChart
-          #pieChartSemaforo
-          [type]="'pie'"
-          [data]="pieChartDataSemaforo"
-          [options]="pieChartOptionsSemaforo"
-          [plugins]="[]"
+          [type]="chartConfigSemaforo.type"
+          [data]="chartConfigSemaforo.data"
+          [options]="chartConfigSemaforo.options"
         ></canvas>
       </div>
 
-      <!-- Gráfico de Barras - Responsable -->
-      <div class="grafico-box">
+      <div class="grafico-box" *ngIf="chartConfigResponsable">
         <h3>Expedientes por Responsable</h3>
         <canvas
           baseChart
-          #barChartResponsable
-          [type]="'bar'"
-          [data]="barChartDataResponsable"
-          [options]="barChartOptionsResponsable"
-          [plugins]="[]"
+          [type]="chartConfigResponsable.type"
+          [data]="chartConfigResponsable.data"
+          [options]="chartConfigResponsable.options"
         ></canvas>
       </div>
     </div>

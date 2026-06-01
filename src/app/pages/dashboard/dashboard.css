@@ -612,3 +612,22 @@ tr:hover {
   }
 }
 
+.graficos-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.grafico-box {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.grafico-box h3 {
+  text-align: center;
+  color: #005baa;
+  margin-bottom: 15px;
+}
