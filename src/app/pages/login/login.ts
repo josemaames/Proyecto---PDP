@@ -18,6 +18,8 @@ export class Login {
 
   ingresar() {
     const usuarios = [
+      // ADMINISTRADORES
+
       {
         id: 1,
         dni: '90642735',
@@ -58,6 +60,8 @@ export class Login {
         rol: 'Administrador',
       },
 
+      // SECTORISTA
+
       {
         id: 5,
         dni: '11111111',
@@ -67,6 +71,8 @@ export class Login {
         tipo: 'Sectorista',
         rol: 'Sectorista',
       },
+
+      // EJECUTOR
 
       {
         id: 6,
@@ -84,7 +90,13 @@ export class Login {
     if (usuario) {
       localStorage.setItem('usuario', JSON.stringify(usuario));
 
-      this.router.navigate(['/dashboard']);
+      if (usuario.rol === 'Administrador') {
+        this.router.navigate(['/dashboard']);
+      } else if (usuario.rol === 'Sectorista') {
+        this.router.navigate(['/sectorista']);
+      } else if (usuario.rol === 'Ejecutor') {
+        this.router.navigate(['/ejecutor']);
+      }
     } else {
       this.error = 'DNI o contraseña incorrectos';
     }
