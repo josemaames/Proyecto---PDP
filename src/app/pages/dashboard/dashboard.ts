@@ -88,7 +88,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       expediente: 'PDP-2026-002',
       capacitacion: 'DERECHO ADMINISTRATIVO Y SEGURIDAD SOCIAL',
       estado: 'Logística',
-      responsable: 'Red Rebagliati',
+      responsable: 'Oficina Central',
       semaforo: 'amarillo',
       beneficiarios: 19,
       presupuesto: 5000,
@@ -98,7 +98,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       expediente: 'PDP-2026-003',
       capacitacion: 'ARBITRAJE CON LA NUEVA LEY GENERAL DE CONTRATACIONES PUBLICAS',
       estado: 'Convocatoria',
-      responsable: 'Red Almenara',
+      responsable: 'Oficina Central',
       semaforo: 'rojo',
       beneficiarios: 19,
       presupuesto: 5000,
@@ -118,7 +118,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       expediente: 'PDP-2026-005',
       capacitacion: 'TALLER EDUCACION INICIA: JUEGOS, INTERACCIONES Y PROYECTOS',
       estado: 'Finalizado',
-      responsable: 'Red Vitarte',
+      responsable: 'Oficina Central',
       semaforo: 'verde',
       beneficiarios: 37,
       presupuesto: 5000,
@@ -152,6 +152,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       // Cargar datos de expedientes
       const expedientes = this.expedienteService.getExpedientes();
       this.expedientesConEstadisticas = expedientes;
+      // Persistir para que otras vistas (ej. Hoja de Ruta) puedan leerlos
+      localStorage.setItem('expedientes', JSON.stringify(expedientes));
       this.calcularEstadisticas();
       this.cargarGraficos();
     } else {

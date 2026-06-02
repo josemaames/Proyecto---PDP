@@ -41,6 +41,7 @@
     <input
       type="text"
       [(ngModel)]="textoBusqueda"
+      (keydown.enter)="buscar()"
       placeholder="Buscar expediente, capacitación, responsable o red asistencial..."
     />
 
@@ -50,6 +51,10 @@
   <div *ngIf="modoDetalle" class="modo-detalle">
     🔎 Visualizando expediente:
     <strong>{{ expedienteSeleccionado.expediente }}</strong>
+    <div class="detalle-horas">
+      <small>Horas lectivas/academicas: <strong>{{ expedienteSeleccionado?.horasLectivas }}</strong></small>
+      <small>Horas cronológicas: <strong>{{ expedienteSeleccionado?.horasCronologicas }}</strong></small>
+    </div>
   </div>
 
   <!-- KPIs PARA ADMINISTRADOR -->

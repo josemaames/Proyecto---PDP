@@ -6,23 +6,25 @@
       <p>Seguimiento Integral de Acciones de Capacitación</p>
     </div>
 
-    <div class="input-group">
-      <label>DNI</label>
+    <form (ngSubmit)="ingresar()">
+      <div class="input-group">
+        <label>DNI</label>
 
-      <input type="text" placeholder="Ingrese su DNI" [(ngModel)]="dni" />
-    </div>
+        <input type="text" placeholder="Ingrese su DNI" [(ngModel)]="dni" name="dni" />
+      </div>
 
-    <div class="input-group">
-      <label>Contraseña</label>
+      <div class="input-group">
+        <label>Contraseña</label>
 
-      <input type="password" placeholder="Ingrese su contraseña" [(ngModel)]="password" />
-    </div>
+        <input type="password" placeholder="Ingrese su contraseña" [(ngModel)]="password" name="password" />
+      </div>
 
-    <div *ngIf="error" class="error">
-      {{ error }}
-    </div>
+      <div *ngIf="error" class="error">
+        {{ error }}
+      </div>
 
-    <button (click)="ingresar()">Ingresar</button>
+      <button type="submit">Ingresar</button>
+    </form>
 
     <div class="usuarios-demo">
       <h4>Usuarios de Prueba</h4>
