@@ -87,18 +87,34 @@ export class Login {
 
     const usuario = usuarios.find((u) => u.dni === this.dni && u.password === this.password);
 
-    if (usuario) {
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-
-      if (usuario.rol === 'Administrador') {
-        this.router.navigate(['/dashboard']);
-      } else if (usuario.rol === 'Sectorista') {
-        this.router.navigate(['/sectorista']);
-      } else if (usuario.rol === 'Ejecutor') {
-        this.router.navigate(['/ejecutor']);
-      }
-    } else {
+    if (!usuario) {
       this.error = 'DNI o contraseña incorrectos';
+      return;
+    }
+
+    // Guardar usuario logueado
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+
+    // Limpiar error
+    this.error = '';
+
+    // Redirección según rol
+    switch (usuario.rol) {
+      case 'Administrador':
+        this.router.navigate(['/dashboard']);
+        break;
+
+      case 'Sectorista':
+        this.router.navigate(['/sectorista']);
+        break;
+
+      case 'Ejecutor':
+        this.router.navigate(['/ejecutor']);
+        break;
+
+      default:
+        this.router.navigate(['/dashboard']);
+        break;
     }
   }
 }

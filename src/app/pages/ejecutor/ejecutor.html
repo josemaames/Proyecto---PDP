@@ -1,0 +1,218 @@
+<div class="ejecutor-container">
+  <div class="page-header">
+    <div>
+      <h1>Matriz Diagnóstico de Necesidades de Capacitación</h1>
+      <p>Plan de Desarrollo de Personas 2026 - EsSalud</p>
+    </div>
+
+    <div class="badge">EJECUTOR</div>
+  </div>
+
+  <div class="banner-pdp">
+    <h2>Registro de Necesidades de Capacitación</h2>
+
+    <p>
+      Complete la información para identificar brechas de conocimiento, desempeño y capacitación del
+      personal.
+    </p>
+  </div>
+
+  <!-- IDENTIFICACIÓN -->
+
+  <div class="card card-identificacion">
+    <h3>Identificación</h3>
+
+    <div class="datos-grid">
+      <div class="campo">
+        <label>Órgano / Unidad Orgánica</label>
+        <small> Ejemplo: Gerencia Central de Gestión de las Personas </small>
+
+        <input
+          type="text"
+          placeholder="Ingrese el órgano o unidad"
+          [(ngModel)]="matrizDnc.organo"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Centro Asistencial</label>
+        <small> Ejemplo: Hospital Nacional Edgardo Rebagliati Martins </small>
+
+        <input
+          type="text"
+          placeholder="Ingrese el centro asistencial"
+          [(ngModel)]="matrizDnc.centroAsistencial"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Servicio / Área</label>
+        <small> Ejemplo: Recursos Humanos, Logística o TI </small>
+
+        <input
+          type="text"
+          placeholder="Ingrese el servicio o área"
+          [(ngModel)]="matrizDnc.servicio"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- NECESIDAD -->
+
+  <div class="card card-necesidad">
+    <h3>Necesidad de Capacitación</h3>
+
+    <div class="campo">
+      <label>Problema identificado</label>
+
+      <small> Describa la brecha de conocimientos, habilidades o desempeño detectada. </small>
+
+      <textarea
+        rows="4"
+        placeholder="Ejemplo: El personal presenta dificultades en la gestión de expedientes electrónicos."
+        [(ngModel)]="matrizDnc.problema"
+      >
+      </textarea>
+    </div>
+
+    <div class="campo">
+      <label>Nombre de la capacitación</label>
+
+      <small> Indique el nombre de la acción formativa requerida. </small>
+
+      <input
+        type="text"
+        placeholder="Ejemplo: Gestión Documental Electrónica"
+        [(ngModel)]="matrizDnc.capacitacion"
+      />
+    </div>
+  </div>
+
+  <!-- OBJETIVOS -->
+
+  <div class="card card-objetivos">
+    <h3>Objetivos</h3>
+
+    <div class="datos-grid">
+      <div class="campo">
+        <label>Objetivo de aprendizaje</label>
+
+        <small> ¿Qué conocimientos o habilidades adquirirá el participante? </small>
+
+        <textarea
+          rows="4"
+          placeholder="Describa el aprendizaje esperado..."
+          [(ngModel)]="matrizDnc.objetivoAprendizaje"
+        >
+        </textarea>
+      </div>
+
+      <div class="campo">
+        <label>Objetivo de desempeño</label>
+
+        <small> ¿Qué mejora se espera observar en el trabajo? </small>
+
+        <textarea
+          rows="4"
+          placeholder="Describa el desempeño esperado..."
+          [(ngModel)]="matrizDnc.objetivoDesempeno"
+        >
+        </textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTICIPANTES -->
+
+  <div class="card card-participantes">
+    <h3>Participantes</h3>
+
+    <div class="info-box">
+      Registre a los trabajadores que requieren participar en la capacitación.
+    </div>
+
+    <table class="tabla-participantes">
+      <thead>
+        <tr>
+          <th>DNI</th>
+          <th>Nombre Completo</th>
+          <th>Género</th>
+          <th>Régimen</th>
+          <th>Puesto</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let p of participantes; let i = index">
+          <td>
+            <input placeholder="DNI" [(ngModel)]="p.dni" />
+          </td>
+
+          <td>
+            <input placeholder="Nombre completo" [(ngModel)]="p.nombre" />
+          </td>
+
+          <td>
+            <input placeholder="Masculino/Femenino" [(ngModel)]="p.genero" />
+          </td>
+
+          <td>
+            <input placeholder="276 / CAS / 728" [(ngModel)]="p.regimen" />
+          </td>
+
+          <td>
+            <input placeholder="Cargo o puesto" [(ngModel)]="p.puesto" />
+          </td>
+
+          <td>
+            <button class="btn-eliminar" (click)="eliminarParticipante(i)">✖</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button class="btn-agregar" (click)="agregarParticipante()">+ Agregar Participante</button>
+  </div>
+
+  <!-- COSTOS -->
+
+  <div class="card card-costos">
+    <h3>Costos de Capacitación</h3>
+
+    <div class="info-box">Registre el presupuesto estimado para la acción de capacitación.</div>
+
+    <div class="datos-grid">
+      <div class="campo">
+        <label>Costo Directo</label>
+
+        <small> Honorarios, materiales, certificados, alquileres, etc. </small>
+
+        <input type="number" [(ngModel)]="matrizDnc.costoDirecto" (input)="calcularCostoTotal()" />
+      </div>
+
+      <div class="campo">
+        <label>Costo Indirecto</label>
+
+        <small> Viáticos, horas hombre, traslados u otros gastos asociados. </small>
+
+        <input
+          type="number"
+          [(ngModel)]="matrizDnc.costoIndirecto"
+          (input)="calcularCostoTotal()"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Costo Total</label>
+
+        <small> Calculado automáticamente. </small>
+
+        <input [value]="matrizDnc.costoTotal" readonly />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-guardar" (click)="guardarDnc()">📤 Registrar Matriz DNC</button>
+</div>

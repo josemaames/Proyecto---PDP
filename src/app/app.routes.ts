@@ -6,6 +6,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { HojaRuta } from './pages/hoja-ruta/hoja-ruta';
 import { ExpedientesPdp } from './pages/expedientes-pdp/expedientes-pdp';
 import { Personal } from './pages/personal/personal';
+import { Ejecutor } from './pages/ejecutor/ejecutor';
 
 export const routes: Routes = [
   {
@@ -47,6 +48,11 @@ export const routes: Routes = [
   {
     path: 'sectorista',
     component: Sectorista,
+  },
+
+  {
+    path: 'ejecutor',
+    component: Ejecutor,
   },
 
   // Ruta comodín (opcional pero recomendada)
