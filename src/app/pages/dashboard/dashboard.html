@@ -1,13 +1,17 @@
 <div class="topbar">
   <div class="topbar-left">
-    <h2>Sistema PDP - EsSalud</h2>
-    <span>Seguimiento Integral de Acciones de Capacitación</span>
+    <h2>Sistema de Gestión PDP - EsSalud</h2>
+    <span>Plan de Desarrollo de las Personas</span>
   </div>
 
   <div class="topbar-right">
     <div class="usuario-info">
-      <strong>{{ nombre }}</strong>
-      <small>Rol: {{ rol }}</small>
+      <h3>{{ usuarioActual?.nombre }}</h3>
+      <p>
+        Rol:
+        {{ usuarioActual?.rol }}
+        <span *ngIf="esAdministrador"> (Administrador General) </span>
+      </p>
     </div>
 
     <button class="btn-sesion" (click)="cerrarSesion()">Cerrar Sesión</button>
@@ -17,9 +21,15 @@
 <!-- NAVBAR -->
 
 <div class="navbar">
-  <a *ngFor="let item of menuItems" class="menu-link" (click)="irModulo(item)">
-    {{ item }}
-  </a>
+  <a routerLink="/dashboard" class="menu-link"> Inicio </a>
+
+  <a routerLink="/expedientes" class="menu-link"> Expedientes </a>
+
+  <a routerLink="/hoja-ruta" class="menu-link"> Hoja de Ruta </a>
+
+  <a *ngIf="esAdministrador" routerLink="/personal" class="menu-link"> Personal </a>
+
+  <a *ngIf="esAdministrador" class="menu-link"> Administración </a>
 </div>
 
 <!-- CONTENIDO -->
@@ -35,6 +45,11 @@
     />
 
     <button (click)="buscar()">🔍 Buscar</button>
+  </div>
+
+  <div *ngIf="modoDetalle" class="modo-detalle">
+    🔎 Visualizando expediente:
+    <strong>{{ expedienteSeleccionado.expediente }}</strong>
   </div>
 
   <!-- KPIs PARA ADMINISTRADOR -->
@@ -222,7 +237,10 @@
           <td>{{ item.capacitacion }}</td>
 
           <td class="estado">
-            {{ item.estado }}
+            <div *ngIf="item.estado === 'Activo'" class="estado-activo">✓ Usuario Activo</div>
+            <div *ngIf="item.estado !== 'Activo'">
+              {{ item.estado }}
+            </div>
           </td>
 
           <td>

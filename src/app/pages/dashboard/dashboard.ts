@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgFor, NgClass, NgIf, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
@@ -11,13 +11,17 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgClass, FormsModule, NgIf, DecimalPipe, BaseChartDirective],
+  imports: [NgFor, NgClass, FormsModule, NgIf, DecimalPipe, BaseChartDirective, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, AfterViewInit {
   nombre = '';
   rol = '';
+  usuarioActual: any;
+  esAdministrador = false;
+  esSectorista = false;
+  esEjecutor = false;
 
   menuItems: string[] = [];
 
@@ -108,8 +112,13 @@ export class Dashboard implements OnInit, AfterViewInit {
     if (usuario) {
       const datos = JSON.parse(usuario);
 
+      this.usuarioActual = datos;
       this.nombre = datos.nombre;
       this.rol = datos.rol;
+
+      this.esAdministrador = this.usuarioActual?.rol === 'Administrador';
+      this.esSectorista = this.usuarioActual?.rol === 'Sectorista';
+      this.esEjecutor = this.usuarioActual?.rol === 'Ejecutor';
 
       this.cargarMenuPorRol();
       this.cargarExpedientesLocalStorage();
@@ -257,22 +266,21 @@ export class Dashboard implements OnInit, AfterViewInit {
     switch (this.rol) {
       case 'Administrador':
         this.menuItems = [
-          'Dashboard',
-          'Expedientes PDP',
+          'Inicio',
+          'Expedientes',
           'Hoja de Ruta',
-          'Personal de Salud',
-          'Personal Administrativo',
+          'Personal',
           'Reportes',
-          'Configuración',
+          'Administración',
         ];
         break;
 
       case 'Sectorista':
-        this.menuItems = ['Dashboard', 'Expedientes PDP', 'Hoja de Ruta', 'Reportes'];
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes'];
         break;
 
       case 'Ejecutor':
-        this.menuItems = ['Dashboard', 'Expedientes PDP', 'Hoja de Ruta'];
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta'];
         break;
 
       default:
@@ -369,22 +377,34 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   irModulo(modulo: string) {
-    if (modulo === 'Dashboard') {
-      this.router.navigate(['/dashboard']);
-      return;
-    }
+    switch (modulo) {
+      case 'Inicio':
+        this.router.navigate(['/dashboard']);
+        break;
 
-    if (modulo === 'Expedientes PDP') {
-      this.router.navigate(['/expedientes']);
-      return;
-    }
+      case 'Expedientes':
+        this.router.navigate(['/expedientes']);
+        break;
 
-    if (modulo === 'Hoja de Ruta') {
-      this.router.navigate(['/hoja-ruta']);
-      return;
-    }
+      case 'Hoja de Ruta':
+        this.router.navigate(['/hoja-ruta']);
+        break;
 
-    alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+      case 'Personal':
+        this.router.navigate(['/personal']);
+        break;
+
+      case 'Reportes':
+        alert('🚧 Módulo Reportes en desarrollo');
+        break;
+
+      case 'Administración':
+        alert('🚧 Módulo Administración en desarrollo');
+        break;
+
+      default:
+        alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+    }
   }
 
   verRuta() {

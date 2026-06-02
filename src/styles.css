@@ -1,1 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --essalud-blue: #005baa;
+  --essalud-light: #f4f6f8;
+  --essalud-gray: #6c757d;
+  --essalud-success: #28a745;
+  --essalud-warning: #ffc107;
+  --essalud-danger: #dc3545;
+}

@@ -1,0 +1,197 @@
+<div class="personal-container">
+  <div class="header">
+    <h2>Personal del Sistema PDP</h2>
+
+    <button class="btn-nuevo" (click)="nuevoUsuario()">+ Nuevo Usuario</button>
+  </div>
+
+  <div class="estadisticas">
+    <div class="card-stat">
+      <h3>{{ totalAdministradores }}</h3>
+      <p>Administradores</p>
+    </div>
+
+    <div class="card-stat">
+      <h3>{{ totalSectoristas }}</h3>
+      <p>Sectoristas</p>
+    </div>
+
+    <div class="card-stat">
+      <h3>{{ totalEjecutores }}</h3>
+      <p>Ejecutores</p>
+    </div>
+
+    <div class="card-stat activo">
+      <h3>{{ totalActivos }}</h3>
+      <p>Activos</p>
+    </div>
+
+    <div class="card-stat inactivo">
+      <h3>{{ totalInactivos }}</h3>
+      <p>Inactivos</p>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+
+  <div class="filtros">
+    <input type="text" placeholder="🔍 Buscar por nombre o DNI" [(ngModel)]="textoBusqueda" />
+
+    <select [(ngModel)]="filtroRol">
+      <option value="Todos">Todos los roles</option>
+      <option value="Administrador">Administrador</option>
+      <option value="Sectorista">Sectorista</option>
+      <option value="Ejecutor">Ejecutor</option>
+    </select>
+
+    <select [(ngModel)]="filtroEstado">
+      <option value="Todos">Todos los estados</option>
+      <option value="Activo">Activo</option>
+      <option value="Inactivo">Inactivo</option>
+    </select>
+  </div>
+
+  <div class="formulario-usuario" *ngIf="mostrarFormulario">
+    <h3>
+      {{ modoEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}
+    </h3>
+
+    <div class="campo">
+      <label>DNI</label>
+      <input type="text" [(ngModel)]="nuevoUsuarioData.dni" />
+    </div>
+
+    <div class="campo">
+      <label>Nombre Completo</label>
+      <input type="text" [(ngModel)]="nuevoUsuarioData.nombre" />
+    </div>
+
+    <div class="campo">
+      <label>Cargo</label>
+      <input type="text" [(ngModel)]="nuevoUsuarioData.cargo" />
+    </div>
+
+    <div class="campo">
+      <label>Rol</label>
+      <select [(ngModel)]="nuevoUsuarioData.rol">
+        <option value="Administrador">Administrador</option>
+        <option value="Sectorista">Sectorista</option>
+        <option value="Ejecutor">Ejecutor</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Estado</label>
+      <select [(ngModel)]="nuevoUsuarioData.estado">
+        <option value="Activo">Activo</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+    </div>
+
+    <div class="acciones-formulario">
+      <button class="btn-guardar" (click)="guardarUsuario()">Guardar</button>
+
+      <button class="btn-cancelar" (click)="cancelarUsuario()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarDetalle">
+    <div class="modal-detalle">
+      <div class="logo-modal">
+        <img src="logo-essalud.png" alt="EsSalud" />
+      </div>
+
+      <div class="perfil-container">
+        <img
+          class="foto-perfil"
+          [src]="usuarioSeleccionado?.foto || 'logo-essalud.png'"
+          alt="Usuario"
+        />
+      </div>
+
+      <h2 class="titulo-usuario">Información del Usuario</h2>
+
+      <div class="detalle-item">
+        <strong>DNI</strong>
+        <span>{{ usuarioSeleccionado?.dni }}</span>
+      </div>
+
+      <div class="detalle-item">
+        <strong>Nombre Completo</strong>
+        <span>{{ usuarioSeleccionado?.nombre }}</span>
+      </div>
+
+      <div class="detalle-item">
+        <strong>Cargo</strong>
+        <span>{{ usuarioSeleccionado?.cargo }}</span>
+      </div>
+
+      <div class="detalle-item">
+        <strong>Rol</strong>
+        <span>{{ usuarioSeleccionado?.rol }}</span>
+      </div>
+
+      <div class="detalle-item">
+        <strong>Estado</strong>
+
+        <span
+          class="badge-estado"
+          [class.activo]="usuarioSeleccionado?.estado === 'Activo'"
+          [class.inactivo]="usuarioSeleccionado?.estado === 'Inactivo'"
+        >
+          {{ usuarioSeleccionado?.estado }}
+        </span>
+      </div>
+
+      <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+
+  <div class="tabla-box">
+    <table>
+      <thead>
+        <tr>
+          <th>DNI</th>
+          <th>Nombre</th>
+          <th>Cargo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let usuario of usuariosFiltrados">
+          <td>{{ usuario.dni }}</td>
+
+          <td>{{ usuario.nombre }}</td>
+
+          <td>{{ usuario.cargo }}</td>
+
+          <td>{{ usuario.rol }}</td>
+
+          <td>
+            <span
+              [style.color]="usuario.estado === 'Activo' ? 'green' : 'red'"
+              [style.fontWeight]="'bold'"
+            >
+              {{ usuario.estado }}
+            </span>
+          </td>
+
+          <td>
+            <button class="btn-ver" (click)="verUsuario(usuario.dni)">Ver</button>
+
+            <button class="btn-editar" (click)="editarUsuario(usuario.dni)">Editar</button>
+
+            <button class="btn-estado" (click)="cambiarEstado(usuario.dni)">
+              {{ usuario.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
