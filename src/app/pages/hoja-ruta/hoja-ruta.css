@@ -329,3 +329,41 @@
     justify-content: flex-start;
   }
 }
+
+.expedientes-lista {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+
+.expedientes-lista h2 {
+  color: #005baa;
+  margin-bottom: 20px;
+}
+
+.expedientes-lista table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.expedientes-lista th {
+  background: #005baa;
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+.expedientes-lista td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.btn-ruta {
+  background: #005baa;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}

@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
+import { Sectorista } from './pages/sectorista/sectorista';
 
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { HojaRuta } from './pages/hoja-ruta/hoja-ruta';
 import { ExpedientesPdp } from './pages/expedientes-pdp/expedientes-pdp';
+import { Personal } from './pages/personal/personal';
 
 export const routes: Routes = [
   {
@@ -35,6 +37,16 @@ export const routes: Routes = [
   {
     path: 'hoja-ruta',
     component: HojaRuta,
+  },
+
+  {
+    path: 'personal',
+    component: Personal,
+  },
+
+  {
+    path: 'sectorista',
+    component: Sectorista,
   },
 
   // Ruta comodín (opcional pero recomendada)

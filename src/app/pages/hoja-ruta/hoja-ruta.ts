@@ -1,20 +1,28 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-hoja-ruta',
-  imports: [],
+  imports: [NgFor],
   templateUrl: './hoja-ruta.html',
   styleUrl: './hoja-ruta.css',
 })
 export class HojaRuta implements OnInit {
-  expediente: string = '';
-
-  constructor(private route: ActivatedRoute) {}
+  expedientes: any[] = [];
+  expedienteSeleccionado: any = null;
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
-      this.expediente = params['expediente'] || '';
-    });
+    const expedientesGuardados = localStorage.getItem('expedientes');
+
+    if (expedientesGuardados) {
+      this.expedientes = JSON.parse(expedientesGuardados);
+      this.expedienteSeleccionado = this.expedientes[0];
+    }
+
+    console.log('Expedientes LocalStorage:', this.expedientes);
+  }
+
+  verRuta(expediente: string) {
+    this.expedienteSeleccionado = this.expedientes.find((e) => e.expediente === expediente);
   }
 }

@@ -1,0 +1,69 @@
+<div class="sectorista-container">
+  <h1>Matriz de Ejecución PDP</h1>
+
+  <div class="card">
+    <h2>Datos Generales</h2>
+
+    <input type="text" placeholder="Responsable ORH" [(ngModel)]="matriz.responsable" />
+
+    <input type="email" placeholder="Correo ORH" [(ngModel)]="matriz.correo" />
+
+    <input type="text" placeholder="Teléfono" [(ngModel)]="matriz.telefono" />
+  </div>
+
+  <div class="card">
+    <h2>Capacitación</h2>
+
+    <input type="text" placeholder="Acción de Formación" [(ngModel)]="matriz.accionFormacion" />
+
+    <select [(ngModel)]="matriz.tipoAccion">
+      <option>Curso</option>
+
+      <option>Diplomado</option>
+
+      <option>Especialización</option>
+
+      <option>Pasantía</option>
+
+      <option>Mentoría</option>
+    </select>
+
+    <input type="number" placeholder="Costo Total" [(ngModel)]="matriz.costoTotal" />
+
+    <input type="number" placeholder="Beneficiarios" [(ngModel)]="matriz.beneficiarios" />
+  </div>
+
+  <div class="card">
+    <h2>Proveedor</h2>
+
+    <input type="text" placeholder="Proveedor" [(ngModel)]="matriz.proveedor" />
+
+    <input type="text" placeholder="RUC Proveedor" [(ngModel)]="matriz.rucProveedor" />
+  </div>
+
+  <div class="card">
+    <h2>Financiamiento</h2>
+
+    <select [(ngModel)]="matriz.financiamiento">
+      <option>Sí</option>
+
+      <option>No</option>
+    </select>
+
+    <input type="number" placeholder="Monto Cofinanciado" [(ngModel)]="matriz.montoCofinanciado" />
+  </div>
+
+  <div class="card">
+    <h2>Modificación PDP</h2>
+
+    <select [(ngModel)]="matriz.modificacionPdp">
+      <option>Sí</option>
+
+      <option>No</option>
+    </select>
+
+    <textarea rows="4" placeholder="Informe ORH" [(ngModel)]="matriz.informeOrh"></textarea>
+  </div>
+
+  <button class="btn-guardar" (click)="guardarMatriz()">Guardar Matriz PDP</button>
+</div>

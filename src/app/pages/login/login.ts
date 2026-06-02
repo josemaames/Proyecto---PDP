@@ -18,13 +18,15 @@ export class Login {
 
   ingresar() {
     const usuarios = [
+      // ADMINISTRADORES
+
       {
         id: 1,
         dni: '90642735',
         password: 'admin123',
-        nombre: 'Administrador General',
+        nombre: 'José Manuel Ames Anapán',
         numeroPlantilla: 'PL-0001',
-        tipo: 'Administrativo',
+        tipo: 'Especialista PDP',
         rol: 'Administrador',
       },
 
@@ -32,28 +34,52 @@ export class Login {
         id: 2,
         dni: '70435255',
         password: 'admin123',
-        nombre: 'Administrador Secundario',
+        nombre: 'Víctor Gabriel Acero Garay',
         numeroPlantilla: 'PL-0002',
-        tipo: 'Administrativo',
+        tipo: 'Especialista PDP',
         rol: 'Administrador',
       },
 
       {
-        id: 2,
+        id: 3,
+        dni: '73456264',
+        password: 'admin123',
+        nombre: 'Fernando David Campos Quiroz',
+        numeroPlantilla: 'PL-0003',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+
+      {
+        id: 4,
+        dni: '45611148',
+        password: 'admin123',
+        nombre: 'Sthywen Javier Muñoz Ruiz',
+        numeroPlantilla: 'PL-0004',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+
+      // SECTORISTA
+
+      {
+        id: 5,
         dni: '11111111',
         password: 'sector123',
         nombre: 'María Torres',
-        numeroPlantilla: 'PL-0002',
+        numeroPlantilla: 'PL-0005',
         tipo: 'Sectorista',
         rol: 'Sectorista',
       },
 
+      // EJECUTOR
+
       {
-        id: 3,
+        id: 6,
         dni: '22222222',
         password: 'ejecutor123',
-        nombre: 'José Manuel Ames Anapan',
-        numeroPlantilla: 'PL-0003',
+        nombre: 'Ricardo Mendoza',
+        numeroPlantilla: 'PL-0006',
         tipo: 'Ejecutor',
         rol: 'Ejecutor',
       },
@@ -64,7 +90,13 @@ export class Login {
     if (usuario) {
       localStorage.setItem('usuario', JSON.stringify(usuario));
 
-      this.router.navigate(['/dashboard']);
+      if (usuario.rol === 'Administrador') {
+        this.router.navigate(['/dashboard']);
+      } else if (usuario.rol === 'Sectorista') {
+        this.router.navigate(['/sectorista']);
+      } else if (usuario.rol === 'Ejecutor') {
+        this.router.navigate(['/ejecutor']);
+      }
     } else {
       this.error = 'DNI o contraseña incorrectos';
     }

@@ -1,16 +1,54 @@
+<div class="expedientes-lista">
+  <h2>Consulta de Expedientes PDP</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Expediente</th>
+        <th>Capacitación</th>
+        <th>Estado</th>
+        <th>Responsable</th>
+        <th>Beneficiarios</th>
+        <th>Presupuesto</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let item of expedientes">
+        <td>{{ item.expediente }}</td>
+
+        <td>{{ item.capacitacion }}</td>
+
+        <td>{{ item.estado }}</td>
+
+        <td>{{ item.responsable }}</td>
+
+        <td>{{ item.beneficiarios }}</td>
+
+        <td>S/. {{ item.presupuesto }}</td>
+
+        <td>
+          <button class="btn-ruta" (click)="verRuta(item.expediente)">Ver Ruta</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <div class="ruta-container">
   <h1>Hoja de Ruta PDP</h1>
 
   <div class="expediente-card">
     <div class="encabezado">
       <div>
-        <h2>{{ expediente || 'PDP-2026-001' }}</h2>
-        <p>Seguridad del Paciente</p>
+        <h2>{{ expedienteSeleccionado?.expediente }}</h2>
+        <p>{{ expedienteSeleccionado?.capacitacion }}</p>
       </div>
 
       <div class="estado-actual">
         <span>Estado Actual</span>
-        <strong>Convocatoria</strong>
+        <strong>{{ expedienteSeleccionado?.estado }}</strong>
       </div>
     </div>
 
@@ -28,7 +66,7 @@
     <div class="info-grid">
       <div class="info-card">
         <h4>Responsable Actual</h4>
-        <p>Subgerencia de Capacitación</p>
+        <p>{{ expedienteSeleccionado?.responsable }}</p>
       </div>
 
       <div class="info-card">
@@ -43,7 +81,7 @@
 
       <div class="info-card alerta">
         <h4>Días Restantes</h4>
-        <p>12 días</p>
+        <p>{{ expedienteSeleccionado?.beneficiarios }} beneficiarios</p>
       </div>
     </div>
 
