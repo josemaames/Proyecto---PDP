@@ -1,14 +1,30 @@
+<div class="titulo-principal">📋 Matriz de Ejecución PDP - SERVIR</div>
+
 <div class="sectorista-container">
   <h1>Matriz de Ejecución PDP</h1>
 
   <div class="card">
-    <h2>Datos Generales</h2>
+    <div class="card-header">
+      <span>🏢</span>
+      <h2>Datos Generales</h2>
+    </div>
 
-    <input type="text" placeholder="Responsable ORH" [(ngModel)]="matriz.responsable" />
+    <div class="datos-grid">
+      <div class="campo">
+        <label>Responsable ORH</label>
+        <input type="text" [(ngModel)]="matriz.responsable" />
+      </div>
 
-    <input type="email" placeholder="Correo ORH" [(ngModel)]="matriz.correo" />
+      <div class="campo">
+        <label>Correo ORH</label>
+        <input type="email" [(ngModel)]="matriz.correo" />
+      </div>
 
-    <input type="text" placeholder="Teléfono" [(ngModel)]="matriz.telefono" />
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="matriz.telefono" />
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -30,7 +46,111 @@
 
     <input type="number" placeholder="Costo Total" [(ngModel)]="matriz.costoTotal" />
 
-    <input type="number" placeholder="Beneficiarios" [(ngModel)]="matriz.beneficiarios" />
+    <input
+      type="number"
+      placeholder="Cantidad de Beneficiarios"
+      [(ngModel)]="matriz.cantidadBeneficiarios"
+    />
+  </div>
+
+  <div class="card">
+    <h2>Beneficiarios de la Capacitación</h2>
+
+    <table class="tabla-beneficiarios">
+      <thead>
+        <tr>
+          <th>Nombre Completo</th>
+          <th>DNI</th>
+          <th>Género</th>
+          <th>Régimen</th>
+          <th>Unidad Orgánica</th>
+          <th>Puesto</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let b of beneficiarios; let i = index">
+          <td>
+            <input type="text" [(ngModel)]="b.nombre" />
+          </td>
+
+          <td>
+            <input type="text" [(ngModel)]="b.dni" />
+          </td>
+
+          <td>
+            <select [(ngModel)]="b.genero">
+              <option value="">Seleccione</option>
+              <option>Masculino</option>
+              <option>Femenino</option>
+            </select>
+          </td>
+
+          <td>
+            <input type="text" [(ngModel)]="b.regimen" />
+          </td>
+
+          <td>
+            <input type="text" [(ngModel)]="b.unidad" />
+          </td>
+
+          <td>
+            <input type="text" [(ngModel)]="b.puesto" />
+          </td>
+
+          <td>
+            <button class="btn-eliminar" (click)="eliminarBeneficiario(i)">✖</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="acciones-beneficiario">
+    <button type="button" class="btn-agregar" (click)="agregarBeneficiario()">
+      ➕ Agregar Beneficiario
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Duración de la Capacitación</h2>
+
+    <input
+      type="number"
+      placeholder="Horas de capacitación"
+      [(ngModel)]="matriz.horasCapacitacion"
+    />
+
+    <input
+      type="number"
+      placeholder="Horas fuera de jornada"
+      [(ngModel)]="matriz.horasFueraJornada"
+    />
+  </div>
+
+  <div class="card">
+    <h2>Evaluación</h2>
+
+    <select [(ngModel)]="matriz.nivelEvaluacion">
+      <option value="">Seleccione</option>
+      <option>Reacción</option>
+      <option>Reacción y aprendizaje</option>
+      <option>Reacción y aplicación</option>
+      <option>Reacción, aprendizaje y aplicación</option>
+    </select>
+
+    <input
+      type="text"
+      placeholder="Resultado de aprendizaje"
+      [(ngModel)]="matriz.resultadoAprendizaje"
+    />
+
+    <input
+      type="text"
+      placeholder="Resultado de aplicación"
+      [(ngModel)]="matriz.resultadoAplicacion"
+    />
   </div>
 
   <div class="card">
@@ -39,6 +159,12 @@
     <input type="text" placeholder="Proveedor" [(ngModel)]="matriz.proveedor" />
 
     <input type="text" placeholder="RUC Proveedor" [(ngModel)]="matriz.rucProveedor" />
+
+    <select [(ngModel)]="matriz.sectorProveedor">
+      <option value="">Seleccione</option>
+      <option>Público</option>
+      <option>Privado</option>
+    </select>
   </div>
 
   <div class="card">
@@ -57,9 +183,9 @@
     <h2>Modificación PDP</h2>
 
     <select [(ngModel)]="matriz.modificacionPdp">
-      <option>Sí</option>
-
       <option>No</option>
+      <option>Sí. Modificación</option>
+      <option>Sí. Variación</option>
     </select>
 
     <textarea rows="4" placeholder="Informe ORH" [(ngModel)]="matriz.informeOrh"></textarea>

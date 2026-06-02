@@ -1,26 +1,48 @@
 .sectorista-container {
-  max-width: 1200px;
-  margin: 40px auto;
+  max-width: 1400px;
+  margin: 30px auto;
   padding: 20px;
 }
 
-.sectorista-container h1 {
-  color: #005baa;
-  margin-bottom: 30px;
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 25px;
+
+  border-top: 5px solid #0b5cab;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+  transition: all 0.3s ease;
 }
 
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 20px;
+.card:hover {
+  transform: translateY(-4px);
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 35px rgba(11, 92, 171, 0.15);
 }
 
 .card h2 {
-  color: #005baa;
-  margin-bottom: 20px;
+  color: #0b5cab;
+  font-size: 30px;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.card h2::after {
+  content: '';
+
+  width: 80px;
+  height: 4px;
+
+  background: #0b5cab;
+
+  display: block;
+
+  margin-top: 8px;
+
+  border-radius: 10px;
 }
 
 input,
@@ -28,27 +50,228 @@ select,
 textarea {
   width: 100%;
 
-  padding: 12px;
+  padding: 14px 16px;
+
+  border: 2px solid #e5e7eb;
+
+  border-radius: 12px;
+
+  font-size: 15px;
+
+  transition: all 0.3s ease;
+
+  box-sizing: border-box;
 
   margin-bottom: 15px;
-
-  border: 1px solid #d9d9d9;
-
-  border-radius: 8px;
 }
 
-.btn-guardar {
-  background: #005baa;
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+
+  border-color: #0b5cab;
+
+  box-shadow: 0 0 12px rgba(11, 92, 171, 0.15);
+}
+
+/* TABLA BENEFICIARIOS */
+
+.tabla-beneficiarios {
+  width: 100%;
+  border-collapse: collapse;
+
+  overflow: hidden;
+
+  border-radius: 15px;
+}
+
+.tabla-beneficiarios th {
+  background: #0b5cab;
+
+  color: white;
+
+  padding: 16px;
+
+  text-align: center;
+
+  font-size: 15px;
+}
+
+.tabla-beneficiarios td {
+  padding: 10px;
+
+  border-bottom: 1px solid #ececec;
+}
+
+.tabla-beneficiarios tr:hover {
+  background: #f4f8ff;
+}
+
+/* BOTÓN AGREGAR */
+
+.btn-agregar {
+  background: linear-gradient(135deg, #0b5cab, #1976d2);
 
   color: white;
 
   border: none;
 
-  padding: 15px 30px;
+  padding: 12px 22px;
 
   border-radius: 10px;
 
   cursor: pointer;
 
-  font-size: 16px;
+  font-weight: 600;
+
+  transition: all 0.3s ease;
+}
+
+.btn-agregar:hover {
+  transform: scale(1.03);
+
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.25);
+}
+
+/* BOTÓN ELIMINAR */
+
+.btn-eliminar {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  background: #dc3545;
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+
+  cursor: pointer;
+}
+
+.btn-eliminar:hover {
+  background: #b02a37;
+
+  transform: scale(1.05);
+}
+
+/* BOTÓN GUARDAR */
+
+.btn-guardar {
+  width: 100%;
+
+  padding: 18px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #0b5cab, #1e88e5);
+
+  color: white;
+
+  font-size: 18px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.btn-guardar:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 12px 25px rgba(11, 92, 171, 0.25);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .tabla-beneficiarios {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+.titulo-principal {
+  text-align: center;
+
+  font-size: 38px;
+
+  font-weight: bold;
+
+  color: #0b5cab;
+
+  margin-bottom: 25px;
+}
+
+.acciones-beneficiario {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  top: -10px;
+}
+
+.tabla-beneficiarios td {
+  padding: 14px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.card-header span {
+  font-size: 28px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #005bac;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #444;
+}
+
+.campo input {
+  height: 55px;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 0 15px;
+  font-size: 15px;
+  transition: 0.25s;
+}
+
+.campo input:focus {
+  outline: none;
+  border-color: #005bac;
+  box-shadow: 0 0 0 4px rgba(0, 91, 172, 0.12);
 }
