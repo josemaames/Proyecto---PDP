@@ -1,28 +1,31 @@
 <div class="ejecutor-container">
+  <!-- HEADER -->
+
   <div class="page-header">
-    <div>
-      <h1>Matriz Diagnóstico de Necesidades de Capacitación</h1>
-      <p>Plan de Desarrollo de Personas 2026 - EsSalud</p>
+    <div class="page-header">
+      <h1>📋 Matriz Diagnóstico DNC</h1>
+      <p>Plan de Desarrollo de Personas - EsSalud</p>
+
+      <div class="badge">EJECUTOR</div>
     </div>
 
     <div class="badge">EJECUTOR</div>
   </div>
 
+  <!-- BANNER -->
+
   <div class="banner-pdp">
     <h2>Registro de Necesidades de Capacitación</h2>
 
-    <p>
-      Complete la información para identificar brechas de conocimiento, desempeño y capacitación del
-      personal.
-    </p>
+    <p>Complete la información para registrar la necesidad formativa identificada en su unidad.</p>
   </div>
 
   <!-- IDENTIFICACIÓN -->
 
-  <div class="card card-identificacion">
-    <h3>Identificación</h3>
+  <div class="card">
+    <div class="section-title">🏥 Identificación</div>
 
-    <div class="datos-grid">
+    <div class="datos-grid dos-columnas">
       <div class="campo">
         <label>Órgano / Unidad Orgánica</label>
         <small> Ejemplo: Gerencia Central de Gestión de las Personas </small>
@@ -60,8 +63,8 @@
 
   <!-- NECESIDAD -->
 
-  <div class="card card-necesidad">
-    <h3>Necesidad de Capacitación</h3>
+  <div class="card">
+    <h3>🎯 Necesidad de Capacitación</h3>
 
     <div class="campo">
       <label>Problema identificado</label>
@@ -69,7 +72,7 @@
       <small> Describa la brecha de conocimientos, habilidades o desempeño detectada. </small>
 
       <textarea
-        rows="4"
+        rows="5"
         placeholder="Ejemplo: El personal presenta dificultades en la gestión de expedientes electrónicos."
         [(ngModel)]="matrizDnc.problema"
       >
@@ -91,18 +94,18 @@
 
   <!-- OBJETIVOS -->
 
-  <div class="card card-objetivos">
-    <h3>Objetivos</h3>
+  <div class="card">
+    <h3>🚀 Objetivos</h3>
 
     <div class="datos-grid">
       <div class="campo">
         <label>Objetivo de aprendizaje</label>
 
-        <small> ¿Qué conocimientos o habilidades adquirirá el participante? </small>
+        <small> ¿Qué conocimientos o competencias desarrollará el participante? </small>
 
         <textarea
           rows="4"
-          placeholder="Describa el aprendizaje esperado..."
+          placeholder="Ejemplo: Fortalecer competencias en gestión documental."
           [(ngModel)]="matrizDnc.objetivoAprendizaje"
         >
         </textarea>
@@ -115,7 +118,7 @@
 
         <textarea
           rows="4"
-          placeholder="Describa el desempeño esperado..."
+          placeholder="Ejemplo: Reducir tiempos de atención y mejorar la calidad del registro."
           [(ngModel)]="matrizDnc.objetivoDesempeno"
         >
         </textarea>
@@ -125,12 +128,8 @@
 
   <!-- PARTICIPANTES -->
 
-  <div class="card card-participantes">
-    <h3>Participantes</h3>
-
-    <div class="info-box">
-      Registre a los trabajadores que requieren participar en la capacitación.
-    </div>
+  <div class="card">
+    <h3>👥 Participantes</h3>
 
     <table class="tabla-participantes">
       <thead>
@@ -155,7 +154,7 @@
           </td>
 
           <td>
-            <input placeholder="Masculino/Femenino" [(ngModel)]="p.genero" />
+            <input placeholder="Masculino / Femenino" [(ngModel)]="p.genero" />
           </td>
 
           <td>
@@ -163,7 +162,7 @@
           </td>
 
           <td>
-            <input placeholder="Cargo o puesto" [(ngModel)]="p.puesto" />
+            <input placeholder="Cargo" [(ngModel)]="p.puesto" />
           </td>
 
           <td>
@@ -173,46 +172,44 @@
       </tbody>
     </table>
 
-    <button class="btn-agregar" (click)="agregarParticipante()">+ Agregar Participante</button>
+    <button class="btn-agregar" (click)="agregarParticipante()">➕ Agregar Participante</button>
   </div>
 
   <!-- COSTOS -->
 
-  <div class="card card-costos">
-    <h3>Costos de Capacitación</h3>
-
-    <div class="info-box">Registre el presupuesto estimado para la acción de capacitación.</div>
+  <div class="card">
+    <h3>💰 Costos</h3>
 
     <div class="datos-grid">
       <div class="campo">
-        <label>Costo Directo</label>
-
-        <small> Honorarios, materiales, certificados, alquileres, etc. </small>
-
-        <input type="number" [(ngModel)]="matrizDnc.costoDirecto" (input)="calcularCostoTotal()" />
-      </div>
-
-      <div class="campo">
-        <label>Costo Indirecto</label>
-
-        <small> Viáticos, horas hombre, traslados u otros gastos asociados. </small>
+        <label>Costo Directo (S/)</label>
 
         <input
           type="number"
+          placeholder="0.00"
+          [(ngModel)]="matrizDnc.costoDirecto"
+          (input)="calcularCostoTotal()"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Costo Indirecto (S/)</label>
+
+        <input
+          type="number"
+          placeholder="0.00"
           [(ngModel)]="matrizDnc.costoIndirecto"
           (input)="calcularCostoTotal()"
         />
       </div>
 
       <div class="campo">
-        <label>Costo Total</label>
-
-        <small> Calculado automáticamente. </small>
+        <label>Costo Total (S/)</label>
 
         <input [value]="matrizDnc.costoTotal" readonly />
       </div>
     </div>
   </div>
 
-  <button class="btn-guardar" (click)="guardarDnc()">📤 Registrar Matriz DNC</button>
+  <button class="btn-guardar" (click)="guardarDnc()">📤 Enviar para Evaluación</button>
 </div>
