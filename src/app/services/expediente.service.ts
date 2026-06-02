@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ExpedientePDP } from '../models/expediente-pdp.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExpedienteService {
-  // Datos de ejemplo - En producción vendrían de una API
-  private expedientes: any[] = [
+  private readonly storageKey = 'expedientes';
+
+  private expedientes = [
     {
       expediente: 'PDP-2026-001',
       capacitacion: 'GOBIERNO DIGITAL EN LA GESTIÓN PÚBLICA',
@@ -75,11 +77,58 @@ export class ExpedienteService {
     },
   ];
 
-  constructor() {}
+  private expedientesSubject = new BehaviorSubject<any[]>(this.loadExpedientes());
+
+  constructor() {
+    this.saveExpedientes();
+  }
+
+  private loadExpedientes(): any[] {
+    const expedientesGuardados = localStorage.getItem(this.storageKey);
+
+    if (expedientesGuardados) {
+      try {
+        const guardados = JSON.parse(expedientesGuardados);
+        this.expedientes = guardados;
+        return guardados;
+      } catch {
+        return this.expedientes;
+      }
+    }
+
+    return this.expedientes;
+  }
+
+  private saveExpedientes(): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.expedientes));
+    this.expedientesSubject.next([...this.expedientes]);
+  }
 
   // Obtener todos los expedientes
   getExpedientes(): any[] {
-    return this.expedientes;
+    return [...this.expedientes];
+  }
+
+  getExpedientes$(): Observable<any[]> {
+    return this.expedientesSubject.asObservable();
+  }
+
+  addExpediente(expediente: any): void {
+    this.expedientes = [...this.expedientes, expediente];
+    this.saveExpedientes();
+  }
+
+  updateExpediente(expediente: any, originalExpediente?: string): void {
+    const codigo = originalExpediente || expediente.expediente;
+    this.expedientes = this.expedientes.map((item) =>
+      item.expediente === codigo ? { ...item, ...expediente } : item,
+    );
+    this.saveExpedientes();
+  }
+
+  deleteExpediente(expedienteCodigo: string): void {
+    this.expedientes = this.expedientes.filter((item) => item.expediente !== expedienteCodigo);
+    this.saveExpedientes();
   }
 
   // Obtener estadísticas por estado
@@ -98,17 +147,29 @@ export class ExpedienteService {
   }
 
   // Obtener estadísticas por responsable
-  getEstadisticasPorResponsable(): { responsable: string; cantidad: number }[] {
+  getEstadisticasPorResponsable(): { responsable: string; cantidad: number; beneficiarios: number; presupuesto: number }[] {
     const responsables = new Map();
 
     this.expedientes.forEach((exp) => {
       const responsable = exp.responsable;
-      responsables.set(responsable, (responsables.get(responsable) || 0) + 1);
+      const actual = responsables.get(responsable) || {
+        cantidad: 0,
+        beneficiarios: 0,
+        presupuesto: 0,
+      };
+
+      responsables.set(responsable, {
+        cantidad: actual.cantidad + 1,
+        beneficiarios: actual.beneficiarios + (exp.beneficiarios || 0),
+        presupuesto: actual.presupuesto + (exp.presupuesto || 0),
+      });
     });
 
-    return Array.from(responsables.entries()).map(([responsable, cantidad]) => ({
+    return Array.from(responsables.entries()).map(([responsable, datos]) => ({
       responsable,
-      cantidad,
+      cantidad: datos.cantidad,
+      beneficiarios: datos.beneficiarios,
+      presupuesto: datos.presupuesto,
     }));
   }
 

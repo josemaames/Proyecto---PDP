@@ -1,9 +1,11 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgFor, NgClass, NgIf, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
 
 Chart.register(...registerables);
@@ -15,8 +17,9 @@ Chart.register(...registerables);
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements OnInit, AfterViewInit {
+export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   nombre = '';
+  private destroy$ = new Subject<void>();
   rol = '';
   usuarioActual: any;
   esAdministrador = false;
@@ -42,15 +45,8 @@ export class Dashboard implements OnInit, AfterViewInit {
   chartConfigResponsable: any;
 
   // Datos para tablas
+  expedientes: any[] = [];
   expedientesConEstadisticas: any[] = [];
-
-  cargarExpedientesLocalStorage() {
-    const expedientesGuardados = localStorage.getItem('expedientes');
-
-    if (expedientesGuardados) {
-      this.expedientesConEstadisticas = JSON.parse(expedientesGuardados);
-    }
-  }
 
   calcularEstadisticas() {
     this.estadisticasTotales = {
@@ -73,59 +69,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     beneficiariosTotal: 0,
   };
 
-  expedientes = [
-    {
-      expediente: 'PDP-2026-001',
-      capacitacion: 'GOBIERNO DIGITAL EN LA GESTIÓN PÚBLICA',
-      estado: 'TDR',
-      responsable: 'Oficina Central',
-      semaforo: 'verde',
-      beneficiarios: 30,
-      presupuesto: 15000,
-    },
-
-    {
-      expediente: 'PDP-2026-002',
-      capacitacion: 'DERECHO ADMINISTRATIVO Y SEGURIDAD SOCIAL',
-      estado: 'Logística',
-      responsable: 'Oficina Central',
-      semaforo: 'amarillo',
-      beneficiarios: 19,
-      presupuesto: 5000,
-    },
-
-    {
-      expediente: 'PDP-2026-003',
-      capacitacion: 'ARBITRAJE CON LA NUEVA LEY GENERAL DE CONTRATACIONES PUBLICAS',
-      estado: 'Convocatoria',
-      responsable: 'Oficina Central',
-      semaforo: 'rojo',
-      beneficiarios: 19,
-      presupuesto: 5000,
-    },
-
-    {
-      expediente: 'PDP-2026-004',
-      capacitacion: 'REDACCION DE DOCUMENTOS TECNICOS',
-      estado: 'TDR',
-      responsable: 'Oficina Central',
-      semaforo: 'verde',
-      beneficiarios: 33,
-      presupuesto: 15000,
-    },
-
-    {
-      expediente: 'PDP-2026-005',
-      capacitacion: 'TALLER EDUCACION INICIA: JUEGOS, INTERACCIONES Y PROYECTOS',
-      estado: 'Finalizado',
-      responsable: 'Oficina Central',
-      semaforo: 'verde',
-      beneficiarios: 37,
-      presupuesto: 5000,
-    },
-  ];
-
-  expedientesFiltrados = [...this.expedientes];
+  expedientesFiltrados: any[] = [];
 
   constructor(
     private router: Router,
@@ -147,15 +91,17 @@ export class Dashboard implements OnInit, AfterViewInit {
       this.esEjecutor = this.usuarioActual?.rol === 'Ejecutor';
 
       this.cargarMenuPorRol();
-      this.cargarExpedientesLocalStorage();
 
-      // Cargar datos de expedientes
-      const expedientes = this.expedienteService.getExpedientes();
-      this.expedientesConEstadisticas = expedientes;
-      // Persistir para que otras vistas (ej. Hoja de Ruta) puedan leerlos
-      localStorage.setItem('expedientes', JSON.stringify(expedientes));
-      this.calcularEstadisticas();
-      this.cargarGraficos();
+      // Cargar datos de expedientes desde el servicio compartido
+      this.expedienteService
+        .getExpedientes$()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((expedientes) => {
+          this.expedientesConEstadisticas = expedientes;
+          this.expedientes = expedientes;
+          this.calcularEstadisticas();
+          this.cargarGraficos();
+        });
     } else {
       this.router.navigate(['/login']);
     }
@@ -163,6 +109,11 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     // Inicializar
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarGraficos() {

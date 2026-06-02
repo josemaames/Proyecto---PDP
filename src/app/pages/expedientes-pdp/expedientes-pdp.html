@@ -1,7 +1,7 @@
 <div class="expedientes-container">
   <div class="header">
     <div *ngIf="mostrarFormulario" class="formulario-box">
-      <h3>Nuevo Expediente PDP</h3>
+      <h3>{{ modoEdicion ? 'Editar Expediente PDP' : 'Nuevo Expediente PDP' }}</h3>
 
       <div class="form-grid">
         <input type="text" placeholder="Código PDP" [(ngModel)]="nuevoExpediente.expediente" />
@@ -24,6 +24,18 @@
           type="number"
           placeholder="Beneficiarios"
           [(ngModel)]="nuevoExpediente.beneficiarios"
+        />
+
+        <input
+          type="number"
+          placeholder="Horas lectivas"
+          [(ngModel)]="nuevoExpediente.horasLectivas"
+        />
+
+        <input
+          type="number"
+          placeholder="Horas cronológicas"
+          [(ngModel)]="nuevoExpediente.horasCronologicas"
         />
       </div>
 
@@ -70,6 +82,8 @@
             <button class="btn-ver" (click)="verExpediente(item.expediente)">Ver</button>
 
             <button class="btn-editar" (click)="editarExpediente(item.expediente)">Editar</button>
+
+            <button class="btn-eliminar" (click)="eliminarExpediente(item.expediente)">Eliminar</button>
           </td>
         </tr>
       </tbody>

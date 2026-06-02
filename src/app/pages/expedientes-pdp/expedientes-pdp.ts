@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ExpedienteService } from '../../services/expediente.service';
 
 @Component({
   selector: 'app-expedientes-pdp',
@@ -10,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 })
 export class ExpedientesPdp {
   mostrarFormulario = false;
+  modoEdicion = false;
+  expedienteOriginal = '';
 
   nuevoExpediente = {
     expediente: '',
@@ -18,41 +21,19 @@ export class ExpedientesPdp {
     estado: 'TDR',
     presupuesto: 0,
     beneficiarios: 0,
+    horasLectivas: 0,
+    horasCronologicas: 0,
   };
 
-  expedientes = [
-    {
-      expediente: 'PDP-2026-001',
-      capacitacion: 'Seguridad del Paciente',
-      responsable: 'Oficina Central',
-      estado: 'TDR',
-      presupuesto: 25000,
-      beneficiarios: 120,
-    },
-    {
-      expediente: 'PDP-2026-002',
-      capacitacion: 'Atención al Usuario',
-      responsable: 'Red Rebagliati',
-      estado: 'Logística',
-      presupuesto: 18000,
-      beneficiarios: 90,
-    },
-    {
-      expediente: 'PDP-2026-003',
-      capacitacion: 'Gestión Hospitalaria',
-      responsable: 'Red Almenara',
-      estado: 'Convocatoria',
-      presupuesto: 32000,
-      beneficiarios: 150,
-    },
-  ];
+  expedientes: any[] = [];
+
+  constructor(private expedienteService: ExpedienteService) {}
 
   ngOnInit() {
-    const expedientesGuardados = localStorage.getItem('expedientes');
-
-    if (expedientesGuardados) {
-      this.expedientes = JSON.parse(expedientesGuardados);
-    }
+    this.expedientes = this.expedienteService.getExpedientes();
+    this.expedienteService.getExpedientes$().subscribe((expedientes) => {
+      this.expedientes = expedientes;
+    });
   }
 
   abrirFormulario() {
@@ -64,12 +45,62 @@ export class ExpedientesPdp {
   }
 
   guardarExpediente() {
-    this.expedientes.push({
-      ...this.nuevoExpediente,
-    });
+    if (this.modoEdicion) {
+      this.expedienteService.updateExpediente(
+        {
+          ...this.nuevoExpediente,
+        },
+        this.expedienteOriginal,
+      );
+    } else {
+      this.expedienteService.addExpediente({
+        ...this.nuevoExpediente,
+      });
+    }
 
-    localStorage.setItem('expedientes', JSON.stringify(this.expedientes));
+    this.resetFormulario();
+  }
 
+  editarExpediente(expedienteCodigo: string) {
+    const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
+    if (!expediente) {
+      return;
+    }
+
+    this.modoEdicion = true;
+    this.expedienteOriginal = expediente.expediente;
+    this.nuevoExpediente = {
+      expediente: expediente.expediente,
+      capacitacion: expediente.capacitacion,
+      responsable: expediente.responsable,
+      estado: expediente.estado,
+      presupuesto: expediente.presupuesto,
+      beneficiarios: expediente.beneficiarios,
+      horasLectivas: expediente.horasLectivas || 0,
+      horasCronologicas: expediente.horasCronologicas || 0,
+    };
+    this.mostrarFormulario = true;
+  }
+
+  eliminarExpediente(expedienteCodigo: string) {
+    if (confirm(`¿Eliminar expediente ${expedienteCodigo}?`)) {
+      this.expedienteService.deleteExpediente(expedienteCodigo);
+    }
+  }
+
+  verExpediente(expedienteCodigo: string) {
+    const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
+    if (!expediente) {
+      alert('Expediente no encontrado');
+      return;
+    }
+    alert(`Expediente: ${expediente.expediente}\nCapacitación: ${expediente.capacitacion}\nResponsable: ${expediente.responsable}\nEstado: ${expediente.estado}\nPresupuesto: S/. ${expediente.presupuesto}\nBeneficiarios: ${expediente.beneficiarios}`);
+  }
+
+  resetFormulario() {
+    this.mostrarFormulario = false;
+    this.modoEdicion = false;
+    this.expedienteOriginal = '';
     this.nuevoExpediente = {
       expediente: '',
       capacitacion: '',
@@ -77,16 +108,8 @@ export class ExpedientesPdp {
       estado: 'TDR',
       presupuesto: 0,
       beneficiarios: 0,
+      horasLectivas: 0,
+      horasCronologicas: 0,
     };
-
-    this.mostrarFormulario = false;
-  }
-
-  verExpediente(expediente: string) {
-    alert(`Ver expediente: ${expediente}`);
-  }
-
-  editarExpediente(expediente: string) {
-    alert(`Editar expediente: ${expediente}`);
   }
 }
