@@ -1,14 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-sectorista',
-  imports: [FormsModule, NgFor],
+  imports: [FormsModule],
   templateUrl: './sectorista.html',
   styleUrl: './sectorista.css',
 })
 export class Sectorista {
+  private http = inject(HttpClient);
+
+  cargandoRuc = false;
+  errorRuc = '';
+
   matriz = {
     // DATOS GENERALES
 
@@ -38,8 +43,12 @@ export class Sectorista {
 
     // PROVEEDOR
 
-    proveedor: '',
     rucProveedor: '',
+    proveedor: '',
+    estadoContribuyente: '',
+    condicionContribuyente: '',
+    domicilioFiscal: '',
+    actividadesEconomicas: '',
     sectorProveedor: '',
 
     // FINANCIAMIENTO
@@ -65,6 +74,41 @@ export class Sectorista {
       puesto: '',
     },
   ];
+
+  onRucChange(ruc: string) {
+    this.errorRuc = '';
+    this.matriz.proveedor = '';
+    this.matriz.estadoContribuyente = '';
+    this.matriz.condicionContribuyente = '';
+    this.matriz.domicilioFiscal = '';
+    this.matriz.actividadesEconomicas = '';
+
+    if (ruc.length === 11) {
+      this.buscarRuc(ruc);
+    }
+  }
+
+  buscarRuc(ruc: string) {
+    this.cargandoRuc = true;
+
+    this.http.get<any>(`/api/sunat/ruc?numero=${ruc}`).subscribe({
+      next: (data) => {
+        this.cargandoRuc = false;
+        this.matriz.proveedor = data.razon_social || data.razonSocial || '';
+        this.matriz.estadoContribuyente = data.estado || '';
+        this.matriz.condicionContribuyente = data.condicion || '';
+        this.matriz.domicilioFiscal =
+          data['dirección'] || data.direccion || data.direccion_completa || '';
+        this.matriz.actividadesEconomicas = Array.isArray(data.actividadesEconomicas)
+          ? data.actividadesEconomicas.map((a: any) => a.descripcion).join('; ')
+          : '';
+      },
+      error: () => {
+        this.cargandoRuc = false;
+        this.errorRuc = 'No se encontró información para este RUC. Verifique el número ingresado.';
+      },
+    });
+  }
 
   agregarBeneficiario() {
     this.beneficiarios.push({

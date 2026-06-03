@@ -70,39 +70,41 @@
       </thead>
 
       <tbody>
-        <tr *ngFor="let b of beneficiarios; let i = index">
-          <td>
-            <input type="text" [(ngModel)]="b.nombre" />
-          </td>
+        @for (b of beneficiarios; track $index; let i = $index) {
+          <tr>
+            <td>
+              <input type="text" [(ngModel)]="b.nombre" />
+            </td>
 
-          <td>
-            <input type="text" [(ngModel)]="b.dni" />
-          </td>
+            <td>
+              <input type="text" [(ngModel)]="b.dni" />
+            </td>
 
-          <td>
-            <select [(ngModel)]="b.genero">
-              <option value="">Seleccione</option>
-              <option>Masculino</option>
-              <option>Femenino</option>
-            </select>
-          </td>
+            <td>
+              <select [(ngModel)]="b.genero">
+                <option value="">Seleccione</option>
+                <option>Masculino</option>
+                <option>Femenino</option>
+              </select>
+            </td>
 
-          <td>
-            <input type="text" [(ngModel)]="b.regimen" />
-          </td>
+            <td>
+              <input type="text" [(ngModel)]="b.regimen" />
+            </td>
 
-          <td>
-            <input type="text" [(ngModel)]="b.unidad" />
-          </td>
+            <td>
+              <input type="text" [(ngModel)]="b.unidad" />
+            </td>
 
-          <td>
-            <input type="text" [(ngModel)]="b.puesto" />
-          </td>
+            <td>
+              <input type="text" [(ngModel)]="b.puesto" />
+            </td>
 
-          <td>
-            <button class="btn-eliminar" (click)="eliminarBeneficiario(i)">✖</button>
-          </td>
-        </tr>
+            <td>
+              <button class="btn-eliminar" (click)="eliminarBeneficiario(i)">✖</button>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
   </div>
@@ -156,15 +158,88 @@
   <div class="card">
     <h2>Proveedor</h2>
 
-    <input type="text" placeholder="Proveedor" [(ngModel)]="matriz.proveedor" />
+    <div class="campo">
+      <label>RUC Proveedor</label>
+      <input
+        type="text"
+        placeholder="Ingrese RUC (11 dígitos)"
+        [(ngModel)]="matriz.rucProveedor"
+        (ngModelChange)="onRucChange($event)"
+        maxlength="11"
+      />
+    </div>
 
-    <input type="text" placeholder="RUC Proveedor" [(ngModel)]="matriz.rucProveedor" />
+    @if (cargandoRuc) {
+      <div class="ruc-loading">
+        <span class="spinner"></span> Buscando información del RUC...
+      </div>
+    }
 
-    <select [(ngModel)]="matriz.sectorProveedor">
-      <option value="">Seleccione</option>
-      <option>Público</option>
-      <option>Privado</option>
-    </select>
+    @if (errorRuc && !cargandoRuc) {
+      <div class="ruc-error">{{ errorRuc }}</div>
+    }
+
+    @if (matriz.proveedor && !cargandoRuc) {
+      <div class="datos-grid proveedor-autocompletar">
+        <div class="campo campo-full">
+          <label>Nombre del Proveedor</label>
+          <input type="text" [(ngModel)]="matriz.proveedor" readonly class="campo-autocompletado" />
+        </div>
+
+        <div class="campo">
+          <label>Estado del Contribuyente</label>
+          <input
+            type="text"
+            [(ngModel)]="matriz.estadoContribuyente"
+            readonly
+            class="campo-autocompletado"
+            [class.estado-activo]="matriz.estadoContribuyente === 'ACTIVO'"
+            [class.estado-baja]="matriz.estadoContribuyente !== 'ACTIVO' && matriz.estadoContribuyente !== ''"
+          />
+        </div>
+
+        <div class="campo">
+          <label>Condición del Contribuyente</label>
+          <input
+            type="text"
+            [(ngModel)]="matriz.condicionContribuyente"
+            readonly
+            class="campo-autocompletado"
+            [class.condicion-habido]="matriz.condicionContribuyente === 'HABIDO'"
+            [class.condicion-nohabido]="matriz.condicionContribuyente !== 'HABIDO' && matriz.condicionContribuyente !== ''"
+          />
+        </div>
+
+        <div class="campo campo-full">
+          <label>Domicilio Fiscal</label>
+          <input
+            type="text"
+            [(ngModel)]="matriz.domicilioFiscal"
+            readonly
+            class="campo-autocompletado"
+          />
+        </div>
+
+        <div class="campo campo-full">
+          <label>Actividades Económicas</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="matriz.actividadesEconomicas"
+            readonly
+            class="campo-autocompletado"
+          ></textarea>
+        </div>
+      </div>
+    }
+
+    <div class="campo">
+      <label>Sector del Proveedor</label>
+      <select [(ngModel)]="matriz.sectorProveedor">
+        <option value="">Seleccione</option>
+        <option>Público</option>
+        <option>Privado</option>
+      </select>
+    </div>
   </div>
 
   <div class="card">

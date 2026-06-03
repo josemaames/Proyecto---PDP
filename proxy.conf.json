@@ -1,0 +1,13 @@
+{
+  "/api/sunat": {
+    "target": "https://api.decolecta.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/sunat": "/v1/sunat"
+    },
+    "headers": {
+      "Authorization": "sk_16093.PxU18zqKbqgjfMWTuw48dslkqheFtgFp"
+    }
+  }
+}
