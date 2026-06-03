@@ -1,215 +1,203 @@
-<div class="ejecutor-container">
-  <!-- HEADER -->
+<div class="app-layout">
 
-  <div class="page-header">
-    <div class="page-header">
-      <h1>📋 Matriz Diagnóstico DNC</h1>
-      <p>Plan de Desarrollo de Personas - EsSalud</p>
-
-      <div class="badge">EJECUTOR</div>
+  <!-- ===== NAVBAR ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
     </div>
-
-    <div class="badge">EJECUTOR</div>
-  </div>
-
-  <!-- BANNER -->
-
-  <div class="banner-pdp">
-    <h2>Registro de Necesidades de Capacitación</h2>
-
-    <p>Complete la información para registrar la necesidad formativa identificada en su unidad.</p>
-  </div>
-
-  <!-- IDENTIFICACIÓN -->
-
-  <div class="card">
-    <div class="section-title">🏥 Identificación</div>
-
-    <div class="datos-grid dos-columnas">
-      <div class="campo">
-        <label>Órgano / Unidad Orgánica</label>
-        <small> Ejemplo: Gerencia Central de Gestión de las Personas </small>
-
-        <input
-          type="text"
-          placeholder="Ingrese el órgano o unidad"
-          [(ngModel)]="matrizDnc.organo"
-        />
-      </div>
-
-      <div class="campo">
-        <label>Centro Asistencial</label>
-        <small> Ejemplo: Hospital Nacional Edgardo Rebagliati Martins </small>
-
-        <input
-          type="text"
-          placeholder="Ingrese el centro asistencial"
-          [(ngModel)]="matrizDnc.centroAsistencial"
-        />
-      </div>
-
-      <div class="campo">
-        <label>Servicio / Área</label>
-        <small> Ejemplo: Recursos Humanos, Logística o TI </small>
-
-        <input
-          type="text"
-          placeholder="Ingrese el servicio o área"
-          [(ngModel)]="matrizDnc.servicio"
-        />
-      </div>
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <button class="nav-avatar">{{ inicialUsuario }}</button>
     </div>
-  </div>
+  </nav>
 
-  <!-- NECESIDAD -->
+  <div class="app-cuerpo">
 
-  <div class="card">
-    <h3>🎯 Necesidad de Capacitación</h3>
-
-    <div class="campo">
-      <label>Problema identificado</label>
-
-      <small> Describa la brecha de conocimientos, habilidades o desempeño detectada. </small>
-
-      <textarea
-        rows="5"
-        placeholder="Ejemplo: El personal presenta dificultades en la gestión de expedientes electrónicos."
-        [(ngModel)]="matrizDnc.problema"
-      >
-      </textarea>
-    </div>
-
-    <div class="campo">
-      <label>Nombre de la capacitación</label>
-
-      <small> Indique el nombre de la acción formativa requerida. </small>
-
-      <input
-        type="text"
-        placeholder="Ejemplo: Gestión Documental Electrónica"
-        [(ngModel)]="matrizDnc.capacitacion"
-      />
-    </div>
-  </div>
-
-  <!-- OBJETIVOS -->
-
-  <div class="card">
-    <h3>🚀 Objetivos</h3>
-
-    <div class="datos-grid">
-      <div class="campo">
-        <label>Objetivo de aprendizaje</label>
-
-        <small> ¿Qué conocimientos o competencias desarrollará el participante? </small>
-
-        <textarea
-          rows="4"
-          placeholder="Ejemplo: Fortalecer competencias en gestión documental."
-          [(ngModel)]="matrizDnc.objetivoAprendizaje"
-        >
-        </textarea>
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-perfil">
+        <p class="bienvenido-label">Bienvenido</p>
+        <div class="perfil-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <p class="perfil-nombre">{{ usuario?.nombre }}</p>
+        <p class="perfil-correo">{{ usuario?.correo || usuario?.tipo }}</p>
+        <div class="perfil-acciones">
+          <button class="perfil-icon-btn" title="Cambiar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </button>
+          <button class="perfil-icon-btn" title="Editar perfil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div class="campo">
-        <label>Objetivo de desempeño</label>
+      <nav class="sidebar-nav">
+        <div class="menu-item activo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Diagnóstico DNC
+        </div>
 
-        <small> ¿Qué mejora se espera observar en el trabajo? </small>
+        <div class="menu-item" (click)="irA('/busqueda-expediente')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Búsqueda de Expediente
+        </div>
 
-        <textarea
-          rows="4"
-          placeholder="Ejemplo: Reducir tiempos de atención y mejorar la calidad del registro."
-          [(ngModel)]="matrizDnc.objetivoDesempeno"
-        >
-        </textarea>
+        <div class="menu-item" (click)="irA('/documentos')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Documentos
+        </div>
+
+        <div class="sidebar-sep"></div>
+
+        <div class="menu-item cerrar" (click)="cerrarSesion()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Cerrar Sesión
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ===== CONTENIDO ===== -->
+    <main class="app-contenido">
+
+      <div class="contenido-encabezado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <h2>Matriz Diagnóstico DNC - Plan de Desarrollo de Personas</h2>
       </div>
-    </div>
+
+      <!-- IDENTIFICACIÓN -->
+      <div class="card">
+        <div class="card-section-title">🏥 Identificación</div>
+        <div class="datos-grid dos-col">
+          <div class="campo">
+            <label>Órgano / Unidad Orgánica</label>
+            <small>Ej: Gerencia Central de Gestión de las Personas</small>
+            <input type="text" placeholder="Ingrese el órgano o unidad" [(ngModel)]="matrizDnc.organo" />
+          </div>
+          <div class="campo">
+            <label>Centro Asistencial</label>
+            <small>Ej: Hospital Nacional Edgardo Rebagliati Martins</small>
+            <input type="text" placeholder="Ingrese el centro asistencial" [(ngModel)]="matrizDnc.centroAsistencial" />
+          </div>
+          <div class="campo">
+            <label>Servicio / Área</label>
+            <small>Ej: Recursos Humanos, Logística o TI</small>
+            <input type="text" placeholder="Ingrese el servicio o área" [(ngModel)]="matrizDnc.servicio" />
+          </div>
+        </div>
+      </div>
+
+      <!-- NECESIDAD -->
+      <div class="card">
+        <div class="card-section-title">🎯 Necesidad de Capacitación</div>
+        <div class="campo" style="margin-bottom: 16px;">
+          <label>Problema identificado</label>
+          <small>Describa la brecha de conocimientos, habilidades o desempeño detectada.</small>
+          <textarea rows="4" placeholder="Ejemplo: El personal presenta dificultades en la gestión de expedientes electrónicos." [(ngModel)]="matrizDnc.problema"></textarea>
+        </div>
+        <div class="campo">
+          <label>Nombre de la capacitación</label>
+          <small>Indique el nombre de la acción formativa requerida.</small>
+          <input type="text" placeholder="Ejemplo: Gestión Documental Electrónica" [(ngModel)]="matrizDnc.capacitacion" />
+        </div>
+      </div>
+
+      <!-- OBJETIVOS -->
+      <div class="card">
+        <div class="card-section-title">🚀 Objetivos</div>
+        <div class="datos-grid dos-col">
+          <div class="campo">
+            <label>Objetivo de aprendizaje</label>
+            <small>¿Qué conocimientos o competencias desarrollará el participante?</small>
+            <textarea rows="4" placeholder="Ejemplo: Fortalecer competencias en gestión documental." [(ngModel)]="matrizDnc.objetivoAprendizaje"></textarea>
+          </div>
+          <div class="campo">
+            <label>Objetivo de desempeño</label>
+            <small>¿Qué mejora se espera observar en el trabajo?</small>
+            <textarea rows="4" placeholder="Ejemplo: Reducir tiempos de atención y mejorar la calidad del registro." [(ngModel)]="matrizDnc.objetivoDesempeno"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARTICIPANTES -->
+      <div class="card">
+        <div class="card-section-title">👥 Participantes</div>
+        <table class="tabla-participantes">
+          <thead>
+            <tr>
+              <th>DNI</th>
+              <th>Nombre Completo</th>
+              <th>Género</th>
+              <th>Régimen</th>
+              <th>Puesto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of participantes; track $index; let i = $index) {
+              <tr>
+                <td><input placeholder="DNI" [(ngModel)]="p.dni" /></td>
+                <td><input placeholder="Nombre completo" [(ngModel)]="p.nombre" /></td>
+                <td><input placeholder="Masculino / Femenino" [(ngModel)]="p.genero" /></td>
+                <td><input placeholder="276 / CAS / 728" [(ngModel)]="p.regimen" /></td>
+                <td><input placeholder="Cargo" [(ngModel)]="p.puesto" /></td>
+                <td><button class="btn-eliminar" (click)="eliminarParticipante(i)">✖</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="acciones-tabla">
+          <button class="btn-agregar" (click)="agregarParticipante()">➕ Agregar Participante</button>
+        </div>
+      </div>
+
+      <!-- COSTOS -->
+      <div class="card">
+        <div class="card-section-title">💰 Costos</div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>Costo Directo (S/)</label>
+            <input type="number" placeholder="0.00" [(ngModel)]="matrizDnc.costoDirecto" (input)="calcularCostoTotal()" />
+          </div>
+          <div class="campo">
+            <label>Costo Indirecto (S/)</label>
+            <input type="number" placeholder="0.00" [(ngModel)]="matrizDnc.costoIndirecto" (input)="calcularCostoTotal()" />
+          </div>
+          <div class="campo">
+            <label>Costo Total (S/)</label>
+            <input [value]="matrizDnc.costoTotal" readonly class="campo-readonly" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-guardar" (click)="guardarDnc()">📤 Enviar para Evaluación</button>
+
+    </main>
   </div>
-
-  <!-- PARTICIPANTES -->
-
-  <div class="card">
-    <h3>👥 Participantes</h3>
-
-    <table class="tabla-participantes">
-      <thead>
-        <tr>
-          <th>DNI</th>
-          <th>Nombre Completo</th>
-          <th>Género</th>
-          <th>Régimen</th>
-          <th>Puesto</th>
-          <th></th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let p of participantes; let i = index">
-          <td>
-            <input placeholder="DNI" [(ngModel)]="p.dni" />
-          </td>
-
-          <td>
-            <input placeholder="Nombre completo" [(ngModel)]="p.nombre" />
-          </td>
-
-          <td>
-            <input placeholder="Masculino / Femenino" [(ngModel)]="p.genero" />
-          </td>
-
-          <td>
-            <input placeholder="276 / CAS / 728" [(ngModel)]="p.regimen" />
-          </td>
-
-          <td>
-            <input placeholder="Cargo" [(ngModel)]="p.puesto" />
-          </td>
-
-          <td>
-            <button class="btn-eliminar" (click)="eliminarParticipante(i)">✖</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <button class="btn-agregar" (click)="agregarParticipante()">➕ Agregar Participante</button>
-  </div>
-
-  <!-- COSTOS -->
-
-  <div class="card">
-    <h3>💰 Costos</h3>
-
-    <div class="datos-grid">
-      <div class="campo">
-        <label>Costo Directo (S/)</label>
-
-        <input
-          type="number"
-          placeholder="0.00"
-          [(ngModel)]="matrizDnc.costoDirecto"
-          (input)="calcularCostoTotal()"
-        />
-      </div>
-
-      <div class="campo">
-        <label>Costo Indirecto (S/)</label>
-
-        <input
-          type="number"
-          placeholder="0.00"
-          [(ngModel)]="matrizDnc.costoIndirecto"
-          (input)="calcularCostoTotal()"
-        />
-      </div>
-
-      <div class="campo">
-        <label>Costo Total (S/)</label>
-
-        <input [value]="matrizDnc.costoTotal" readonly />
-      </div>
-    </div>
-  </div>
-
-  <button class="btn-guardar" (click)="guardarDnc()">📤 Enviar para Evaluación</button>
 </div>
