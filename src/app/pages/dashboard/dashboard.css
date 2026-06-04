@@ -284,6 +284,205 @@ tr:hover td { background: #f5f8fd; }
 
 .btn-ruta:hover { background: #163e88; }
 
+/* ===== MODAL HISTORIAL ===== */
+
+.hist-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 50, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.hist-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 1060px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+  overflow: hidden;
+}
+
+.hist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 26px 16px;
+  border-bottom: 1.5px solid #e8edf8;
+  background: #f8fafd;
+}
+
+.hist-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a4fa8;
+}
+
+.hist-titulo svg { width: 22px; height: 22px; }
+.hist-titulo h3  { margin: 0; font-size: 16px; font-weight: 700; }
+
+.hist-cerrar {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: background 0.2s;
+}
+.hist-cerrar:hover { background: #fee2e2; color: #dc2626; }
+.hist-cerrar svg { width: 16px; height: 16px; }
+
+.hist-buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  border-bottom: 1.5px solid #e8edf8;
+  background: #f8fafd;
+}
+
+.hist-buscador svg { width: 17px; height: 17px; color: #94a3b8; flex-shrink: 0; }
+
+.hist-buscador input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #1a1a2e;
+  font-family: inherit;
+}
+.hist-buscador input::placeholder { color: #94a3b8; }
+
+.hist-cuerpo {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.hist-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 52px 24px;
+  color: #94a3b8;
+  text-align: center;
+}
+.hist-vacio p     { font-size: 15px; font-weight: 600; margin: 0; }
+.hist-vacio small { font-size: 13px; }
+
+.hist-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hist-tabla thead { position: sticky; top: 0; z-index: 1; }
+
+.hist-tabla th {
+  background: #1a4fa8;
+  color: white;
+  padding: 11px 14px;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hist-tabla td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef2fa;
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+
+.hist-tabla tbody tr:hover td { background: #f5f8fd; }
+
+.hist-fecha  { color: #374151; white-space: nowrap; font-size: 12px; }
+.hist-hora   { font-weight: 700; color: #1a4fa8; white-space: nowrap; font-size: 12px; }
+.hist-cod    { font-weight: 700; color: #1a4fa8; font-size: 12px; white-space: nowrap; }
+.hist-detalle{ color: #374151; font-size: 12px; max-width: 320px; }
+
+.usuario-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.usuario-avatar-mini {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1a4fa8;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badge-rol-hist {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eef3fb;
+  color: #1a4fa8;
+  white-space: nowrap;
+}
+
+.badge-accion {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.accion-agrego  { background: #dcfce7; color: #16a34a; }
+.accion-edito   { background: #fef3c7; color: #b45309; }
+.accion-elimino { background: #fee2e2; color: #dc2626; }
+
+.hist-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 26px;
+  border-top: 1.5px solid #e8edf8;
+  background: #f8fafd;
+}
+
+.hist-total { font-size: 13px; color: #6b7280; font-weight: 600; }
+
+.hist-btn-cerrar {
+  background: #1a4fa8;
+  color: white;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.hist-btn-cerrar:hover { background: #163e88; }
+
 /* RESPONSIVE */
 
 @media (max-width: 1100px) {

@@ -7,6 +7,17 @@ import { ExpedientePDP } from '../models/expediente-pdp.model';
 })
 export class ExpedienteService {
   private readonly storageKey = 'expedientes';
+  private readonly auditKey   = 'historialEdiciones';
+
+  private readonly nombreCampo: Record<string, string> = {
+    capacitacion:      'Capacitación',
+    estado:            'Estado',
+    responsable:       'Responsable',
+    presupuesto:       'Presupuesto (S/)',
+    beneficiarios:     'Beneficiarios',
+    horasLectivas:     'Horas lectivas',
+    horasCronologicas: 'Horas cronológicas',
+  };
 
   private expedientes = [
     {
@@ -116,19 +127,64 @@ export class ExpedienteService {
   addExpediente(expediente: any): void {
     this.expedientes = [...this.expedientes, expediente];
     this.saveExpedientes();
+    this.registrarAudit('Agregó', expediente.expediente, 'Nuevo expediente creado');
   }
 
   updateExpediente(expediente: any, originalExpediente?: string): void {
     const codigo = originalExpediente || expediente.expediente;
+    const viejo  = this.expedientes.find(e => e.expediente === codigo);
+
+    const v: any = viejo;
+    const n: any = expediente;
+    const diff = v
+      ? Object.keys(this.nombreCampo)
+          .filter(k => String(v[k]) !== String(n[k]))
+          .map(k => `${this.nombreCampo[k]}: "${v[k]}" → "${n[k]}"`)
+          .join(' | ')
+      : '';
+
     this.expedientes = this.expedientes.map((item) =>
       item.expediente === codigo ? { ...item, ...expediente } : item,
     );
     this.saveExpedientes();
+    this.registrarAudit('Editó', expediente.expediente, diff || 'Sin cambios detectados');
   }
 
   deleteExpediente(expedienteCodigo: string): void {
     this.expedientes = this.expedientes.filter((item) => item.expediente !== expedienteCodigo);
     this.saveExpedientes();
+    this.registrarAudit('Eliminó', expedienteCodigo, 'Expediente eliminado del sistema');
+  }
+
+  private registrarAudit(accion: string, expediente: string, detalle: string): void {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const ahora   = new Date();
+    const entrada = {
+      timestamp: ahora.toISOString(),
+      fecha: ahora.toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      }),
+      hora: ahora.toLocaleTimeString('es-PE', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      }),
+      usuario: usuario.nombre || usuario.dni || 'Desconocido',
+      dni:     usuario.dni    || '',
+      rol:     usuario.rol    || '',
+      accion,
+      expediente,
+      detalle,
+    };
+    const historial = this.getHistorial();
+    historial.unshift(entrada);
+    localStorage.setItem(this.auditKey, JSON.stringify(historial.slice(0, 300)));
+  }
+
+  getHistorial(): any[] {
+    try {
+      return JSON.parse(localStorage.getItem(this.auditKey) || '[]');
+    } catch {
+      return [];
+    }
   }
 
   // Obtener estadísticas por estado

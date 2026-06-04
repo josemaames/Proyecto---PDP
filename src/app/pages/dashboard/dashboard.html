@@ -79,6 +79,13 @@
             </svg>
             Personal
           </div>
+          <div class="menu-item" (click)="irModulo('Historial')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Historial de Ediciones
+          </div>
           <div class="menu-item" (click)="irModulo('Administración')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
@@ -308,4 +315,99 @@
 
     </main>
   </div>
+
+  <!-- ===== MODAL HISTORIAL DE EDICIONES ===== -->
+  @if (mostrarHistorial) {
+    <div class="hist-overlay" (click)="cerrarHistorial()">
+      <div class="hist-modal" (click)="$event.stopPropagation()">
+
+        <div class="hist-header">
+          <div class="hist-titulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <h3>Historial de Ediciones — Expedientes PDP</h3>
+          </div>
+          <button class="hist-cerrar" (click)="cerrarHistorial()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="hist-buscador">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="filtroHistorial"
+            placeholder="Filtrar por expediente, usuario, acción o detalle..."
+          />
+        </div>
+
+        <div class="hist-cuerpo">
+          @if (historial.length === 0) {
+            <div class="hist-vacio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <p>Aún no hay ediciones registradas.</p>
+              <small>Las acciones sobre expedientes (agregar, editar, eliminar) aparecerán aquí.</small>
+            </div>
+          } @else if (historialFiltrado.length === 0) {
+            <div class="hist-vacio">
+              <p>No se encontraron registros con ese filtro.</p>
+            </div>
+          } @else {
+            <table class="hist-tabla">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Acción</th>
+                  <th>Expediente</th>
+                  <th>Detalle del cambio</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of historialFiltrado; track e.timestamp) {
+                  <tr>
+                    <td class="hist-fecha">{{ e.fecha }}</td>
+                    <td class="hist-hora">{{ e.hora }}</td>
+                    <td class="hist-usuario">
+                      <div class="usuario-chip">
+                        <span class="usuario-avatar-mini">{{ e.usuario?.charAt(0) }}</span>
+                        {{ e.usuario }}
+                      </div>
+                    </td>
+                    <td><span class="badge-rol-hist">{{ e.rol }}</span></td>
+                    <td>
+                      <span class="badge-accion"
+                        [class.accion-agrego]="e.accion === 'Agregó'"
+                        [class.accion-edito]="e.accion === 'Editó'"
+                        [class.accion-elimino]="e.accion === 'Eliminó'">
+                        {{ e.accion }}
+                      </span>
+                    </td>
+                    <td class="hist-cod">{{ e.expediente }}</td>
+                    <td class="hist-detalle">{{ e.detalle }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+        <div class="hist-footer">
+          <span class="hist-total">{{ historialFiltrado.length }} registro(s)</span>
+          <button class="hist-btn-cerrar" (click)="cerrarHistorial()">Cerrar</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>

@@ -30,6 +30,22 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
   menuItems: string[] = [];
 
+  // HISTORIAL
+  mostrarHistorial = false;
+  historial: any[] = [];
+  filtroHistorial = '';
+
+  get historialFiltrado(): any[] {
+    const t = this.filtroHistorial.toLowerCase().trim();
+    if (!t) return this.historial;
+    return this.historial.filter(e =>
+      e.expediente?.toLowerCase().includes(t) ||
+      e.usuario?.toLowerCase().includes(t)    ||
+      e.accion?.toLowerCase().includes(t)     ||
+      e.detalle?.toLowerCase().includes(t)
+    );
+  }
+
   textoBusqueda = '';
   expedienteSeleccionado: any = null;
 
@@ -364,33 +380,25 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
   irModulo(modulo: string) {
     switch (modulo) {
-      case 'Inicio':
-        this.router.navigate(['/dashboard']);
-        break;
-
-      case 'Expedientes':
-        this.router.navigate(['/expedientes']);
-        break;
-
-      case 'Hoja de Ruta':
-        this.router.navigate(['/hoja-ruta']);
-        break;
-
-      case 'Personal':
-        this.router.navigate(['/personal']);
-        break;
-
-      case 'Reportes':
-        alert('🚧 Módulo Reportes en desarrollo');
-        break;
-
-      case 'Administración':
-        alert('🚧 Módulo Administración en desarrollo');
-        break;
-
-      default:
-        alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+      case 'Inicio':          this.router.navigate(['/dashboard']); break;
+      case 'Expedientes':     this.router.navigate(['/expedientes']); break;
+      case 'Hoja de Ruta':    this.router.navigate(['/hoja-ruta']); break;
+      case 'Personal':        this.router.navigate(['/personal']); break;
+      case 'Historial':       this.abrirHistorial(); break;
+      case 'Reportes':        alert('🚧 Módulo Reportes en desarrollo'); break;
+      case 'Administración':  alert('🚧 Módulo Administración en desarrollo'); break;
+      default:                alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
     }
+  }
+
+  abrirHistorial() {
+    this.historial = this.expedienteService.getHistorial();
+    this.filtroHistorial = '';
+    this.mostrarHistorial = true;
+  }
+
+  cerrarHistorial() {
+    this.mostrarHistorial = false;
   }
 
   verRuta() {
