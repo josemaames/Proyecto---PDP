@@ -2,16 +2,19 @@ import { Component, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
+import { ExpedienteService } from '../../services/expediente.service';
 
 @Component({
   selector: 'app-sectorista',
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './sectorista.html',
   styleUrl: './sectorista.css',
 })
 export class Sectorista implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private expedienteService = inject(ExpedienteService);
 
   usuario: any = {};
   fechaHoy = '';
@@ -19,6 +22,13 @@ export class Sectorista implements OnInit {
 
   cargandoRuc = false;
   errorRuc = '';
+  errorFormulario = '';
+
+  // BÚSQUEDA DE EXPEDIENTES
+  mostrarBusqueda = false;
+  textoBusqueda = '';
+  expedientes: any[] = [];
+  expedienteDetalle: any = null;
 
   matriz = {
     // DATOS GENERALES
@@ -88,13 +98,48 @@ export class Sectorista implements OnInit {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+    this.expedientes = this.expedienteService.getExpedientes();
   }
 
-  irA(ruta: string) { this.router.navigate([ruta]); }
+  irA(ruta: string) {
+    if (ruta === '/busqueda-expediente') {
+      this.abrirBusqueda();
+    } else {
+      this.router.navigate([ruta]);
+    }
+  }
 
   cerrarSesion() {
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
+  }
+
+  // BÚSQUEDA DE EXPEDIENTES
+  abrirBusqueda() {
+    this.expedientes = this.expedienteService.getExpedientes();
+    this.textoBusqueda = '';
+    this.expedienteDetalle = null;
+    this.mostrarBusqueda = true;
+  }
+
+  cerrarBusqueda() {
+    this.mostrarBusqueda = false;
+    this.expedienteDetalle = null;
+  }
+
+  get expedientesFiltrados(): any[] {
+    const texto = this.textoBusqueda.toLowerCase().trim();
+    if (!texto) return this.expedientes;
+    return this.expedientes.filter(e =>
+      e.expediente.toLowerCase().includes(texto) ||
+      e.capacitacion.toLowerCase().includes(texto) ||
+      e.responsable.toLowerCase().includes(texto) ||
+      e.estado.toLowerCase().includes(texto)
+    );
+  }
+
+  verDetalleExpediente(exp: any) {
+    this.expedienteDetalle = exp;
   }
 
   onRucChange(ruc: string) {
@@ -154,14 +199,55 @@ export class Sectorista implements OnInit {
   }
 
   guardarMatriz() {
+    this.errorFormulario = '';
+    const errores: string[] = [];
+
+    // Datos Generales
+    if (!this.matriz.responsable.trim())        errores.push('Responsable ORH');
+    if (!this.matriz.correo.trim())             errores.push('Correo ORH');
+    if (!this.matriz.telefono.trim())           errores.push('Teléfono');
+
+    // Capacitación
+    if (!this.matriz.accionFormacion.trim())    errores.push('Acción de Formación');
+    if (!this.matriz.tipoAccion)                errores.push('Tipo de Acción');
+    if (!this.matriz.costoTotal || this.matriz.costoTotal <= 0) errores.push('Costo Total');
+
+    // Duración
+    if (!this.matriz.horasCapacitacion || this.matriz.horasCapacitacion <= 0)
+      errores.push('Horas de capacitación');
+
+    // Evaluación
+    if (!this.matriz.nivelEvaluacion)           errores.push('Nivel de Evaluación');
+    if (!this.matriz.resultadoAprendizaje.trim()) errores.push('Resultado de aprendizaje');
+    if (!this.matriz.resultadoAplicacion.trim())  errores.push('Resultado de aplicación');
+
+    // Proveedor
+    if (!this.matriz.rucProveedor || this.matriz.rucProveedor.length !== 11)
+      errores.push('RUC Proveedor (11 dígitos)');
+    if (!this.matriz.proveedor.trim())          errores.push('Nombre del Proveedor');
+    if (!this.matriz.sectorProveedor)           errores.push('Sector del Proveedor');
+
+    // Beneficiarios
+    this.beneficiarios.forEach((b, i) => {
+      if (!b.nombre.trim() || !b.dni.trim() || !b.genero || !b.regimen.trim() || !b.unidad.trim() || !b.puesto.trim())
+        errores.push(`Beneficiario #${i + 1}: complete todos los campos`);
+    });
+
+    // Modificación PDP
+    if (this.matriz.modificacionPdp !== 'No' && !this.matriz.informeOrh.trim())
+      errores.push('Informe ORH (requerido al haber modificación)');
+
+    if (errores.length > 0) {
+      this.errorFormulario = 'Campos incompletos: ' + errores.join(', ') + '.';
+      setTimeout(() => {
+        document.querySelector('.error-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+
     this.matriz.cantidadBeneficiarios = this.beneficiarios.length;
-
     localStorage.setItem('matrizPdp', JSON.stringify(this.matriz));
-
     localStorage.setItem('beneficiariosPdp', JSON.stringify(this.beneficiarios));
-
-    alert(
-      '✅ Registro exitoso.\n\nLa información de la Matriz de Ejecución PDP fue almacenada correctamente.',
-    );
+    alert('✅ Registro exitoso.\n\nLa Matriz de Ejecución PDP fue almacenada correctamente.');
   }
 }

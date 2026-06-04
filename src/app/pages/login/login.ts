@@ -111,28 +111,11 @@ export class Login {
     this.error = '';
 
     switch (usuario.rol) {
-<<<<<<< HEAD
       case 'Administrador':  this.router.navigate(['/dashboard']); break;
       case 'Sectorista':     this.router.navigate(['/sectorista']); break;
       case 'Ejecutor':       this.router.navigate(['/ejecutor']); break;
       case 'Administrativo': this.router.navigate(['/dashboard']); break;
       default:               this.router.navigate(['/dashboard']);
-=======
-      case 'Administrador':
-        this.router.navigate(['/dashboard']);
-        break;
-      case 'Sectorista':
-        this.router.navigate(['/sectorista']);
-        break;
-      case 'Ejecutor':
-        this.router.navigate(['/ejecutor']);
-        break;
-      case 'Administrativo':
-        this.router.navigate(['/dashboard']);
-        break;
-      default:
-        this.router.navigate(['/dashboard']);
->>>>>>> 5072c5f8a9314afc257f486c437c3da4e52afb0f
     }
   }
 

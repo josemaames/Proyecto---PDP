@@ -330,8 +330,118 @@
         </div>
       </div>
 
+      @if (errorFormulario) {
+        <div class="error-formulario">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="flex-shrink:0">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ errorFormulario }}
+        </div>
+      }
+
       <button class="btn-guardar" (click)="guardarMatriz()">Guardar Matriz PDP</button>
 
     </main>
   </div>
+
+  <!-- ===== MODAL BÚSQUEDA DE EXPEDIENTES ===== -->
+  @if (mostrarBusqueda) {
+    <div class="modal-busqueda-overlay" (click)="cerrarBusqueda()">
+      <div class="modal-busqueda" (click)="$event.stopPropagation()">
+
+        <div class="modal-busqueda-header">
+          <div class="modal-busqueda-titulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <h3>Búsqueda de Expedientes</h3>
+          </div>
+          <button class="modal-cerrar" (click)="cerrarBusqueda()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-busqueda-buscador">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por código, capacitación, responsable o estado..."
+            [(ngModel)]="textoBusqueda"
+            autofocus
+          />
+        </div>
+
+        <div class="modal-busqueda-resultados">
+          @if (expedientesFiltrados.length === 0) {
+            <div class="modal-sin-resultados">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <p>No se encontraron expedientes</p>
+            </div>
+          } @else {
+            <table class="tabla-expedientes-modal">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Capacitación</th>
+                  <th>Estado</th>
+                  <th>Semáforo</th>
+                  <th>Responsable</th>
+                  <th>Beneficiarios</th>
+                  <th>Presupuesto (S/)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (exp of expedientesFiltrados; track exp.expediente) {
+                  <tr (click)="verDetalleExpediente(exp)" [class.fila-seleccionada]="expedienteDetalle?.expediente === exp.expediente">
+                    <td class="cod-expediente">{{ exp.expediente }}</td>
+                    <td>{{ exp.capacitacion }}</td>
+                    <td>
+                      <span class="badge-estado-exp" [class]="'estado-' + exp.estado.toLowerCase().replace(' ', '-')">
+                        {{ exp.estado }}
+                      </span>
+                    </td>
+                    <td><span class="semaforo-dot" [class]="exp.semaforo"></span></td>
+                    <td>{{ exp.responsable }}</td>
+                    <td class="centrado">{{ exp.beneficiarios }}</td>
+                    <td class="centrado">{{ exp.presupuesto | number:'1.0-0' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            @if (expedienteDetalle) {
+              <div class="detalle-exp-panel">
+                <h4>Detalle: {{ expedienteDetalle.expediente }}</h4>
+                <div class="detalle-exp-grid">
+                  <div class="detalle-exp-item"><span>Capacitación</span><strong>{{ expedienteDetalle.capacitacion }}</strong></div>
+                  <div class="detalle-exp-item"><span>Responsable</span><strong>{{ expedienteDetalle.responsable }}</strong></div>
+                  <div class="detalle-exp-item"><span>Estado</span><strong>{{ expedienteDetalle.estado }}</strong></div>
+                  <div class="detalle-exp-item"><span>Beneficiarios</span><strong>{{ expedienteDetalle.beneficiarios }}</strong></div>
+                  <div class="detalle-exp-item"><span>Presupuesto</span><strong>S/ {{ expedienteDetalle.presupuesto | number:'1.0-0' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Horas lectivas</span><strong>{{ expedienteDetalle.horasLectivas }}h</strong></div>
+                  <div class="detalle-exp-item"><span>Horas cronológicas</span><strong>{{ expedienteDetalle.horasCronologicas }}h</strong></div>
+                  <div class="detalle-exp-item"><span>Semáforo</span>
+                    <strong><span class="semaforo-dot" [class]="expedienteDetalle.semaforo"></span> {{ expedienteDetalle.semaforo }}</strong>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="modal-busqueda-footer">
+          <span class="modal-total">{{ expedientesFiltrados.length }} expediente(s) encontrado(s)</span>
+          <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>
