@@ -1,197 +1,258 @@
-<div class="personal-container">
-  <div class="header">
-    <h2>Personal del Sistema PDP</h2>
+<div class="app-layout">
 
-    <button class="btn-nuevo" (click)="nuevoUsuario()">+ Nuevo Usuario</button>
-  </div>
-
-  <div class="estadisticas">
-    <div class="card-stat">
-      <h3>{{ totalAdministradores }}</h3>
-      <p>Administradores</p>
+  <!-- ===== NAVBAR ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
     </div>
-
-    <div class="card-stat">
-      <h3>{{ totalSectoristas }}</h3>
-      <p>Sectoristas</p>
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <button class="nav-avatar">{{ inicialUsuario }}</button>
     </div>
+  </nav>
 
-    <div class="card-stat">
-      <h3>{{ totalEjecutores }}</h3>
-      <p>Ejecutores</p>
-    </div>
+  <div class="app-cuerpo">
 
-    <div class="card-stat activo">
-      <h3>{{ totalActivos }}</h3>
-      <p>Activos</p>
-    </div>
-
-    <div class="card-stat inactivo">
-      <h3>{{ totalInactivos }}</h3>
-      <p>Inactivos</p>
-    </div>
-  </div>
-
-  <!-- FILTROS -->
-
-  <div class="filtros">
-    <input type="text" placeholder="🔍 Buscar por nombre o DNI" [(ngModel)]="textoBusqueda" />
-
-    <select [(ngModel)]="filtroRol">
-      <option value="Todos">Todos los roles</option>
-      <option value="Administrador">Administrador</option>
-      <option value="Sectorista">Sectorista</option>
-      <option value="Ejecutor">Ejecutor</option>
-    </select>
-
-    <select [(ngModel)]="filtroEstado">
-      <option value="Todos">Todos los estados</option>
-      <option value="Activo">Activo</option>
-      <option value="Inactivo">Inactivo</option>
-    </select>
-  </div>
-
-  <div class="formulario-usuario" *ngIf="mostrarFormulario">
-    <h3>
-      {{ modoEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}
-    </h3>
-
-    <div class="campo">
-      <label>DNI</label>
-      <input type="text" [(ngModel)]="nuevoUsuarioData.dni" />
-    </div>
-
-    <div class="campo">
-      <label>Nombre Completo</label>
-      <input type="text" [(ngModel)]="nuevoUsuarioData.nombre" />
-    </div>
-
-    <div class="campo">
-      <label>Cargo</label>
-      <input type="text" [(ngModel)]="nuevoUsuarioData.cargo" />
-    </div>
-
-    <div class="campo">
-      <label>Rol</label>
-      <select [(ngModel)]="nuevoUsuarioData.rol">
-        <option value="Administrador">Administrador</option>
-        <option value="Sectorista">Sectorista</option>
-        <option value="Ejecutor">Ejecutor</option>
-      </select>
-    </div>
-
-    <div class="campo">
-      <label>Estado</label>
-      <select [(ngModel)]="nuevoUsuarioData.estado">
-        <option value="Activo">Activo</option>
-        <option value="Inactivo">Inactivo</option>
-      </select>
-    </div>
-
-    <div class="acciones-formulario">
-      <button class="btn-guardar" (click)="guardarUsuario()">Guardar</button>
-
-      <button class="btn-cancelar" (click)="cancelarUsuario()">Cancelar</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay" *ngIf="mostrarDetalle">
-    <div class="modal-detalle">
-      <div class="logo-modal">
-        <img src="logo-essalud.png" alt="EsSalud" />
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-perfil">
+        <p class="bienvenido-label">Bienvenido</p>
+        <div class="perfil-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <p class="perfil-nombre">{{ usuarioActual?.nombre }}</p>
+        <p class="perfil-correo">{{ usuarioActual?.tipo || usuarioActual?.rol }}</p>
+        <div class="perfil-acciones">
+          <button class="perfil-icon-btn" title="Cambiar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </button>
+          <button class="perfil-icon-btn" title="Editar perfil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div class="perfil-container">
-        <img
-          class="foto-perfil"
-          [src]="usuarioSeleccionado?.foto || 'logo-essalud.png'"
-          alt="Usuario"
-        />
+      <nav class="sidebar-nav">
+        <div class="menu-item" (click)="irA('/dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+          Inicio
+        </div>
+
+        <div class="menu-item" (click)="irA('/expedientes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Expedientes
+        </div>
+
+        <div class="menu-item" (click)="irA('/hoja-ruta')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Hoja de Ruta
+        </div>
+
+        <div class="menu-item activo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Personal
+        </div>
+
+        <div class="sidebar-sep"></div>
+
+        <div class="menu-item cerrar" (click)="cerrarSesion()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Cerrar Sesión
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ===== CONTENIDO ===== -->
+    <main class="app-contenido">
+
+      <div class="contenido-encabezado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h2>Personal del Sistema PDP</h2>
+        <button class="btn-nuevo" (click)="nuevoUsuario()">+ Nuevo Usuario</button>
       </div>
 
-      <h2 class="titulo-usuario">Información del Usuario</h2>
-
-      <div class="detalle-item">
-        <strong>DNI</strong>
-        <span>{{ usuarioSeleccionado?.dni }}</span>
+      <!-- ESTADÍSTICAS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-valor">{{ totalAdministradores }}</span>
+          <span class="stat-label">Administradores</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-valor">{{ totalSectoristas }}</span>
+          <span class="stat-label">Sectoristas</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-valor">{{ totalEjecutores }}</span>
+          <span class="stat-label">Ejecutores</span>
+        </div>
+        <div class="stat-card stat-activo">
+          <span class="stat-valor">{{ totalActivos }}</span>
+          <span class="stat-label">Activos</span>
+        </div>
+        <div class="stat-card stat-inactivo">
+          <span class="stat-valor">{{ totalInactivos }}</span>
+          <span class="stat-label">Inactivos</span>
+        </div>
       </div>
 
-      <div class="detalle-item">
-        <strong>Nombre Completo</strong>
-        <span>{{ usuarioSeleccionado?.nombre }}</span>
+      <!-- FILTROS -->
+      <div class="card filtros-card">
+        <input type="text" placeholder="Buscar por nombre o DNI..." [(ngModel)]="textoBusqueda" />
+        <select [(ngModel)]="filtroRol">
+          <option value="Todos">Todos los roles</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Sectorista">Sectorista</option>
+          <option value="Ejecutor">Ejecutor</option>
+          <option value="Administrativo">Administrativo</option>
+        </select>
+        <select [(ngModel)]="filtroEstado">
+          <option value="Todos">Todos los estados</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
       </div>
 
-      <div class="detalle-item">
-        <strong>Cargo</strong>
-        <span>{{ usuarioSeleccionado?.cargo }}</span>
+      <!-- FORMULARIO NUEVO/EDITAR -->
+      @if (mostrarFormulario) {
+        <div class="card form-card">
+          <h3 class="card-section-title">{{ modoEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
+          <div class="form-grid">
+            <div class="campo">
+              <label>DNI</label>
+              <input type="text" [(ngModel)]="nuevoUsuarioData.dni" placeholder="Número de documento" />
+            </div>
+            <div class="campo">
+              <label>Nombre Completo</label>
+              <input type="text" [(ngModel)]="nuevoUsuarioData.nombre" placeholder="Nombres y apellidos" />
+            </div>
+            <div class="campo">
+              <label>Cargo</label>
+              <input type="text" [(ngModel)]="nuevoUsuarioData.cargo" placeholder="Cargo o puesto" />
+            </div>
+            <div class="campo">
+              <label>Rol</label>
+              <select [(ngModel)]="nuevoUsuarioData.rol">
+                <option value="Administrador">Administrador</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Sectorista">Sectorista</option>
+                <option value="Ejecutor">Ejecutor</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Estado</label>
+              <select [(ngModel)]="nuevoUsuarioData.estado">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-acciones">
+            <button class="btn-guardar-form" (click)="guardarUsuario()">Guardar</button>
+            <button class="btn-cancelar-form" (click)="cancelarUsuario()">Cancelar</button>
+          </div>
+        </div>
+      }
+
+      <!-- TABLA -->
+      <div class="card tabla-card">
+        <table class="tabla-personal">
+          <thead>
+            <tr>
+              <th>DNI</th>
+              <th>Nombre</th>
+              <th>Cargo</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuariosFiltrados; track usuario.dni) {
+              <tr>
+                <td>{{ usuario.dni }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.cargo }}</td>
+                <td>
+                  <span class="badge-rol">{{ usuario.rol }}</span>
+                </td>
+                <td>
+                  <span class="badge-estado" [class.badge-activo]="usuario.estado === 'Activo'" [class.badge-inactivo]="usuario.estado !== 'Activo'">
+                    {{ usuario.estado }}
+                  </span>
+                </td>
+                <td class="acciones-col">
+                  <button class="btn-acc btn-ver" (click)="verUsuario(usuario.dni)">Ver</button>
+                  <button class="btn-acc btn-editar" (click)="editarUsuario(usuario.dni)">Editar</button>
+                  <button class="btn-acc" [class.btn-desactivar]="usuario.estado === 'Activo'" [class.btn-activar]="usuario.estado !== 'Activo'" (click)="cambiarEstado(usuario.dni)">
+                    {{ usuario.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
 
-      <div class="detalle-item">
-        <strong>Rol</strong>
-        <span>{{ usuarioSeleccionado?.rol }}</span>
-      </div>
+      <!-- MODAL DETALLE -->
+      @if (mostrarDetalle) {
+        <div class="modal-overlay" (click)="cerrarDetalle()">
+          <div class="modal-detalle" (click)="$event.stopPropagation()">
+            <div class="modal-logo">
+              <img src="somos-essalud.png" alt="EsSalud" />
+            </div>
+            <div class="modal-foto">
+              <img [src]="usuarioSeleccionado?.foto || 'logo-essalud.png'" alt="Usuario" />
+            </div>
+            <h3>Información del Usuario</h3>
+            <div class="detalle-item"><strong>DNI</strong><span>{{ usuarioSeleccionado?.dni }}</span></div>
+            <div class="detalle-item"><strong>Nombre Completo</strong><span>{{ usuarioSeleccionado?.nombre }}</span></div>
+            <div class="detalle-item"><strong>Cargo</strong><span>{{ usuarioSeleccionado?.cargo }}</span></div>
+            <div class="detalle-item"><strong>Rol</strong><span>{{ usuarioSeleccionado?.rol }}</span></div>
+            <div class="detalle-item">
+              <strong>Estado</strong>
+              <span class="badge-estado" [class.badge-activo]="usuarioSeleccionado?.estado === 'Activo'" [class.badge-inactivo]="usuarioSeleccionado?.estado !== 'Activo'">
+                {{ usuarioSeleccionado?.estado }}
+              </span>
+            </div>
+            <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
+          </div>
+        </div>
+      }
 
-      <div class="detalle-item">
-        <strong>Estado</strong>
-
-        <span
-          class="badge-estado"
-          [class.activo]="usuarioSeleccionado?.estado === 'Activo'"
-          [class.inactivo]="usuarioSeleccionado?.estado === 'Inactivo'"
-        >
-          {{ usuarioSeleccionado?.estado }}
-        </span>
-      </div>
-
-      <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- TABLA -->
-
-  <div class="tabla-box">
-    <table>
-      <thead>
-        <tr>
-          <th>DNI</th>
-          <th>Nombre</th>
-          <th>Cargo</th>
-          <th>Rol</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let usuario of usuariosFiltrados">
-          <td>{{ usuario.dni }}</td>
-
-          <td>{{ usuario.nombre }}</td>
-
-          <td>{{ usuario.cargo }}</td>
-
-          <td>{{ usuario.rol }}</td>
-
-          <td>
-            <span
-              [style.color]="usuario.estado === 'Activo' ? 'green' : 'red'"
-              [style.fontWeight]="'bold'"
-            >
-              {{ usuario.estado }}
-            </span>
-          </td>
-
-          <td>
-            <button class="btn-ver" (click)="verUsuario(usuario.dni)">Ver</button>
-
-            <button class="btn-editar" (click)="editarUsuario(usuario.dni)">Editar</button>
-
-            <button class="btn-estado" (click)="cambiarEstado(usuario.dni)">
-              {{ usuario.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    </main>
   </div>
 </div>

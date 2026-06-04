@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { NgFor, NgClass, NgIf, DecimalPipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { NgClass, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
@@ -13,7 +13,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgClass, FormsModule, NgIf, DecimalPipe, BaseChartDirective, RouterLink],
+  imports: [NgClass, FormsModule, DecimalPipe, BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -25,6 +25,8 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   esAdministrador = false;
   esSectorista = false;
   esEjecutor = false;
+  fechaHoy = '';
+  inicialUsuario = 'U';
 
   menuItems: string[] = [];
 
@@ -86,9 +88,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       this.nombre = datos.nombre;
       this.rol = datos.rol;
 
-      this.esAdministrador = this.usuarioActual?.rol === 'Administrador';
+      this.esAdministrador = ['Administrador', 'Administrativo'].includes(this.usuarioActual?.rol);
       this.esSectorista = this.usuarioActual?.rol === 'Sectorista';
       this.esEjecutor = this.usuarioActual?.rol === 'Ejecutor';
+      this.inicialUsuario = (datos.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+      const f = new Date().toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      });
+      this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
       this.cargarMenuPorRol();
 

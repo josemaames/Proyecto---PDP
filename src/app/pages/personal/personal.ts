@@ -1,14 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-personal',
-  imports: [NgFor, NgIf, FormsModule],
+  imports: [FormsModule],
   templateUrl: './personal.html',
   styleUrl: './personal.css',
 })
 export class Personal implements OnInit {
+  private router = inject(Router);
+
+  usuarioActual: any = {};
+  fechaHoy = '';
+  inicialUsuario = 'U';
   mostrarFormulario = false;
   modoEdicion = false;
   dniEditando = '';
@@ -134,11 +139,24 @@ export class Personal implements OnInit {
   filtroEstado = 'Todos';
 
   ngOnInit() {
-    const usuariosGuardados = localStorage.getItem('usuarios');
+    this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+    this.inicialUsuario = (this.usuarioActual?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
+    const usuariosGuardados = localStorage.getItem('usuarios');
     if (usuariosGuardados) {
       this.usuarios = JSON.parse(usuariosGuardados);
     }
+  }
+
+  irA(ruta: string) { this.router.navigate([ruta]); }
+
+  cerrarSesion() {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
   }
 
   nuevoUsuario() {

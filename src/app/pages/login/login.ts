@@ -25,6 +25,7 @@ export class Login {
   regCelular = '';
   regPassword = '';
   regConfirm = '';
+  regRol = 'Sectorista';
   mostrarRegPass = false;
   mostrarRegConfirm = false;
   errorReg = '';
@@ -51,14 +52,22 @@ export class Login {
       return;
     }
 
+    const usuariosAdmin: any[] = JSON.parse(localStorage.getItem('usuarios') || '[]');
+    const estadoEnAdmin = usuariosAdmin.find((u: any) => u.dni === usuario.dni);
+    if (estadoEnAdmin && estadoEnAdmin.estado === 'Inactivo') {
+      this.error = 'Su cuenta ha sido desactivada. Contacte al administrador.';
+      return;
+    }
+
     localStorage.setItem('usuario', JSON.stringify(usuario));
     this.error = '';
 
     switch (usuario.rol) {
-      case 'Administrador': this.router.navigate(['/dashboard']); break;
-      case 'Sectorista':    this.router.navigate(['/sectorista']); break;
-      case 'Ejecutor':      this.router.navigate(['/ejecutor']); break;
-      default:              this.router.navigate(['/dashboard']);
+      case 'Administrador':  this.router.navigate(['/dashboard']); break;
+      case 'Sectorista':     this.router.navigate(['/sectorista']); break;
+      case 'Ejecutor':       this.router.navigate(['/ejecutor']); break;
+      case 'Administrativo': this.router.navigate(['/dashboard']); break;
+      default:               this.router.navigate(['/dashboard']);
     }
   }
 
@@ -96,8 +105,8 @@ export class Login {
       correo: this.regCorreo,
       celular: this.regCelular,
       fechaNac: this.regFechaNac,
-      tipo: 'Ejecutor',
-      rol: 'Ejecutor',
+      tipo: this.regRol,
+      rol: this.regRol,
     });
 
     localStorage.setItem('usuariosRegistrados', JSON.stringify(registrados));
@@ -108,6 +117,7 @@ export class Login {
       this.exitoReg = false;
       this.regDni = this.regPlantilla = this.regFechaNac = '';
       this.regCorreo = this.regCelular = this.regPassword = this.regConfirm = '';
+      this.regRol = 'Sectorista';
     }, 2000);
   }
 
