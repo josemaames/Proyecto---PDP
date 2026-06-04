@@ -14,7 +14,9 @@
 }
 
 /* Las decoraciones de esquina vienen del fondo real (fondo-login.png) */
-.deco { display: none; }
+.deco {
+  display: none;
+}
 
 /* ============================================================
    CARD
@@ -188,7 +190,9 @@
   cursor: pointer;
   margin-top: 4px;
   letter-spacing: 0.3px;
-  transition: background 0.25s, transform 0.15s;
+  transition:
+    background 0.25s,
+    transform 0.15s;
 }
 
 .btn-primary:hover {
@@ -206,7 +210,9 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .btn-outline:hover {

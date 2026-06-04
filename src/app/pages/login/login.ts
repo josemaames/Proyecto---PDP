@@ -35,12 +35,60 @@ export class Login {
 
   ingresar() {
     const base = [
-      { id: 1, dni: '90642735', password: 'admin123', nombre: 'José Manuel Ames Anapán', numeroPlantilla: 'PL-0001', tipo: 'Especialista PDP', rol: 'Administrador' },
-      { id: 2, dni: '70435255', password: 'admin123', nombre: 'Víctor Gabriel Acero Garay', numeroPlantilla: 'PL-0002', tipo: 'Especialista PDP', rol: 'Administrador' },
-      { id: 3, dni: '73456264', password: 'admin123', nombre: 'Fernando David Campos Quiroz', numeroPlantilla: 'PL-0003', tipo: 'Especialista PDP', rol: 'Administrador' },
-      { id: 4, dni: '45611148', password: 'admin123', nombre: 'Sthywen Javier Muñoz Ruiz', numeroPlantilla: 'PL-0004', tipo: 'Especialista PDP', rol: 'Administrador' },
-      { id: 5, dni: '11111111', password: 'sector123', nombre: 'María Torres', numeroPlantilla: 'PL-0005', tipo: 'Sectorista', rol: 'Sectorista' },
-      { id: 6, dni: '22222222', password: 'ejecutor123', nombre: 'Ricardo Mendoza', numeroPlantilla: 'PL-0006', tipo: 'Ejecutor', rol: 'Ejecutor' },
+      {
+        id: 1,
+        dni: '90642735',
+        password: 'admin123',
+        nombre: 'José Manuel Ames Anapán',
+        numeroPlantilla: 'PL-0001',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+      {
+        id: 2,
+        dni: '70435255',
+        password: 'admin123',
+        nombre: 'Víctor Gabriel Acero Garay',
+        numeroPlantilla: 'PL-0002',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+      {
+        id: 3,
+        dni: '73456264',
+        password: 'admin123',
+        nombre: 'Fernando David Campos Quiroz',
+        numeroPlantilla: 'PL-0003',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+      {
+        id: 4,
+        dni: '45611148',
+        password: 'admin123',
+        nombre: 'Sthywen Javier Muñoz Ruiz',
+        numeroPlantilla: 'PL-0004',
+        tipo: 'Especialista PDP',
+        rol: 'Administrador',
+      },
+      {
+        id: 5,
+        dni: '11111111',
+        password: 'sector123',
+        nombre: 'María Torres',
+        numeroPlantilla: 'PL-0005',
+        tipo: 'Sectorista',
+        rol: 'Sectorista',
+      },
+      {
+        id: 6,
+        dni: '22222222',
+        password: 'ejecutor123',
+        nombre: 'Ricardo Mendoza',
+        numeroPlantilla: 'PL-0006',
+        tipo: 'Ejecutor',
+        rol: 'Ejecutor',
+      },
     ];
 
     const registrados = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
@@ -63,19 +111,43 @@ export class Login {
     this.error = '';
 
     switch (usuario.rol) {
+<<<<<<< HEAD
       case 'Administrador':  this.router.navigate(['/dashboard']); break;
       case 'Sectorista':     this.router.navigate(['/sectorista']); break;
       case 'Ejecutor':       this.router.navigate(['/ejecutor']); break;
       case 'Administrativo': this.router.navigate(['/dashboard']); break;
       default:               this.router.navigate(['/dashboard']);
+=======
+      case 'Administrador':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'Sectorista':
+        this.router.navigate(['/sectorista']);
+        break;
+      case 'Ejecutor':
+        this.router.navigate(['/ejecutor']);
+        break;
+      case 'Administrativo':
+        this.router.navigate(['/dashboard']);
+        break;
+      default:
+        this.router.navigate(['/dashboard']);
+>>>>>>> 5072c5f8a9314afc257f486c437c3da4e52afb0f
     }
   }
 
   registrarse() {
     this.errorReg = '';
 
-    if (!this.regDni || !this.regPlantilla || !this.regFechaNac ||
-        !this.regCorreo || !this.regCelular || !this.regPassword || !this.regConfirm) {
+    if (
+      !this.regDni ||
+      !this.regPlantilla ||
+      !this.regFechaNac ||
+      !this.regCorreo ||
+      !this.regCelular ||
+      !this.regPassword ||
+      !this.regConfirm
+    ) {
       this.errorReg = 'Todos los campos son obligatorios.';
       return;
     }
