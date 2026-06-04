@@ -1,48 +1,241 @@
-<div class="login-container">
-  <div class="login-card">
-    ```
-    <div class="logo-section">
-      <img src="assets/logos/essalud-logo.png" alt="EsSalud" class="logo" />
+<div class="bg">
+  <!-- Decoraciones de fondo en las esquinas -->
+  <div class="deco deco-tl"></div>
+  <div class="deco deco-tr"></div>
+  <div class="deco deco-bl"></div>
+  <div class="deco deco-br"></div>
 
-      <h1>Sistema PDP</h1>
+  <!-- ===================== VISTA LOGIN ===================== -->
+  @if (vista === 'login') {
+    <div class="card">
+      <!-- Logo -->
+      <div class="logo-area">
+        <div class="logo-icon">
+          <img src="somos-essalud.png" alt="EsSalud" class="logo-img" />
+        </div>
+        <div class="logo-texto">
+          <span class="somos">Somos</span>
+          <span class="essalud">EsSalud</span>
+        </div>
+        <p class="logo-sub">Plataforma virtual del trabajador</p>
+      </div>
 
-      <p>Plan de Desarrollo de Personas</p>
-    </div>
-
-    <form (ngSubmit)="ingresar()">
-      <div class="input-group">
-        <label>DNI</label>
-
+      <!-- Documento de identidad -->
+      <div class="input-wrap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
         <input
           type="text"
-          placeholder="Ingrese su DNI"
+          placeholder="Documento de identidad"
           [(ngModel)]="dni"
           name="dni"
-          maxlength="8"
-          required
+          (keyup.enter)="ingresar()"
         />
       </div>
 
-      <div class="input-group">
-        <label>Contraseña</label>
-
+      <!-- Contraseña -->
+      <div class="input-wrap">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
         <input
-          type="password"
-          placeholder="Ingrese su contraseña"
+          [type]="mostrarPassword ? 'text' : 'password'"
+          placeholder="Contraseña"
           [(ngModel)]="password"
           name="password"
-          required
+          (keyup.enter)="ingresar()"
         />
+        <button type="button" class="eye-btn" (click)="mostrarPassword = !mostrarPassword">
+          @if (mostrarPassword) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+              />
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          }
+        </button>
       </div>
 
-      <div *ngIf="error" class="error">
-        {{ error }}
+      @if (error) {
+        <div class="alerta-error">{{ error }}</div>
+      }
+
+      <button class="btn-primary" (click)="ingresar()">Ingresar</button>
+
+      <a class="link-olvide">¿Olvidaste tu contraseña?</a>
+
+      <p class="cuenta-text">¿Aún no tienes una cuenta?</p>
+
+      <button class="btn-outline" (click)="vista = 'registro'">Regístrate</button>
+
+      <p class="footer-consultas">Consultas: sgrhs.bienestar&#64;essalud.gob.pe</p>
+    </div>
+  }
+
+  <!-- ===================== VISTA REGISTRO ===================== -->
+  @if (vista === 'registro') {
+    <div class="card card-registro">
+      <!-- Logo pequeño -->
+      <div class="logo-area logo-area-sm">
+        <div class="logo-icon logo-icon-sm">
+          <img src="somos-essalud.png" alt="EsSalud" class="logo-img logo-img-sm" />
+        </div>
+        <div class="logo-texto">
+          <span class="somos">Somos</span>
+          <span class="essalud">EsSalud</span>
+        </div>
+        <p class="logo-sub">Plataforma virtual del trabajador</p>
       </div>
 
-      <button type="submit">Ingresar</button>
-    </form>
+      <h2 class="reg-titulo">Registro</h2>
 
-    <div class="footer">EsSalud - Gerencia Central de Gestión de las Personas</div>
-    ```
-  </div>
+      <div class="reg-grid">
+        <!-- COLUMNA IZQUIERDA: Datos Generales -->
+        <div class="reg-col">
+          <h3 class="reg-col-titulo">Datos Generales</h3>
+
+          <div class="input-wrap">
+            <input
+              type="text"
+              placeholder="Documento de identidad *"
+              [(ngModel)]="regDni"
+              name="regDni"
+            />
+          </div>
+
+          <div class="input-wrap">
+            <input
+              type="text"
+              placeholder="Código Planilla SAP *"
+              [(ngModel)]="regPlantilla"
+              name="regPlantilla"
+            />
+            <span class="info-ico" title="Código asignado en el sistema SAP">ⓘ</span>
+          </div>
+
+          <div class="input-wrap">
+            <input
+              type="date"
+              placeholder="Fecha Nacimiento *"
+              [(ngModel)]="regFechaNac"
+              name="regFechaNac"
+            />
+          </div>
+
+          <div class="input-wrap input-wrap-select">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <select [(ngModel)]="regRol" name="regRol" class="sel-rol">
+              <option value="Sectorista">Sectorista</option>
+              <option value="Ejecutor">Ejecutor</option>
+              <option value="Administrativo">Administrativo</option>
+            </select>
+          </div>
+
+          <div class="ya-cuenta">
+            <p>¿Ya tienes una cuenta?</p>
+            <button class="btn-outline btn-outline-sm" (click)="irALogin()">
+              Inicia tu sesión
+            </button>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Datos de la Cuenta -->
+        <div class="reg-col">
+          <h3 class="reg-col-titulo">Datos de la Cuenta</h3>
+
+          <div class="input-wrap">
+            <input
+              type="email"
+              placeholder="Correo Personal *"
+              [(ngModel)]="regCorreo"
+              name="regCorreo"
+            />
+          </div>
+
+          <div class="input-wrap">
+            <input type="text" placeholder="Celular *" [(ngModel)]="regCelular" name="regCelular" />
+          </div>
+
+          <div class="input-wrap">
+            <input
+              [type]="mostrarRegPass ? 'text' : 'password'"
+              placeholder="Contraseña *"
+              [(ngModel)]="regPassword"
+              name="regPassword"
+            />
+            <button type="button" class="eye-btn" (click)="mostrarRegPass = !mostrarRegPass">
+              @if (mostrarRegPass) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+                  />
+                  <path
+                    d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            </button>
+          </div>
+
+          <div class="input-wrap">
+            <input
+              [type]="mostrarRegConfirm ? 'text' : 'password'"
+              placeholder="Confirmar Contraseña *"
+              [(ngModel)]="regConfirm"
+              name="regConfirm"
+            />
+            <button type="button" class="eye-btn" (click)="mostrarRegConfirm = !mostrarRegConfirm">
+              @if (mostrarRegConfirm) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+                  />
+                  <path
+                    d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            </button>
+          </div>
+
+          @if (errorReg) {
+            <div class="alerta-error">{{ errorReg }}</div>
+          }
+
+          @if (exitoReg) {
+            <div class="alerta-exito">¡Registro exitoso! Redirigiendo al login...</div>
+          }
+
+          <button class="btn-primary" (click)="registrarse()">Registrarme</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

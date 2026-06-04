@@ -1,41 +1,39 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NgFor } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-
 import { MatrizDncService } from '../../services/matriz-dnc.service';
 
 @Component({
   selector: 'app-ejecutor',
   standalone: true,
-  imports: [FormsModule, NgFor, HttpClientModule],
+  imports: [FormsModule],
   templateUrl: './ejecutor.html',
   styleUrl: './ejecutor.css',
 })
-export class Ejecutor {
-  constructor(private matrizDncService: MatrizDncService) {}
+export class Ejecutor implements OnInit {
+  private router = inject(Router);
+  private matrizDncService = inject(MatrizDncService);
+
+  usuario: any = {};
+  fechaHoy = '';
+  inicialUsuario = 'U';
 
   matrizDnc = {
-    // IDENTIFICACIÓN
     organo: '',
     centroAsistencial: '',
     servicio: '',
 
-    // NECESIDAD
     problema: '',
     capacitacion: '',
 
-    // OBJETIVOS
     objetivoAprendizaje: '',
     objetivoDesempeno: '',
 
-    // CAPACITACIÓN
     cantidadBeneficiarios: 0,
     tipoAccion: '',
     prioridad: '',
     beneficio: '',
 
-    // COSTOS
     costoDirecto: 0,
     costoIndirecto: 0,
     costoTotal: 0,
@@ -50,6 +48,30 @@ export class Ejecutor {
       puesto: '',
     },
   ];
+
+  ngOnInit() {
+    this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+    this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
+
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+  }
+
+  irA(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
+  cerrarSesion() {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
+  }
 
   agregarParticipante() {
     this.participantes.push({
@@ -78,14 +100,16 @@ export class Ejecutor {
     this.calcularCostoTotal();
 
     this.matrizDncService.guardar(this.matrizDnc).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Matriz DNC guardada:', response);
+
         alert('✅ Matriz DNC guardada en PostgreSQL');
       },
 
-      error: (err: any) => {
-        console.error(err);
+      error: (error) => {
+        console.error('Error al guardar:', error);
 
-        alert('❌ Error al guardar');
+        alert('❌ Error al guardar en PostgreSQL');
       },
     });
   }

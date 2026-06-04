@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -8,8 +9,13 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './sectorista.html',
   styleUrl: './sectorista.css',
 })
-export class Sectorista {
+export class Sectorista implements OnInit {
   private http = inject(HttpClient);
+  private router = inject(Router);
+
+  usuario: any = {};
+  fechaHoy = '';
+  inicialUsuario = 'U';
 
   cargandoRuc = false;
   errorRuc = '';
@@ -74,6 +80,22 @@ export class Sectorista {
       puesto: '',
     },
   ];
+
+  ngOnInit() {
+    this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+  }
+
+  irA(ruta: string) { this.router.navigate([ruta]); }
+
+  cerrarSesion() {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
+  }
 
   onRucChange(ruc: string) {
     this.errorRuc = '';
