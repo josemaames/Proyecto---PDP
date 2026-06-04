@@ -7,7 +7,7 @@
       "^/api/sunat": "/v1/sunat"
     },
     "headers": {
-      "Authorization": "sk_16093.PxU18zqKbqgjfMWTuw48dslkqheFtgFp"
+      "Authorization": "Bearer sk_16093.PxU18zqKbqgjfMWTuw48dslkqheFtgFp"
     }
   }
 }

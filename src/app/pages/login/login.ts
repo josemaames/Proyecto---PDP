@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, HttpClientModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -14,107 +15,47 @@ export class Login {
   password = '';
   error = '';
 
-  constructor(private router: Router) {}
+  private apiUrl = 'http://localhost:8080/api/auth/login';
+
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+  ) {}
 
   ingresar() {
-    const usuarios = [
-      // ADMINISTRADORES
-
-      {
-        id: 1,
-        dni: '90642735',
-        password: 'admin123',
-        nombre: 'José Manuel Ames Anapán',
-        numeroPlantilla: 'PL-0001',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-      },
-
-      {
-        id: 2,
-        dni: '70435255',
-        password: 'admin123',
-        nombre: 'Víctor Gabriel Acero Garay',
-        numeroPlantilla: 'PL-0002',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-      },
-
-      {
-        id: 3,
-        dni: '73456264',
-        password: 'admin123',
-        nombre: 'Fernando David Campos Quiroz',
-        numeroPlantilla: 'PL-0003',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-      },
-
-      {
-        id: 4,
-        dni: '45611148',
-        password: 'admin123',
-        nombre: 'Sthywen Javier Muñoz Ruiz',
-        numeroPlantilla: 'PL-0004',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-      },
-
-      // SECTORISTA
-
-      {
-        id: 5,
-        dni: '11111111',
-        password: 'sector123',
-        nombre: 'María Torres',
-        numeroPlantilla: 'PL-0005',
-        tipo: 'Sectorista',
-        rol: 'Sectorista',
-      },
-
-      // EJECUTOR
-
-      {
-        id: 6,
-        dni: '22222222',
-        password: 'ejecutor123',
-        nombre: 'Ricardo Mendoza',
-        numeroPlantilla: 'PL-0006',
-        tipo: 'Ejecutor',
-        rol: 'Ejecutor',
-      },
-    ];
-
-    const usuario = usuarios.find((u) => u.dni === this.dni && u.password === this.password);
-
-    if (!usuario) {
-      this.error = 'DNI o contraseña incorrectos';
-      return;
-    }
-
-    // Guardar usuario logueado
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-
-    // Limpiar error
     this.error = '';
 
-    // Redirección según rol
-    switch (usuario.rol) {
-      case 'Administrador':
-        this.router.navigate(['/dashboard']);
-        break;
+    const body = {
+      dni: this.dni,
+      password: this.password,
+    };
 
-      case 'Sectorista':
-        this.router.navigate(['/sectorista']);
-        break;
+    this.http.post<any>(this.apiUrl, body).subscribe({
+      next: (usuario) => {
+        localStorage.setItem('usuario', JSON.stringify(usuario));
 
-      case 'Ejecutor':
-        this.router.navigate(['/ejecutor']);
-        break;
+        switch (usuario.rol) {
+          case 'Administrador':
+            this.router.navigate(['/dashboard']);
+            break;
 
-      default:
-        this.router.navigate(['/dashboard']);
-        break;
-    }
+          case 'Sectorista':
+            this.router.navigate(['/sectorista']);
+            break;
+
+          case 'Ejecutor':
+            this.router.navigate(['/ejecutor']);
+            break;
+
+          default:
+            this.router.navigate(['/dashboard']);
+            break;
+        }
+      },
+
+      error: () => {
+        this.error = 'DNI o contraseña incorrectos';
+      },
+    });
   }
 }

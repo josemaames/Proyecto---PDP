@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
-import { Sectorista } from './pages/sectorista/sectorista';
+import { authGuard } from './guards/auth-guard';
 
+import { Sectorista } from './pages/sectorista/sectorista';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { HojaRuta } from './pages/hoja-ruta/hoja-ruta';
@@ -23,41 +24,47 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
+    canActivate: [authGuard],
   },
 
   {
     path: 'hoja-ruta/:expediente',
     component: HojaRuta,
+    canActivate: [authGuard],
   },
 
   {
     path: 'expedientes',
     component: ExpedientesPdp,
+    canActivate: [authGuard],
   },
 
   {
     path: 'hoja-ruta',
     component: HojaRuta,
+    canActivate: [authGuard],
   },
 
   {
     path: 'personal',
     component: Personal,
+    canActivate: [authGuard],
   },
 
   {
     path: 'sectorista',
     component: Sectorista,
+    canActivate: [authGuard],
   },
 
   {
     path: 'ejecutor',
     component: Ejecutor,
+    canActivate: [authGuard],
   },
 
-  // Ruta comodín (opcional pero recomendada)
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: 'login',
   },
 ];

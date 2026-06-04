@@ -1,41 +1,41 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+
+import { MatrizDncService } from '../../services/matriz-dnc.service';
 
 @Component({
   selector: 'app-ejecutor',
   standalone: true,
-  imports: [FormsModule, NgFor],
+  imports: [FormsModule, NgFor, HttpClientModule],
   templateUrl: './ejecutor.html',
   styleUrl: './ejecutor.css',
 })
 export class Ejecutor {
+  constructor(private matrizDncService: MatrizDncService) {}
+
   matrizDnc = {
     // IDENTIFICACIÓN
-
     organo: '',
     centroAsistencial: '',
     servicio: '',
 
     // NECESIDAD
-
     problema: '',
     capacitacion: '',
 
     // OBJETIVOS
-
     objetivoAprendizaje: '',
     objetivoDesempeno: '',
 
     // CAPACITACIÓN
-
     cantidadBeneficiarios: 0,
     tipoAccion: '',
     prioridad: '',
     beneficio: '',
 
     // COSTOS
-
     costoDirecto: 0,
     costoIndirecto: 0,
     costoTotal: 0,
@@ -77,10 +77,16 @@ export class Ejecutor {
 
     this.calcularCostoTotal();
 
-    localStorage.setItem('matrizDnc', JSON.stringify(this.matrizDnc));
+    this.matrizDncService.guardar(this.matrizDnc).subscribe({
+      next: () => {
+        alert('✅ Matriz DNC guardada en PostgreSQL');
+      },
 
-    localStorage.setItem('participantesDnc', JSON.stringify(this.participantes));
+      error: (err: any) => {
+        console.error(err);
 
-    alert('✅ Matriz DNC registrada correctamente');
+        alert('❌ Error al guardar');
+      },
+    });
   }
 }

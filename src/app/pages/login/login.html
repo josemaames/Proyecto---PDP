@@ -1,22 +1,38 @@
 <div class="login-container">
   <div class="login-card">
+    ```
     <div class="logo-section">
-      <h1>Sistema PDP - EsSalud</h1>
+      <img src="assets/logos/essalud-logo.png" alt="EsSalud" class="logo" />
 
-      <p>Seguimiento Integral de Acciones de Capacitación</p>
+      <h1>Sistema PDP</h1>
+
+      <p>Plan de Desarrollo de Personas</p>
     </div>
 
     <form (ngSubmit)="ingresar()">
       <div class="input-group">
         <label>DNI</label>
 
-        <input type="text" placeholder="Ingrese su DNI" [(ngModel)]="dni" name="dni" />
+        <input
+          type="text"
+          placeholder="Ingrese su DNI"
+          [(ngModel)]="dni"
+          name="dni"
+          maxlength="8"
+          required
+        />
       </div>
 
       <div class="input-group">
         <label>Contraseña</label>
 
-        <input type="password" placeholder="Ingrese su contraseña" [(ngModel)]="password" name="password" />
+        <input
+          type="password"
+          placeholder="Ingrese su contraseña"
+          [(ngModel)]="password"
+          name="password"
+          required
+        />
       </div>
 
       <div *ngIf="error" class="error">
@@ -26,25 +42,7 @@
       <button type="submit">Ingresar</button>
     </form>
 
-    <div class="usuarios-demo">
-      <h4>Usuarios de Prueba</h4>
-
-      <p>
-        <strong>Administrador:</strong>
-        99999999 / admin123
-      </p>
-
-      <p>
-        <strong>Sectorista:</strong>
-        11111111 / sector123
-      </p>
-
-      <p>
-        <strong>Ejecutor:</strong>
-        22222222 / ejecutor123
-      </p>
-    </div>
-
     <div class="footer">EsSalud - Gerencia Central de Gestión de las Personas</div>
+    ```
   </div>
 </div>
