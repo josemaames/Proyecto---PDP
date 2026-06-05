@@ -54,6 +54,24 @@
           Diagnóstico DNC
         </div>
 
+        <div class="menu-item" (click)="irA('/lista-participantes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Lista de Participantes
+        </div>
+
+        <div class="menu-item" (click)="irA('/personal-pdp')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Personal
+        </div>
+
         <div class="menu-item" (click)="irA('/busqueda-expediente')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
@@ -91,155 +109,156 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
-        <h2>Matriz Diagnóstico DNC - Plan de Desarrollo de Personas</h2>
+        <h2>Formulario de Información estadística mensual de acciones de capacitación ejecutadas</h2>
       </div>
 
-      <!-- IDENTIFICACIÓN -->
+      <!-- INFORMACIÓN GENERAL -->
       <div class="card">
-        <div class="card-section-title">🏥 Identificación</div>
-        <div class="datos-grid dos-col">
-          <div class="campo">
-            <label>Órgano / Unidad Orgánica</label>
-            <small>Ej: Gerencia Central de Gestión de las Personas</small>
-            <input
-              type="text"
-              placeholder="Ingrese el órgano o unidad"
-              [(ngModel)]="matrizDnc.organo"
-            />
-          </div>
-          <div class="campo">
-            <label>Centro Asistencial</label>
-            <small>Ej: Hospital Nacional Edgardo Rebagliati Martins</small>
-            <input
-              type="text"
-              placeholder="Ingrese el centro asistencial"
-              [(ngModel)]="matrizDnc.centroAsistencial"
-            />
-          </div>
-          <div class="campo">
-            <label>Servicio / Área</label>
-            <small>Ej: Recursos Humanos, Logística o TI</small>
-            <input
-              type="text"
-              placeholder="Ingrese el servicio o área"
-              [(ngModel)]="matrizDnc.servicio"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- NECESIDAD -->
-      <div class="card">
-        <div class="card-section-title">🎯 Necesidad de Capacitación</div>
-        <div class="campo" style="margin-bottom: 16px">
-          <label>Problema identificado</label>
-          <small>Describa la brecha de conocimientos, habilidades o desempeño detectada.</small>
-          <textarea
-            rows="4"
-            placeholder="Ejemplo: El personal presenta dificultades en la gestión de expedientes electrónicos."
-            [(ngModel)]="matrizDnc.problema"
-          ></textarea>
-        </div>
-        <div class="campo">
-          <label>Nombre de la capacitación</label>
-          <small>Indique el nombre de la acción formativa requerida.</small>
-          <input
-            type="text"
-            placeholder="Ejemplo: Gestión Documental Electrónica"
-            [(ngModel)]="matrizDnc.capacitacion"
-          />
-        </div>
-      </div>
-
-      <!-- OBJETIVOS -->
-      <div class="card">
-        <div class="card-section-title">🚀 Objetivos</div>
-        <div class="datos-grid dos-col">
-          <div class="campo">
-            <label>Objetivo de aprendizaje</label>
-            <small>¿Qué conocimientos o competencias desarrollará el participante?</small>
-            <textarea
-              rows="4"
-              placeholder="Ejemplo: Fortalecer competencias en gestión documental."
-              [(ngModel)]="matrizDnc.objetivoAprendizaje"
-            ></textarea>
-          </div>
-          <div class="campo">
-            <label>Objetivo de desempeño</label>
-            <small>¿Qué mejora se espera observar en el trabajo?</small>
-            <textarea
-              rows="4"
-              placeholder="Ejemplo: Reducir tiempos de atención y mejorar la calidad del registro."
-              [(ngModel)]="matrizDnc.objetivoDesempeno"
-            ></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- PARTICIPANTES -->
-      <div class="card">
-        <div class="card-section-title">👥 Participantes</div>
-        <table class="tabla-participantes">
-          <thead>
-            <tr>
-              <th>DNI</th>
-              <th>Nombre Completo</th>
-              <th>Género</th>
-              <th>Régimen</th>
-              <th>Puesto</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of participantes; track $index; let i = $index) {
-              <tr>
-                <td><input placeholder="DNI" [(ngModel)]="p.dni" /></td>
-                <td><input placeholder="Nombre completo" [(ngModel)]="p.nombre" /></td>
-                <td><input placeholder="Masculino / Femenino" [(ngModel)]="p.genero" /></td>
-                <td><input placeholder="276 / CAS / 728" [(ngModel)]="p.regimen" /></td>
-                <td><input placeholder="Cargo" [(ngModel)]="p.puesto" /></td>
-                <td><button class="btn-eliminar" (click)="eliminarParticipante(i)">✖</button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-        <div class="acciones-tabla">
-          <button class="btn-agregar" (click)="agregarParticipante()">
-            ➕ Agregar Participante
-          </button>
-        </div>
-      </div>
-
-      <!-- COSTOS -->
-      <div class="card">
-        <div class="card-section-title">💰 Costos</div>
+        <div class="card-section-title">📋 Información General</div>
         <div class="datos-grid tres-col">
           <div class="campo">
-            <label>Costo Directo (S/)</label>
-            <input
-              type="number"
-              placeholder="0.00"
-              [(ngModel)]="matrizDnc.costoDirecto"
-              (input)="calcularCostoTotal()"
-            />
+            <label>Código act.</label>
+            <input type="text" placeholder="Ej: CAP-2024-001" [(ngModel)]="formulario.codigoAct" />
           </div>
           <div class="campo">
-            <label>Costo Indirecto (S/)</label>
-            <input
-              type="number"
-              placeholder="0.00"
-              [(ngModel)]="matrizDnc.costoIndirecto"
-              (input)="calcularCostoTotal()"
-            />
+            <label>Fecha de inicio</label>
+            <input type="date" [(ngModel)]="formulario.fechaInicio" />
           </div>
           <div class="campo">
-            <label>Costo Total (S/)</label>
-            <input [value]="matrizDnc.costoTotal" readonly class="campo-readonly" />
+            <label>Fecha de finalización</label>
+            <input type="date" [(ngModel)]="formulario.fechaFin" />
+          </div>
+          <div class="campo">
+            <label>Mes de término de ejecución</label>
+            <select [(ngModel)]="formulario.mesTermino">
+              <option value="">Seleccione...</option>
+              <option value="Enero">Enero</option>
+              <option value="Febrero">Febrero</option>
+              <option value="Marzo">Marzo</option>
+              <option value="Abril">Abril</option>
+              <option value="Mayo">Mayo</option>
+              <option value="Junio">Junio</option>
+              <option value="Julio">Julio</option>
+              <option value="Agosto">Agosto</option>
+              <option value="Septiembre">Septiembre</option>
+              <option value="Octubre">Octubre</option>
+              <option value="Noviembre">Noviembre</option>
+              <option value="Diciembre">Diciembre</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Red asistencial / Unidad orgánica solicitante</label>
+            <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="formulario.redAsistencial" />
+          </div>
+          <div class="campo">
+            <label>Servicio / Área solicitante</label>
+            <input type="text" placeholder="Ej: Recursos Humanos" [(ngModel)]="formulario.servicioArea" />
           </div>
         </div>
       </div>
 
-      <button class="btn-guardar" (click)="guardarDnc()">📤 Enviar para Evaluación</button>
+      <!-- DATOS DE LA ACTIVIDAD -->
+      <div class="card">
+        <div class="card-section-title">🎓 Datos de la Actividad</div>
+        <div class="campo" style="margin-bottom: 18px">
+          <label>Nombre de la actividad de capacitación</label>
+          <input type="text" placeholder="Ej: Gestión Documental Electrónica" [(ngModel)]="formulario.nombreActividad" />
+        </div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>Total número horas ejecutadas (cronológicas)</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.totalHoras" />
+          </div>
+          <div class="campo">
+            <label>Horas ejecutadas fuera del horario laboral (cronológicas)</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.horasFueraHorario" />
+          </div>
+          <div class="campo">
+            <label>Frecuencia de desarrollo de la actividad</label>
+            <input type="text" placeholder="Ej: Única, Diaria, Semanal" [(ngModel)]="formulario.frecuencia" />
+          </div>
+          <div class="campo">
+            <label>Hora de inicio de la actividad</label>
+            <input type="time" [(ngModel)]="formulario.horaInicio" />
+          </div>
+          <div class="campo">
+            <label>Hora de término de la actividad</label>
+            <input type="time" [(ngModel)]="formulario.horaTermino" />
+          </div>
+          <div class="campo">
+            <label>Modalidad</label>
+            <select [(ngModel)]="formulario.modalidad">
+              <option value="">Seleccione...</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Virtual">Virtual</option>
+              <option value="Semipresencial">Semipresencial</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Público</label>
+            <select [(ngModel)]="formulario.publico">
+              <option value="">Seleccione...</option>
+              <option value="Asistencial">Asistencial</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Mixto">Mixto</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Nivel de evaluación ejecutado</label>
+            <input type="text" placeholder="Ej: Reacción, Aprendizaje" [(ngModel)]="formulario.nivelEvaluacion" />
+          </div>
+          <div class="campo">
+            <label>Objetivo estratégico total de participantes (planilla)</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.totalParticipantes" />
+          </div>
+        </div>
+        <div class="campo" style="margin-top: 18px">
+          <label>Eje temático</label>
+          <input type="text" placeholder="Ej: Gestión Pública, Salud, Tecnología" [(ngModel)]="formulario.ejeTematico" />
+        </div>
+      </div>
+
+      <!-- PROVEEDOR -->
+      <div class="card">
+        <div class="card-section-title">🏢 Proveedor Adjudicado</div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>RUC del proveedor adjudicado</label>
+            <div class="input-btn-row">
+              <input type="text" placeholder="20123456789" [(ngModel)]="formulario.rucProveedor" maxlength="11" />
+              <button class="btn-buscar-ruc" (click)="buscarRuc()" [disabled]="buscandoRuc">
+                {{ buscandoRuc ? 'Buscando…' : '🔍 Buscar' }}
+              </button>
+            </div>
+            @if (errorRuc) {
+              <small class="error-ruc">{{ errorRuc }}</small>
+            }
+          </div>
+          <div class="campo">
+            <label>Nombre del proveedor adjudicado</label>
+            <input type="text" placeholder="Se completará al buscar el RUC" [(ngModel)]="formulario.nombreProveedor" />
+          </div>
+          <div class="campo">
+            <label>Sector al que pertenece el proveedor</label>
+            <select [(ngModel)]="formulario.sectorProveedor">
+              <option value="">Seleccione...</option>
+              <option value="Público">Público</option>
+              <option value="Privado">Privado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRESUPUESTO -->
+      <div class="card">
+        <div class="card-section-title">💰 Presupuesto</div>
+        <div class="campo" style="max-width: 320px">
+          <label>Presupuesto ejecutado (S/)</label>
+          <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="formulario.presupuestoEjecutado" />
+        </div>
+      </div>
+
+      <button class="btn-guardar" (click)="guardarFormulario()">📤 Enviar Formulario</button>
     </main>
   </div>
 </div>

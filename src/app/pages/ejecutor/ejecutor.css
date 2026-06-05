@@ -190,6 +190,46 @@
   box-shadow: 0 8px 20px rgba(26, 79, 168, 0.3);
 }
 
+/* RUC LOOKUP */
+
+.input-btn-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.input-btn-row input {
+  flex: 1;
+}
+
+.btn-buscar-ruc {
+  padding: 10px 16px;
+  background: #1a4fa8;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.btn-buscar-ruc:hover:not(:disabled) {
+  background: #163e88;
+}
+
+.btn-buscar-ruc:disabled {
+  background: #9ab0d8;
+  cursor: not-allowed;
+}
+
+.error-ruc {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 900px) {

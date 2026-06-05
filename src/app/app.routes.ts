@@ -8,6 +8,8 @@ import { HojaRuta } from './pages/hoja-ruta/hoja-ruta';
 import { ExpedientesPdp } from './pages/expedientes-pdp/expedientes-pdp';
 import { Personal } from './pages/personal/personal';
 import { Ejecutor } from './pages/ejecutor/ejecutor';
+import { ListaParticipantes } from './pages/lista-participantes/lista-participantes';
+import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
 
 export const routes: Routes = [
   {
@@ -60,6 +62,18 @@ export const routes: Routes = [
   {
     path: 'ejecutor',
     component: Ejecutor,
+    canActivate: [authGuard],
+  },
+
+  {
+    path: 'lista-participantes',
+    component: ListaParticipantes,
+    canActivate: [authGuard],
+  },
+
+  {
+    path: 'personal-pdp',
+    component: PersonalPdp,
     canActivate: [authGuard],
   },
 
