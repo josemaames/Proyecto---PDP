@@ -1,19 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-
-interface PersonalItem {
-  dniCe: string;
-  codPlanilla: string;
-  nombres: string;
-  apellidos: string;
-  sexo: string;
-  redAsist: string;
-  subPrograma: string;
-  servicioArea: string;
-  cargo: string;
-  regimenLaboral: string;
-}
+import { PdpDataService, PersonalEssalud } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-personal-pdp',
@@ -23,99 +11,69 @@ interface PersonalItem {
   styleUrl: './personal-pdp.css',
 })
 export class PersonalPdp implements OnInit {
-  private router = inject(Router);
+  private router  = inject(Router);
+  private pdpData = inject(PdpDataService);
 
   usuario: any = {};
   fechaHoy = '';
   inicialUsuario = 'U';
 
-  busqueda = '';
-  mostrarFormulario = false;
-  errorFormulario = '';
+  busqueda    = '';
+  pagina      = 1;
+  limit       = 50;
+  totalRegistros = 0;
+  cargando    = false;
 
-  personal: PersonalItem[] = [];
-  nuevo: PersonalItem = this.vacio();
+  personal: PersonalEssalud[] = [];
 
-  get personalFiltrado(): PersonalItem[] {
-    const q = this.busqueda.toLowerCase().trim();
-    if (!q) return this.personal;
-    return this.personal.filter(
-      (p) =>
-        p.nombres.toLowerCase().includes(q) ||
-        p.apellidos.toLowerCase().includes(q) ||
-        p.dniCe.includes(q) ||
-        p.cargo.toLowerCase().includes(q) ||
-        p.redAsist.toLowerCase().includes(q)
-    );
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.totalRegistros / this.limit));
   }
 
   ngOnInit() {
-    this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    this.usuario       = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
     const f = new Date().toLocaleDateString('es-PE', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-    const stored = localStorage.getItem('pdp_personal');
-    if (stored) {
-      this.personal = JSON.parse(stored);
-    }
+    this.cargarPersonal();
   }
 
-  toggleFormulario() {
-    this.mostrarFormulario = !this.mostrarFormulario;
-    this.errorFormulario = '';
-    if (!this.mostrarFormulario) {
-      this.nuevo = this.vacio();
-    }
+  cargarPersonal() {
+    this.cargando = true;
+    this.pdpData.getPersonalEssalud(this.busqueda, this.pagina, this.limit)
+      .subscribe({
+        next: (res) => {
+          this.personal       = res.data;
+          this.totalRegistros = res.total;
+          this.cargando       = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar personal:', err);
+          this.cargando = false;
+        }
+      });
   }
 
-  agregarPersonal() {
-    if (!this.nuevo.dniCe.trim()) {
-      this.errorFormulario = 'El campo DNI / CE es obligatorio.';
-      return;
-    }
-    if (!this.nuevo.nombres.trim() || !this.nuevo.apellidos.trim()) {
-      this.errorFormulario = 'Los campos Nombres y Apellidos son obligatorios.';
-      return;
-    }
-    this.personal.push({ ...this.nuevo });
-    localStorage.setItem('pdp_personal', JSON.stringify(this.personal));
-    this.nuevo = this.vacio();
-    this.mostrarFormulario = false;
-    this.errorFormulario = '';
+  buscar() {
+    this.pagina = 1;
+    this.cargarPersonal();
   }
 
-  eliminarPersonal(index: number) {
-    this.personal.splice(index, 1);
-    localStorage.setItem('pdp_personal', JSON.stringify(this.personal));
+  paginaAnterior() {
+    if (this.pagina > 1) { this.pagina--; this.cargarPersonal(); }
   }
 
-  irA(ruta: string) {
-    this.router.navigate([ruta]);
+  paginaSiguiente() {
+    if (this.pagina < this.totalPaginas) { this.pagina++; this.cargarPersonal(); }
   }
+
+  irA(ruta: string) { this.router.navigate([ruta]); }
 
   cerrarSesion() {
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
-  }
-
-  private vacio(): PersonalItem {
-    return {
-      dniCe: '',
-      codPlanilla: '',
-      nombres: '',
-      apellidos: '',
-      sexo: '',
-      redAsist: '',
-      subPrograma: '',
-      servicioArea: '',
-      cargo: '',
-      regimenLaboral: '',
-    };
   }
 }

@@ -251,3 +251,44 @@ body {
   font-weight: 700;
   color: #1a2c4e;
 }
+
+/* ============================================================
+   PAGINACIÓN (compartido por todas las páginas)
+   ============================================================ */
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2fa;
+}
+
+.paginacion button {
+  padding: 8px 18px;
+  background: #1a4fa8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.paginacion button:hover:not(:disabled) {
+  background: #163e88;
+}
+
+.paginacion button:disabled {
+  background: #c0cfe8;
+  cursor: not-allowed;
+}
+
+.paginacion span {
+  font-size: 13px;
+  color: #4a5568;
+  font-weight: 500;
+}

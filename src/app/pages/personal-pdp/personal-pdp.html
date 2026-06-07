@@ -113,7 +113,7 @@
         <h2>Personal</h2>
       </div>
 
-      <!-- BARRA DE BÚSQUEDA Y ACCIÓN -->
+      <!-- BARRA DE BÚSQUEDA -->
       <div class="card barra-card">
         <div class="barra-acciones">
           <div class="campo-busqueda">
@@ -125,98 +125,22 @@
               type="text"
               placeholder="Buscar por nombre, apellido, DNI/CE o cargo..."
               [(ngModel)]="busqueda"
+              (input)="buscar()"
             />
           </div>
-          <button class="btn-toggle-form" (click)="toggleFormulario()">
-            @if (mostrarFormulario) {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Cancelar
-            } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Agregar Personal
-            }
-          </button>
         </div>
       </div>
-
-      <!-- FORMULARIO AGREGAR PERSONAL -->
-      @if (mostrarFormulario) {
-        <div class="card card-form">
-          <div class="card-section-title">📝 Nuevo Registro de Personal</div>
-          <div class="datos-grid tres-col">
-            <div class="campo">
-              <label>DNI / CE <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: 45678901" maxlength="12" [(ngModel)]="nuevo.dniCe" />
-            </div>
-            <div class="campo">
-              <label>Cod. Planilla</label>
-              <input type="text" placeholder="Ej: P-00123" [(ngModel)]="nuevo.codPlanilla" />
-            </div>
-            <div class="campo">
-              <label>Nombres <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: Juan Carlos" [(ngModel)]="nuevo.nombres" />
-            </div>
-            <div class="campo">
-              <label>Apellidos <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: García Pérez" [(ngModel)]="nuevo.apellidos" />
-            </div>
-            <div class="campo">
-              <label>Sexo</label>
-              <select [(ngModel)]="nuevo.sexo">
-                <option value="">Seleccione...</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-              </select>
-            </div>
-            <div class="campo">
-              <label>Red Asist. / Prest. / Ins. Esp. / Sede Central</label>
-              <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="nuevo.redAsist" />
-            </div>
-            <div class="campo">
-              <label>Sub-Programa</label>
-              <input type="text" placeholder="Ej: Sub Programa Regional" [(ngModel)]="nuevo.subPrograma" />
-            </div>
-            <div class="campo">
-              <label>Servicio o área del participante (actividad)</label>
-              <input type="text" placeholder="Ej: Urgencias, Logística" [(ngModel)]="nuevo.servicioArea" />
-            </div>
-            <div class="campo">
-              <label>Cargo</label>
-              <input type="text" placeholder="Ej: Enfermero(a), Técnico" [(ngModel)]="nuevo.cargo" />
-            </div>
-            <div class="campo">
-              <label>Régimen laboral</label>
-              <input type="text" placeholder="Ej: 276, CAS, 728" [(ngModel)]="nuevo.regimenLaboral" />
-            </div>
-          </div>
-
-          @if (errorFormulario) {
-            <p class="error-form">{{ errorFormulario }}</p>
-          }
-
-          <div class="form-actions">
-            <button class="btn-cancelar" (click)="toggleFormulario()">Cancelar</button>
-            <button class="btn-guardar-part" (click)="agregarPersonal()">
-              ✅ Guardar Registro
-            </button>
-          </div>
-        </div>
-      }
 
       <!-- TABLA DE PERSONAL -->
       <div class="card">
         <div class="card-section-title-row">
           <span class="card-section-title">👤 Registros de Personal</span>
-          <span class="badge-count">{{ personalFiltrado.length }}</span>
+          <span class="badge-count">{{ totalRegistros }}</span>
         </div>
 
-        @if (personalFiltrado.length === 0) {
+        @if (cargando) {
+          <div class="sin-resultados"><p>Cargando datos...</p></div>
+        } @else if (personal.length === 0) {
           <div class="sin-resultados">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="12" cy="12" r="10" />
@@ -225,7 +149,7 @@
             @if (busqueda) {
               <p>No se encontraron registros para "<strong>{{ busqueda }}</strong>".</p>
             } @else {
-              <p>Aún no hay personal registrado. Haz clic en <strong>Agregar Personal</strong> para comenzar.</p>
+              <p>No hay registros de personal disponibles.</p>
             }
           </div>
         } @else {
@@ -243,40 +167,36 @@
                   <th>Servicio / Área</th>
                   <th>Cargo</th>
                   <th>Régimen laboral</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                @for (p of personalFiltrado; track $index; let i = $index) {
+                @for (p of personal; track p.id) {
                   <tr>
-                    <td>{{ p.dniCe || '—' }}</td>
-                    <td>{{ p.codPlanilla || '—' }}</td>
-                    <td>{{ p.nombres }}</td>
+                    <td>{{ p.dni_ce || '—' }}</td>
+                    <td>{{ p.cod_planilla || '—' }}</td>
+                    <td>{{ p.nombre }}</td>
                     <td>{{ p.apellidos }}</td>
                     <td>
                       <span class="badge-sexo" [class.femenino]="p.sexo === 'Femenino'">
                         {{ p.sexo || '—' }}
                       </span>
                     </td>
-                    <td>{{ p.redAsist || '—' }}</td>
-                    <td>{{ p.subPrograma || '—' }}</td>
-                    <td>{{ p.servicioArea || '—' }}</td>
+                    <td>{{ p.red || '—' }}</td>
+                    <td>{{ p.sub_programa || '—' }}</td>
+                    <td>{{ p.servicio_area || '—' }}</td>
                     <td>{{ p.cargo || '—' }}</td>
-                    <td>{{ p.regimenLaboral || '—' }}</td>
-                    <td>
-                      <button class="btn-eliminar" (click)="eliminarPersonal(i)" title="Eliminar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                          <path d="M10 11v6M14 11v6" />
-                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                        </svg>
-                      </button>
-                    </td>
+                    <td>{{ p.regimen_laboral || '—' }}</td>
                   </tr>
                 }
               </tbody>
             </table>
+          </div>
+
+          <!-- PAGINACIÓN -->
+          <div class="paginacion">
+            <button (click)="paginaAnterior()" [disabled]="pagina <= 1">← Anterior</button>
+            <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+            <button (click)="paginaSiguiente()" [disabled]="pagina >= totalPaginas">Siguiente →</button>
           </div>
         }
       </div>

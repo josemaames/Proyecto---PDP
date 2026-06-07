@@ -125,8 +125,17 @@
             </svg>
             <input
               type="text"
-              placeholder="Buscar por nombre, apellido, DNI/CE o código..."
+              placeholder="Buscar por nombre, apellido, DNI/CE o cargo..."
               [(ngModel)]="busqueda"
+              (input)="buscar()"
+            />
+          </div>
+          <div class="campo-busqueda" style="max-width:200px">
+            <input
+              type="text"
+              placeholder="Filtrar por código act."
+              [(ngModel)]="codigoFiltro"
+              (input)="buscar()"
             />
           </div>
           <button class="btn-toggle-form" (click)="toggleFormulario()">
@@ -153,20 +162,26 @@
           <div class="card-section-title">📝 Nuevo Participante</div>
           <div class="datos-grid tres-col">
             <div class="campo">
-              <label>Código act.</label>
-              <input type="text" placeholder="Ej: CAP-2024-001" [(ngModel)]="nuevo.codigoAct" />
+              <label>Código act. <span class="req">*</span></label>
+              <input type="text" placeholder="Ej: 2025PL704" [(ngModel)]="nuevo.codigo_act" />
             </div>
             <div class="campo">
               <label>DNI / CE</label>
-              <input type="text" placeholder="Ej: 45678901" maxlength="12" [(ngModel)]="nuevo.dniCe" />
+              <input
+                type="text"
+                placeholder="Ingresa DNI para autocompletar"
+                maxlength="12"
+                [(ngModel)]="nuevo.dni_ce"
+                (blur)="buscarPorDni()"
+              />
             </div>
             <div class="campo">
               <label>Cod. Planilla</label>
-              <input type="text" placeholder="Ej: P-00123" [(ngModel)]="nuevo.codPlanilla" />
+              <input type="text" placeholder="Ej: P-00123" [(ngModel)]="nuevo.cod_planilla" />
             </div>
             <div class="campo">
               <label>Nombres <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: Juan Carlos" [(ngModel)]="nuevo.nombres" />
+              <input type="text" placeholder="Ej: Juan Carlos" [(ngModel)]="nuevo.nombre" />
             </div>
             <div class="campo">
               <label>Apellidos <span class="req">*</span></label>
@@ -181,16 +196,16 @@
               </select>
             </div>
             <div class="campo">
-              <label>Red Asist. / Prest. / Ins. Esp. / Sede Central</label>
-              <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="nuevo.redAsist" />
+              <label>Red Asist. / Prest. / Ins. Esp.</label>
+              <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="nuevo.red" />
             </div>
             <div class="campo">
               <label>Sub Programa</label>
-              <input type="text" placeholder="Ej: Sub Programa Regional" [(ngModel)]="nuevo.subPrograma" />
+              <input type="text" placeholder="Ej: Sub Programa Regional" [(ngModel)]="nuevo.sub_programa" />
             </div>
             <div class="campo">
-              <label>Servicio o área del participante (actividad)</label>
-              <input type="text" placeholder="Ej: Urgencias, Logística" [(ngModel)]="nuevo.servicioArea" />
+              <label>Servicio o área</label>
+              <input type="text" placeholder="Ej: Urgencias, Logística" [(ngModel)]="nuevo.servicio_area" />
             </div>
             <div class="campo">
               <label>Cargo</label>
@@ -198,7 +213,7 @@
             </div>
             <div class="campo">
               <label>Régimen laboral</label>
-              <input type="text" placeholder="Ej: 276, CAS, 728" [(ngModel)]="nuevo.regimenLaboral" />
+              <input type="text" placeholder="Ej: 276, CAS, 728" [(ngModel)]="nuevo.regimen_laboral" />
             </div>
           </div>
 
@@ -219,17 +234,19 @@
       <div class="card">
         <div class="card-section-title-row">
           <span class="card-section-title">👥 Participantes Registrados</span>
-          <span class="badge-count">{{ participantesFiltrados.length }}</span>
+          <span class="badge-count">{{ totalRegistros }}</span>
         </div>
 
-        @if (participantesFiltrados.length === 0) {
+        @if (cargando) {
+          <div class="sin-resultados"><p>Cargando datos...</p></div>
+        } @else if (participantes.length === 0) {
           <div class="sin-resultados">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="12" cy="12" r="10" />
               <line x1="8" y1="12" x2="16" y2="12" />
             </svg>
-            @if (busqueda) {
-              <p>No se encontraron participantes para "<strong>{{ busqueda }}</strong>".</p>
+            @if (busqueda || codigoFiltro) {
+              <p>No se encontraron resultados para la búsqueda.</p>
             } @else {
               <p>Aún no hay participantes registrados. Haz clic en <strong>Agregar Participante</strong> para comenzar.</p>
             }
@@ -239,13 +256,14 @@
             <table class="tabla-part">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Código act.</th>
                   <th>DNI / CE</th>
                   <th>Cod. Planilla</th>
                   <th>Nombres</th>
                   <th>Apellidos</th>
                   <th>Sexo</th>
-                  <th>Red Asist. / Prest. / Ins. Esp. / Sede Central</th>
+                  <th>Red Asist.</th>
                   <th>Sub Programa</th>
                   <th>Servicio / Área</th>
                   <th>Cargo</th>
@@ -254,25 +272,26 @@
                 </tr>
               </thead>
               <tbody>
-                @for (p of participantesFiltrados; track $index; let i = $index) {
+                @for (p of participantes; track p.id) {
                   <tr>
-                    <td>{{ p.codigoAct || '—' }}</td>
-                    <td>{{ p.dniCe || '—' }}</td>
-                    <td>{{ p.codPlanilla || '—' }}</td>
-                    <td>{{ p.nombres }}</td>
+                    <td>{{ p.numero || '—' }}</td>
+                    <td>{{ p.codigo_act || '—' }}</td>
+                    <td>{{ p.dni_ce || '—' }}</td>
+                    <td>{{ p.cod_planilla || '—' }}</td>
+                    <td>{{ p.nombre }}</td>
                     <td>{{ p.apellidos }}</td>
                     <td>
                       <span class="badge-sexo" [class.femenino]="p.sexo === 'Femenino'">
                         {{ p.sexo || '—' }}
                       </span>
                     </td>
-                    <td>{{ p.redAsist || '—' }}</td>
-                    <td>{{ p.subPrograma || '—' }}</td>
-                    <td>{{ p.servicioArea || '—' }}</td>
+                    <td>{{ p.red || '—' }}</td>
+                    <td>{{ p.sub_programa || '—' }}</td>
+                    <td>{{ p.servicio_area || '—' }}</td>
                     <td>{{ p.cargo || '—' }}</td>
-                    <td>{{ p.regimenLaboral || '—' }}</td>
+                    <td>{{ p.regimen_laboral || '—' }}</td>
                     <td>
-                      <button class="btn-eliminar" (click)="eliminarParticipante(i)" title="Eliminar">
+                      <button class="btn-eliminar" (click)="eliminarParticipante(p.id)" title="Eliminar">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -285,6 +304,13 @@
                 }
               </tbody>
             </table>
+          </div>
+
+          <!-- PAGINACIÓN -->
+          <div class="paginacion">
+            <button (click)="paginaAnterior()" [disabled]="pagina <= 1">← Anterior</button>
+            <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+            <button (click)="paginaSiguiente()" [disabled]="pagina >= totalPaginas">Siguiente →</button>
           </div>
         }
       </div>

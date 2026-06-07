@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class MatrizDncService {
-  private apiUrl = 'http://localhost:8080/api/matriz';
+  private apiUrl = '/api/actividades';
 
   constructor(private http: HttpClient) {}
 

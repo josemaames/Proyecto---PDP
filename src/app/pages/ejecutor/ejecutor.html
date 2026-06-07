@@ -112,6 +112,82 @@
         <h2>Formulario de Información estadística mensual de acciones de capacitación ejecutadas</h2>
       </div>
 
+      <!-- ===== TABLA DE ACTIVIDADES REGISTRADAS ===== -->
+      <div class="card">
+        <div class="card-section-title-row">
+          <span class="card-section-title">📋 Actividades de Capacitación Registradas</span>
+          <span class="badge-count">{{ totalAct }}</span>
+        </div>
+
+        <div class="barra-acciones" style="margin-bottom: 12px">
+          <div class="campo-busqueda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar actividad, código, red..."
+              [(ngModel)]="busquedaAct"
+              (input)="buscarAct()"
+            />
+          </div>
+        </div>
+
+        @if (cargandoAct) {
+          <div class="sin-resultados"><p>Cargando actividades...</p></div>
+        } @else if (actividades.length === 0) {
+          <div class="sin-resultados">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            <p>No hay actividades registradas aún.</p>
+          </div>
+        } @else {
+          <div class="tabla-scroll">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Código act.</th>
+                  <th>Nombre de la actividad</th>
+                  <th>Red asistencial</th>
+                  <th>Modalidad</th>
+                  <th>Fecha inicio</th>
+                  <th>Fecha fin</th>
+                  <th>Total horas</th>
+                  <th>Participantes</th>
+                  <th>Presupuesto (S/)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of actividades; track a.id) {
+                  <tr>
+                    <td>{{ a.numero || '—' }}</td>
+                    <td>{{ a.codigo_act || '—' }}</td>
+                    <td>{{ a.nombre_actividad || '—' }}</td>
+                    <td>{{ a.red_asistencial || '—' }}</td>
+                    <td>{{ a.modalidad || '—' }}</td>
+                    <td>{{ a.fecha_inicio || '—' }}</td>
+                    <td>{{ a.fecha_fin || '—' }}</td>
+                    <td>{{ a.total_horas ?? '—' }}</td>
+                    <td>{{ a.total_participantes ?? '—' }}</td>
+                    <td>{{ a.presupuesto_ejecutado != null ? (a.presupuesto_ejecutado | number:'1.2-2') : '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="paginacion">
+            <button (click)="paginaActAnterior()" [disabled]="paginaAct <= 1">← Anterior</button>
+            <span>Página {{ paginaAct }} de {{ totalPaginasAct }}</span>
+            <button (click)="paginaActSiguiente()" [disabled]="paginaAct >= totalPaginasAct">Siguiente →</button>
+          </div>
+        }
+      </div>
+
       <!-- INFORMACIÓN GENERAL -->
       <div class="card">
         <div class="card-section-title">📋 Información General</div>
