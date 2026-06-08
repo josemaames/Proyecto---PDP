@@ -7,7 +7,7 @@ import { Chart, registerables } from 'chart.js';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
-import { PdpDataService, Actividad } from '../../services/pdp-data.service';
+import { PdpDataService, ResumenRed } from '../../services/pdp-data.service';
 
 Chart.register(...registerables);
 
@@ -56,13 +56,7 @@ export class Dashboard implements OnInit, OnDestroy {
   statsGlobal = { actividades: 0, participantes: 0, presupuesto_total: 0, redes: 0 };
 
   // ── Resumen por Red Asistencial ───────────────
-  resumenRedes: {
-    red: string;
-    capacitaciones: number;
-    horas: number;
-    participantes: number;
-    presupuesto: number;
-  }[] = [];
+  resumenRedes: ResumenRed[] = [];
   cargandoResumen = false;
 
   // ── Gráficos ──────────────────────────────────
@@ -108,51 +102,28 @@ export class Dashboard implements OnInit, OnDestroy {
   private cargarDatosAdmin() {
     this.cargandoResumen = true;
 
-    // Cargar estadísticas globales y actividades en paralelo
     forkJoin({
-      stats:       this.pdpData.getStats(),
-      actividades: this.pdpData.getActividades('', '', '', 1, 1000),
+      stats:   this.pdpData.getStats(),
+      resumen: this.pdpData.getResumenRedes(),
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: ({ stats, actividades }) => {
-        this.statsGlobal = stats;
-        this.construirResumenRedes(actividades.data);
-        this.construirGraficos(stats, actividades.data);
+      next: ({ stats, resumen }) => {
+        this.statsGlobal  = stats;
+        this.resumenRedes = resumen;
+        this.construirGraficos(stats, resumen);
         this.cargandoResumen = false;
       },
       error: () => { this.cargandoResumen = false; },
     });
   }
 
-  private construirResumenRedes(actividades: Actividad[]) {
-    const mapa = new Map<string, { capacitaciones: number; horas: number; participantes: number; presupuesto: number }>();
-
-    for (const a of actividades) {
-      const red = a.red_asistencial?.trim() || 'Sin Red';
-      const actual = mapa.get(red) ?? { capacitaciones: 0, horas: 0, participantes: 0, presupuesto: 0 };
-      mapa.set(red, {
-        capacitaciones: actual.capacitaciones + 1,
-        horas:          actual.horas          + (a.total_horas          || 0),
-        participantes:  actual.participantes   + (a.total_participantes  || 0),
-        presupuesto:    actual.presupuesto     + (a.presupuesto_ejecutado || 0),
-      });
-    }
-
-    this.resumenRedes = Array.from(mapa.entries())
-      .map(([red, d]) => ({ red, ...d }))
-      .sort((a, b) => b.capacitaciones - a.capacitaciones);
-  }
-
-  private construirGraficos(_stats: any, actividades: Actividad[]) {
-    // Gráfico 1 — Capacitaciones por Modalidad
-    const modMap = new Map<string, number>();
-    actividades.forEach(a => {
-      const m = a.modalidad || 'Sin modalidad';
-      modMap.set(m, (modMap.get(m) || 0) + 1);
-    });
-    const modLabels = [...modMap.keys()];
-    const modData   = [...modMap.values()];
+  private construirGraficos(stats: any, resumen: ResumenRed[]) {
+    // Gráfico 1 — Capacitaciones por Modalidad (viene ya agrupado del servidor)
+    const modLabels = (stats.por_modalidad as { modalidad: string; total: number }[])
+      .map(m => m.modalidad || 'Sin modalidad');
+    const modData = (stats.por_modalidad as { modalidad: string; total: number }[])
+      .map(m => Number(m.total));
 
     this.chartConfigModalidad = {
       type: 'pie',
@@ -171,7 +142,7 @@ export class Dashboard implements OnInit, OnDestroy {
     };
 
     // Gráfico 2 — Top 8 redes por capacitaciones (barras)
-    const topRedes = this.resumenRedes.slice(0, 8);
+    const topRedes = resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
       data: {

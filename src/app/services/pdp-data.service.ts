@@ -59,6 +59,14 @@ export interface PersonalEssalud {
   regimen_laboral?: string;
 }
 
+export interface ResumenRed {
+  red: string;
+  capacitaciones: number;
+  horas: number;
+  participantes: number;
+  presupuesto: number;
+}
+
 export interface ApiResponse<T> {
   data: T[];
   total: number;
@@ -99,6 +107,11 @@ export class PdpDataService {
   // ── Estadísticas ──────────────────────────────
   getStats(): Observable<Stats> {
     return this.http.get<Stats>(`${this.api}/stats`);
+  }
+
+  getResumenRedes(redes = ''): Observable<ResumenRed[]> {
+    const params = redes ? new HttpParams().set('redes', redes) : new HttpParams();
+    return this.http.get<ResumenRed[]>(`${this.api}/resumen-redes`, { params });
   }
 
   // ── Participantes ─────────────────────────────

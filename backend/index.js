@@ -19,8 +19,45 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then(() => console.log('✓ Conectado a PostgreSQL'))
+  .then(() => {
+    console.log('✓ Conectado a PostgreSQL');
+    crearIndices();
+  })
   .catch(err => console.error('✗ Error de conexión:', err.message));
+
+async function crearIndices() {
+  const indices = [
+    // Índice para filtrar y ordenar por red asistencial (actividades)
+    `CREATE INDEX IF NOT EXISTS idx_actividad_red
+       ON datos_actividad(red_asistencial)`,
+    // Índice para filtrar y ordenar por red (personal y participantes)
+    `CREATE INDEX IF NOT EXISTS idx_personal_red
+       ON personal(red)`,
+    `CREATE INDEX IF NOT EXISTS idx_participantes_red
+       ON lista_participantes(red)`,
+    // Índice para codigo_act en participantes (búsqueda frecuente)
+    `CREATE INDEX IF NOT EXISTS idx_participantes_codigo
+       ON lista_participantes(codigo_act)`,
+    // Extensión y índices trigrama para búsquedas ILIKE eficientes
+    `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
+    `CREATE INDEX IF NOT EXISTS idx_actividad_nombre_trgm
+       ON datos_actividad USING gin(nombre_actividad gin_trgm_ops)`,
+    `CREATE INDEX IF NOT EXISTS idx_personal_apellidos_trgm
+       ON personal USING gin(apellidos gin_trgm_ops)`,
+    `CREATE INDEX IF NOT EXISTS idx_participantes_apellidos_trgm
+       ON lista_participantes USING gin(apellidos gin_trgm_ops)`,
+  ];
+
+  for (const sql of indices) {
+    try {
+      await pool.query(sql);
+    } catch (err) {
+      // No detener el servidor si un índice falla (ej. tabla no existe aún)
+      console.warn('⚠ Índice omitido:', err.message.split('\n')[0]);
+    }
+  }
+  console.log('✓ Índices verificados');
+}
 
 
 // ══════════════════════════════════════════════
@@ -240,6 +277,46 @@ app.get('/api/personal-essalud/dni/:dni', async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'DNI no encontrado' });
     res.json(rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
+// ══════════════════════════════════════════════
+// RESUMEN POR RED ASISTENCIAL (agrupado en BD)
+// GET /api/resumen-redes?redes=Red1,Red2
+// ══════════════════════════════════════════════
+app.get('/api/resumen-redes', async (req, res) => {
+  try {
+    const { redes = '' } = req.query;
+
+    let where = '';
+    const params = [];
+
+    if (redes) {
+      const lista = redes.split(',').map(r => r.trim()).filter(Boolean);
+      if (lista.length === 1) {
+        where = `WHERE red_asistencial ILIKE $1`;
+        params.push(`%${lista[0]}%`);
+      } else if (lista.length > 1) {
+        const conds = lista.map((r, i) => { params.push(`%${r}%`); return `red_asistencial ILIKE $${i + 1}`; });
+        where = `WHERE (${conds.join(' OR ')})`;
+      }
+    }
+
+    const { rows } = await pool.query(
+      `SELECT
+         COALESCE(red_asistencial, 'Sin Red')      AS red,
+         COUNT(*)::int                              AS capacitaciones,
+         COALESCE(SUM(total_horas), 0)::numeric     AS horas,
+         COALESCE(SUM(total_participantes), 0)::int AS participantes,
+         COALESCE(SUM(presupuesto_ejecutado), 0)::numeric AS presupuesto
+       FROM datos_actividad
+       ${where}
+       GROUP BY COALESCE(red_asistencial, 'Sin Red')
+       ORDER BY capacitaciones DESC`,
+      params
+    );
+    res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
