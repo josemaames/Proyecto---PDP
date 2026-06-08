@@ -179,6 +179,24 @@
                 <option value="Inactivo">Inactivo</option>
               </select>
             </div>
+            @if (nuevoUsuarioData.rol === 'Sectorista' || nuevoUsuarioData.rol === 'Ejecutor') {
+              <div class="campo campo-sedes">
+                <label>
+                  {{ nuevoUsuarioData.rol === 'Sectorista' ? 'Redes Asistenciales (separadas por coma)' : 'Red Asistencial' }}
+                </label>
+                <input type="text" [(ngModel)]="nuevoUsuarioData.sedes"
+                  [placeholder]="nuevoUsuarioData.rol === 'Sectorista'
+                    ? 'Ej: Red Asistencial Arequipa,Red Asistencial Cusco'
+                    : 'Ej: Red Asistencial Arequipa'" />
+                <small class="campo-hint">
+                  @if (nuevoUsuarioData.rol === 'Sectorista') {
+                    Este usuario verá las capacitaciones, participantes y personal de cada red asignada.
+                  } @else {
+                    Este usuario verá únicamente los datos de la red indicada.
+                  }
+                </small>
+              </div>
+            }
           </div>
           <div class="form-acciones">
             <button class="btn-guardar-form" (click)="guardarUsuario()">Guardar</button>
@@ -196,6 +214,7 @@
               <th>Nombre</th>
               <th>Cargo</th>
               <th>Rol</th>
+              <th>Sedes / Red Asistencial</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -207,7 +226,19 @@
                 <td>{{ usuario.nombre }}</td>
                 <td>{{ usuario.cargo }}</td>
                 <td>
-                  <span class="badge-rol">{{ usuario.rol }}</span>
+                  <span class="badge-rol"
+                    [class.badge-rol-admin]="usuario.rol === 'Administrador' || usuario.rol === 'Administrativo'"
+                    [class.badge-rol-sectorista]="usuario.rol === 'Sectorista'"
+                    [class.badge-rol-ejecutor]="usuario.rol === 'Ejecutor'">
+                    {{ usuario.rol }}
+                  </span>
+                </td>
+                <td class="td-sedes">
+                  @if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') {
+                    <span class="sedes-admin">Acceso total</span>
+                  } @else {
+                    <span class="sedes-valor">{{ sedesTexto(usuario) }}</span>
+                  }
                 </td>
                 <td>
                   <span class="badge-estado" [class.badge-activo]="usuario.estado === 'Activo'" [class.badge-inactivo]="usuario.estado !== 'Activo'">
@@ -241,7 +272,20 @@
             <div class="detalle-item"><strong>DNI</strong><span>{{ usuarioSeleccionado?.dni }}</span></div>
             <div class="detalle-item"><strong>Nombre Completo</strong><span>{{ usuarioSeleccionado?.nombre }}</span></div>
             <div class="detalle-item"><strong>Cargo</strong><span>{{ usuarioSeleccionado?.cargo }}</span></div>
-            <div class="detalle-item"><strong>Rol</strong><span>{{ usuarioSeleccionado?.rol }}</span></div>
+            <div class="detalle-item">
+              <strong>Rol</strong>
+              <span class="badge-rol"
+                [class.badge-rol-admin]="usuarioSeleccionado?.rol === 'Administrador' || usuarioSeleccionado?.rol === 'Administrativo'"
+                [class.badge-rol-sectorista]="usuarioSeleccionado?.rol === 'Sectorista'"
+                [class.badge-rol-ejecutor]="usuarioSeleccionado?.rol === 'Ejecutor'">
+                {{ usuarioSeleccionado?.rol }}
+              </span>
+            </div>
+            @if (usuarioSeleccionado?.rol === 'Administrador' || usuarioSeleccionado?.rol === 'Administrativo') {
+              <div class="detalle-item"><strong>Acceso</strong><span class="sedes-admin">Acceso total al sistema</span></div>
+            } @else if (usuarioSeleccionado?.rol === 'Sectorista' || usuarioSeleccionado?.rol === 'Ejecutor') {
+              <div class="detalle-item"><strong>Sedes / Red Asistencial</strong><span>{{ sedesTexto(usuarioSeleccionado) }}</span></div>
+            }
             <div class="detalle-item">
               <strong>Estado</strong>
               <span class="badge-estado" [class.badge-activo]="usuarioSeleccionado?.estado === 'Activo'" [class.badge-inactivo]="usuarioSeleccionado?.estado !== 'Activo'">

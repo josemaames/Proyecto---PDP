@@ -23,6 +23,7 @@ export class ListaParticipantes implements OnInit {
   pagina      = 1;
   limit       = 50;
   totalRegistros = 0;
+  redFiltro   = '';
 
   mostrarFormulario = false;
   errorFormulario   = '';
@@ -41,13 +42,14 @@ export class ListaParticipantes implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
+    this.redFiltro = this.pdpData.getRedFiltro();
     this.cargarParticipantes();
   }
 
   // ── Carga desde API ───────────────────────────
   cargarParticipantes() {
     this.cargando = true;
-    this.pdpData.getParticipantes(this.busqueda, this.codigoFiltro, this.pagina, this.limit)
+    this.pdpData.getParticipantes(this.busqueda, this.codigoFiltro, this.pagina, this.limit, this.redFiltro)
       .subscribe({
         next: (res) => {
           this.participantes    = res.data;

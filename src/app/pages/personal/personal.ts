@@ -26,11 +26,11 @@ export class Personal implements OnInit {
     cargo: '',
     rol: 'Ejecutor',
     estado: 'Activo',
+    sedes: '',
   };
 
-  usuarios = [
+  usuarios: any[] = [
     // ADMINISTRADORES
-
     {
       dni: '90642735',
       nombre: 'José Manuel Ames Anapán',
@@ -38,24 +38,24 @@ export class Personal implements OnInit {
       rol: 'Administrador',
       estado: 'Activo',
       foto: 'jose-ames.png',
+      sedes: '',
     },
-
     {
       dni: '70435255',
       nombre: 'Víctor Gabriel Acero Garay',
       cargo: 'Analista PDP',
       rol: 'Administrador',
       estado: 'Activo',
+      sedes: '',
     },
-
     {
       dni: '73456264',
       nombre: 'Fernando David Campos Quiroz',
       cargo: 'Especialista PDP',
       rol: 'Administrador',
       estado: 'Activo',
+      sedes: '',
     },
-
     {
       dni: '45611148',
       nombre: 'Sthywen Javier Muñoz Ruiz',
@@ -63,74 +63,75 @@ export class Personal implements OnInit {
       rol: 'Administrador',
       estado: 'Activo',
       foto: 'sthywen-munoz.png',
+      sedes: '',
     },
 
     // SECTORISTAS
-
+    {
+      dni: '11111111',
+      nombre: 'María Torres Quispe',
+      cargo: 'Sectorista Red Arequipa',
+      rol: 'Sectorista',
+      estado: 'Activo',
+      sedes: 'Red Asistencial Arequipa',
+    },
+    {
+      dni: '33333333',
+      nombre: 'Ana Sofía Paredes Quispe',
+      cargo: 'Sectorista Redes Sur-Centro',
+      rol: 'Sectorista',
+      estado: 'Activo',
+      sedes: 'Red Asistencial Cusco,Red Asistencial Arequipa,Red Asistencial Piura',
+    },
     {
       dni: '48562134',
       nombre: 'María Elena Torres Salazar',
       cargo: 'Sectorista Red Rebagliati',
       rol: 'Sectorista',
       estado: 'Activo',
+      sedes: 'Red Asistencial Rebagliati',
     },
-
     {
       dni: '71234589',
       nombre: 'Luis Alberto Sánchez Rojas',
       cargo: 'Sectorista Red Almenara',
       rol: 'Sectorista',
       estado: 'Activo',
-    },
-
-    {
-      dni: '65478912',
-      nombre: 'Patricia Gómez Fernández',
-      cargo: 'Sectorista Red Sabogal',
-      rol: 'Sectorista',
-      estado: 'Activo',
-    },
-
-    {
-      dni: '47896521',
-      nombre: 'Ricardo Mendoza Paredes',
-      cargo: 'Sectorista Hospital Nacional',
-      rol: 'Sectorista',
-      estado: 'Activo',
+      sedes: 'Red Asistencial Almenara',
     },
 
     // EJECUTORES
-
+    {
+      dni: '22222222',
+      nombre: 'Ricardo Mendoza García',
+      cargo: 'Ejecutor Red Lurin',
+      rol: 'Ejecutor',
+      estado: 'Activo',
+      sedes: 'Lurin',
+    },
+    {
+      dni: '44444444',
+      nombre: 'Carlos Alberto Huanca Torres',
+      cargo: 'Ejecutor Red Arequipa',
+      rol: 'Ejecutor',
+      estado: 'Activo',
+      sedes: 'Red Asistencial Arequipa',
+    },
     {
       dni: '59874123',
       nombre: 'Ana Lucía Rodríguez Vargas',
       cargo: 'Ejecutor de Capacitación',
       rol: 'Ejecutor',
       estado: 'Activo',
+      sedes: '',
     },
-
-    {
-      dni: '62314578',
-      nombre: 'Jorge Luis Herrera Castro',
-      cargo: 'Ejecutor de Procesos',
-      rol: 'Ejecutor',
-      estado: 'Activo',
-    },
-
     {
       dni: '74125896',
       nombre: 'Carmen Rosa Delgado Silva',
       cargo: 'Ejecutor Administrativo',
       rol: 'Ejecutor',
-      estado: 'Activo',
-    },
-
-    {
-      dni: '85236974',
-      nombre: 'Miguel Ángel Ramírez Flores',
-      cargo: 'Ejecutor Operativo',
-      rol: 'Ejecutor',
       estado: 'Inactivo',
+      sedes: '',
     },
   ];
 
@@ -146,9 +147,21 @@ export class Personal implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
+    const VERSION = 'v2';
+    if (localStorage.getItem('usuariosVersion') !== VERSION) {
+      localStorage.removeItem('usuarios');
+      localStorage.setItem('usuariosVersion', VERSION);
+    }
+
     const usuariosGuardados = localStorage.getItem('usuarios');
     if (usuariosGuardados) {
-      this.usuarios = JSON.parse(usuariosGuardados);
+      const guardados: any[] = JSON.parse(usuariosGuardados);
+      this.usuarios = this.usuarios.map((base) => {
+        const guardado = guardados.find((g: any) => g.dni === base.dni);
+        return guardado ? { ...base, ...guardado } : base;
+      });
+      const dniBase = this.usuarios.map((u) => u.dni);
+      guardados.filter((g: any) => !dniBase.includes(g.dni)).forEach((extra: any) => this.usuarios.push(extra));
     }
   }
 
@@ -174,6 +187,7 @@ export class Personal implements OnInit {
       cargo: usuario.cargo,
       rol: usuario.rol,
       estado: usuario.estado,
+      sedes: this.sedesTexto(usuario) === '—' ? '' : this.sedesTexto(usuario),
     };
 
     this.dniEditando = dni;
@@ -207,16 +221,11 @@ export class Personal implements OnInit {
   guardarUsuario() {
     if (this.modoEdicion) {
       const index = this.usuarios.findIndex((u) => u.dni === this.dniEditando);
-
       if (index !== -1) {
-        this.usuarios[index] = {
-          ...this.nuevoUsuarioData,
-        };
+        this.usuarios[index] = { ...this.nuevoUsuarioData };
       }
     } else {
-      this.usuarios.push({
-        ...this.nuevoUsuarioData,
-      });
+      this.usuarios.push({ ...this.nuevoUsuarioData });
     }
 
     localStorage.setItem('usuarios', JSON.stringify(this.usuarios));
@@ -227,11 +236,18 @@ export class Personal implements OnInit {
       cargo: '',
       rol: 'Ejecutor',
       estado: 'Activo',
+      sedes: '',
     };
 
     this.mostrarFormulario = false;
     this.modoEdicion = false;
     this.dniEditando = '';
+  }
+
+  sedesTexto(usuario: any): string {
+    if (!usuario.sedes) return '—';
+    if (Array.isArray(usuario.sedes)) return usuario.sedes.join(', ') || '—';
+    return usuario.sedes || '—';
   }
 
   cancelarUsuario() {

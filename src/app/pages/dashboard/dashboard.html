@@ -4,9 +4,7 @@
     <div class="nav-izq">
       <button class="nav-hamburger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
         </svg>
       </button>
       <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
@@ -24,21 +22,15 @@
         <p class="bienvenido-label">Bienvenido</p>
         <div class="perfil-avatar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
           </svg>
         </div>
         <p class="perfil-nombre">{{ usuarioActual?.nombre }}</p>
         <p class="perfil-correo">{{ usuarioActual?.tipo || usuarioActual?.rol }}</p>
         <div class="perfil-acciones">
-          <button
-            class="perfil-icon-btn"
-            title="Cambiar contraseña"
-            (click)="abrirCambiarPassword()"
-          >
+          <button class="perfil-icon-btn" title="Cambiar contraseña" (click)="abrirCambiarPassword()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </button>
           <button class="perfil-icon-btn" title="Editar perfil" (click)="abrirEditarPerfil()">
@@ -53,10 +45,8 @@
       <nav class="sidebar-nav">
         <div class="menu-item activo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
           </svg>
           Inicio
         </div>
@@ -79,38 +69,31 @@
         @if (esAdministrador) {
           <div class="menu-item" (click)="irModulo('Personal')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
             Personal
           </div>
           <div class="menu-item" (click)="irModulo('Historial')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
             Historial de Ediciones
           </div>
           <div class="menu-item" (click)="irModulo('Administración')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-              />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             Administración
           </div>
         }
 
         <div class="sidebar-sep"></div>
-
         <div class="menu-item cerrar" (click)="cerrarSesion()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
+            <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
           </svg>
           Cerrar Sesión
         </div>
@@ -119,56 +102,16 @@
 
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
+
       <div class="contenido-encabezado">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
         </svg>
         <h2>Panel de Control — Plan de Desarrollo de Personas</h2>
       </div>
 
-      <!-- BUSCADOR -->
-      <div class="dash-card buscador-principal">
-        <input
-          type="text"
-          [(ngModel)]="textoBusqueda"
-          (keydown.enter)="buscar()"
-          placeholder="Buscar expediente, capacitación, responsable o red asistencial..."
-        />
-        <button (click)="buscar()">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            width="16"
-            height="16"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          Buscar
-        </button>
-      </div>
-
-      @if (modoDetalle) {
-        <div class="modo-detalle">
-          Visualizando expediente: <strong>{{ expedienteSeleccionado.expediente }}</strong>
-          <span class="detalle-horas">
-            <small
-              >Horas lectivas: <strong>{{ expedienteSeleccionado?.horasLectivas }}</strong></small
-            >
-            <small
-              >Horas cronológicas:
-              <strong>{{ expedienteSeleccionado?.horasCronologicas }}</strong></small
-            >
-          </span>
-        </div>
-      }
-
-      <!-- KPIs ADMINISTRADOR -->
+      <!-- KPIs ADMINISTRADOR (datos reales de BD) -->
       @if (esAdministrador) {
         <div class="kpi-grid">
           <div class="kpi-card">
@@ -179,38 +122,44 @@
               </svg>
             </div>
             <div class="kpi-info">
-              <span class="kpi-valor">{{ estadisticasTotales.totalExpedientes }}</span>
-              <span class="kpi-label">Expedientes PDP</span>
+              <span class="kpi-valor">{{ statsGlobal.actividades | number }}</span>
+              <span class="kpi-label">Capacitaciones PDP</span>
             </div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icono kpi-icono-verde">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-valor">{{ statsGlobal.participantes | number }}</span>
+              <span class="kpi-label">Participantes Totales</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icono kpi-icono-naranja">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="1" x2="12" y2="23" />
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
             </div>
             <div class="kpi-info">
-              <span class="kpi-valor">{{
-                estadisticasTotales.presupuestoTotal | number: '1.0-0'
-              }}</span>
+              <span class="kpi-valor">{{ statsGlobal.presupuesto_total | number:'1.0-0' }}</span>
               <span class="kpi-label">Presupuesto Total (S/.)</span>
             </div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-icono kpi-icono-naranja">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            <div class="kpi-icono" style="background:#eff6ff">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
+                <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
               </svg>
             </div>
             <div class="kpi-info">
-              <span class="kpi-valor">{{
-                estadisticasTotales.beneficiariosTotal | number: '1.0-0'
-              }}</span>
-              <span class="kpi-label">Beneficiarios Totales</span>
+              <span class="kpi-valor">{{ statsGlobal.redes | number }}</span>
+              <span class="kpi-label">Redes Asistenciales</span>
             </div>
           </div>
         </div>
@@ -219,261 +168,146 @@
       <!-- KPIs OTROS ROLES -->
       @if (!esAdministrador) {
         <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <span class="kpi-valor">120</span><span class="kpi-label">Acciones PDP</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <span class="kpi-valor">35</span><span class="kpi-label">En TDR</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <span class="kpi-valor">22</span><span class="kpi-label">En Logística</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <span class="kpi-valor">18</span><span class="kpi-label">Convocatoria</span>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-info">
-              <span class="kpi-valor">45</span><span class="kpi-label">Finalizadas</span>
-            </div>
-          </div>
+          <div class="kpi-card"><div class="kpi-info"><span class="kpi-valor">120</span><span class="kpi-label">Acciones PDP</span></div></div>
+          <div class="kpi-card"><div class="kpi-info"><span class="kpi-valor">35</span><span class="kpi-label">En TDR</span></div></div>
+          <div class="kpi-card"><div class="kpi-info"><span class="kpi-valor">22</span><span class="kpi-label">En Logística</span></div></div>
+          <div class="kpi-card"><div class="kpi-info"><span class="kpi-valor">18</span><span class="kpi-label">Convocatoria</span></div></div>
+          <div class="kpi-card"><div class="kpi-info"><span class="kpi-valor">45</span><span class="kpi-label">Finalizadas</span></div></div>
         </div>
       }
-
-      <!-- LEYENDA SEMÁFORO -->
-      <div class="dash-card leyenda">
-        <span><span class="semaforo verde"></span> Dentro del plazo</span>
-        <span><span class="semaforo amarillo"></span> Próximo a vencer</span>
-        <span><span class="semaforo rojo"></span> Retrasado</span>
-      </div>
 
       <!-- GRÁFICOS ADMINISTRADOR -->
       @if (esAdministrador) {
         <div class="graficos-container">
-          @if (chartConfigEstado) {
+          @if (chartConfigModalidad) {
             <div class="dash-card grafico-box">
-              <h3>Expedientes por Estado</h3>
-              <canvas
-                baseChart
-                [type]="chartConfigEstado.type"
-                [data]="chartConfigEstado.data"
-                [options]="chartConfigEstado.options"
-              ></canvas>
+              <h3>Capacitaciones por Modalidad</h3>
+              <canvas baseChart
+                [type]="chartConfigModalidad.type"
+                [data]="chartConfigModalidad.data"
+                [options]="chartConfigModalidad.options">
+              </canvas>
             </div>
           }
-          @if (chartConfigSemaforo) {
-            <div class="dash-card grafico-box">
-              <h3>Estado de Cumplimiento</h3>
-              <canvas
-                baseChart
-                [type]="chartConfigSemaforo.type"
-                [data]="chartConfigSemaforo.data"
-                [options]="chartConfigSemaforo.options"
-              ></canvas>
-            </div>
-          }
-          @if (chartConfigResponsable) {
-            <div class="dash-card grafico-box">
-              <h3>Expedientes por Responsable</h3>
-              <canvas
-                baseChart
-                [type]="chartConfigResponsable.type"
-                [data]="chartConfigResponsable.data"
-                [options]="chartConfigResponsable.options"
-              ></canvas>
+          @if (chartConfigRedes) {
+            <div class="dash-card grafico-box grafico-wide">
+              <h3>Capacitaciones por Red Asistencial</h3>
+              <canvas baseChart
+                [type]="chartConfigRedes.type"
+                [data]="chartConfigRedes.data"
+                [options]="chartConfigRedes.options">
+              </canvas>
             </div>
           }
         </div>
       }
 
-      <!-- DETALLE EXPEDIENTE -->
-      @if (expedienteSeleccionado) {
-        <div class="dash-card detalle-expediente">
-          <div class="box-header"><h3>Detalle del Expediente PDP</h3></div>
-          <div class="detalle-grid">
-            <div class="detalle-card">
-              <strong>Expediente</strong>
-              <p>{{ expedienteSeleccionado.expediente }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Capacitación</strong>
-              <p>{{ expedienteSeleccionado.capacitacion }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Estado</strong>
-              <p>{{ expedienteSeleccionado.estado }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Responsable</strong>
-              <p>{{ expedienteSeleccionado.responsable }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Beneficiarios</strong>
-              <p>{{ expedienteSeleccionado.beneficiarios }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Presupuesto</strong>
-              <p>{{ formatearMoneda(expedienteSeleccionado.presupuesto) }}</p>
-            </div>
-            <div class="detalle-card">
-              <strong>Semáforo</strong>
-              <p>{{ expedienteSeleccionado.semaforo }}</p>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- ALERTAS -->
-      <div class="dash-card alertas-box">
-        <h3>Alertas Prioritarias</h3>
-        <div class="alerta rojo-alerta">PDP-2026-015 — Retraso de 8 días en Logística</div>
-        <div class="alerta amarillo-alerta">PDP-2026-021 — Convocatoria vence en 2 días</div>
-        <div class="alerta rojo-alerta">PDP-2026-030 — Pendiente de aprobación TDR</div>
-      </div>
-
-      <!-- TABLA EXPEDIENTES -->
-      <div class="dash-card acciones-box">
-        <div class="box-header"><h3>Expedientes de Capacitación</h3></div>
-        <table>
-          <thead>
-            <tr>
-              <th>Expediente</th>
-              <th>Capacitación</th>
-              <th>Estado</th>
-              <th>Semáforo</th>
-              <th>Responsable</th>
-              @if (esAdministrador) {
-                <th>Beneficiarios</th>
-              }
-              @if (esAdministrador) {
-                <th>Presupuesto</th>
-              }
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of expedientesConEstadisticas; track item.expediente) {
-              <tr>
-                <td>{{ item.expediente }}</td>
-                <td>{{ item.capacitacion }}</td>
-                <td>{{ item.estado }}</td>
-                <td><span class="semaforo" [ngClass]="item.semaforo"></span></td>
-                <td>{{ item.responsable }}</td>
-                @if (esAdministrador) {
-                  <td>{{ item.beneficiarios }}</td>
-                }
-                @if (esAdministrador) {
-                  <td>{{ formatearMoneda(item.presupuesto) }}</td>
-                }
-                <td><button class="btn-ruta" (click)="verRuta()">Ver Ruta</button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- TABLA ESTADÍSTICAS POR RESPONSABLE -->
+      <!-- RESUMEN POR RED ASISTENCIAL -->
       @if (esAdministrador) {
         <div class="dash-card estadisticas-responsable-box">
-          <div class="box-header"><h3>Resumen por Responsable</h3></div>
-          <table>
-            <thead>
-              <tr>
-                <th>Responsable</th>
-                <th>Expedientes</th>
-                <th>Beneficiarios</th>
-                <th>Presupuesto</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of estadisticasPorResponsable; track item.responsable) {
-                <tr>
-                  <td>{{ item.responsable }}</td>
-                  <td>{{ item.cantidad }}</td>
-                  <td>{{ item.beneficiarios }}</td>
-                  <td>{{ formatearMoneda(item.presupuesto) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+          <div class="box-header">
+            <h3>Resumen por Red Asistencial</h3>
+            @if (cargandoResumen) {
+              <span class="cargando-badge">Cargando...</span>
+            } @else {
+              <span class="total-badge">{{ resumenRedes.length }} redes</span>
+            }
+          </div>
+
+          @if (cargandoResumen) {
+            <div class="tabla-cargando">
+              <div class="spinner-sm"></div>
+              <span>Cargando datos de la base de datos...</span>
+            </div>
+          } @else if (resumenRedes.length === 0) {
+            <div class="tabla-vacia">Sin datos disponibles. Verifique la conexión al backend.</div>
+          } @else {
+            <div class="tabla-scroll">
+              <table class="tabla-resumen">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Red Asistencial</th>
+                    <th>Capacitaciones</th>
+                    <th>Total Horas</th>
+                    <th>Participantes</th>
+                    <th>Presupuesto Ejecutado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of resumenRedes; track item.red; let i = $index) {
+                    <tr>
+                      <td class="td-num">{{ i + 1 }}</td>
+                      <td class="td-red">
+                        <span class="red-nombre">{{ item.red }}</span>
+                      </td>
+                      <td class="td-num">
+                        <span class="badge-cap">{{ item.capacitaciones }}</span>
+                      </td>
+                      <td class="td-num">{{ item.horas | number:'1.0-1' }}</td>
+                      <td class="td-num">{{ item.participantes | number }}</td>
+                      <td class="td-monto">{{ formatMoneda(item.presupuesto) }}</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr class="fila-total">
+                    <td colspan="2">TOTAL</td>
+                    <td class="td-num">{{ totalCapacitaciones | number }}</td>
+                    <td class="td-num">{{ totalHoras | number:'1.0-1' }}</td>
+                    <td class="td-num">{{ totalParticipantes | number }}</td>
+                    <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          }
         </div>
       }
+
     </main>
   </div>
 
-  <!-- ===== MODAL HISTORIAL DE EDICIONES ===== -->
+  <!-- ===== MODAL HISTORIAL ===== -->
   @if (mostrarHistorial) {
     <div class="hist-overlay" (click)="cerrarHistorial()">
       <div class="hist-modal" (click)="$event.stopPropagation()">
         <div class="hist-header">
           <div class="hist-titulo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
             <h3>Historial de Ediciones — Expedientes PDP</h3>
           </div>
           <button class="hist-cerrar" (click)="cerrarHistorial()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
-
         <div class="hist-buscador">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input
-            type="text"
-            [(ngModel)]="filtroHistorial"
-            placeholder="Filtrar por expediente, usuario, acción o detalle..."
-          />
+          <input type="text" [(ngModel)]="filtroHistorial" placeholder="Filtrar por expediente, usuario, acción o detalle..." />
         </div>
-
         <div class="hist-cuerpo">
           @if (historial.length === 0) {
             <div class="hist-vacio">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                width="52"
-                height="52"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52">
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
               </svg>
               <p>Aún no hay ediciones registradas.</p>
-              <small
-                >Las acciones sobre expedientes (agregar, editar, eliminar) aparecerán aquí.</small
-              >
+              <small>Las acciones sobre expedientes aparecerán aquí.</small>
             </div>
           } @else if (historialFiltrado.length === 0) {
-            <div class="hist-vacio">
-              <p>No se encontraron registros con ese filtro.</p>
-            </div>
+            <div class="hist-vacio"><p>No se encontraron registros con ese filtro.</p></div>
           } @else {
             <table class="hist-tabla">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  <th>Acción</th>
-                  <th>Expediente</th>
-                  <th>Detalle del cambio</th>
+                  <th>Fecha</th><th>Hora</th><th>Usuario</th><th>Rol</th>
+                  <th>Acción</th><th>Expediente</th><th>Detalle</th>
                 </tr>
               </thead>
               <tbody>
@@ -487,16 +321,12 @@
                         {{ e.usuario }}
                       </div>
                     </td>
+                    <td><span class="badge-rol-hist">{{ e.rol }}</span></td>
                     <td>
-                      <span class="badge-rol-hist">{{ e.rol }}</span>
-                    </td>
-                    <td>
-                      <span
-                        class="badge-accion"
+                      <span class="badge-accion"
                         [class.accion-agrego]="e.accion === 'Agregó'"
                         [class.accion-edito]="e.accion === 'Editó'"
-                        [class.accion-elimino]="e.accion === 'Eliminó'"
-                      >
+                        [class.accion-elimino]="e.accion === 'Eliminó'">
                         {{ e.accion }}
                       </span>
                     </td>
@@ -508,7 +338,6 @@
             </table>
           }
         </div>
-
         <div class="hist-footer">
           <span class="hist-total">{{ historialFiltrado.length }} registro(s)</span>
           <button class="hist-btn-cerrar" (click)="cerrarHistorial()">Cerrar</button>
@@ -517,74 +346,41 @@
     </div>
   }
 
+  <!-- MODAL EDITAR PERFIL -->
   @if (mostrarEditarPerfil) {
     <div class="hist-overlay">
       <div class="hist-modal">
-        <div class="hist-header">
-          <h3>👤 Editar Perfil de Usuario</h3>
-        </div>
-
+        <div class="hist-header"><h3>👤 Editar Perfil de Usuario</h3></div>
         <div style="padding: 20px">
-          <div class="modal-group">
-            <label>Nombre Completo</label>
-            <input type="text" [(ngModel)]="perfilEditado.nombre" />
-          </div>
-
-          <div class="modal-group">
-            <label>Correo Electrónico</label>
-            <input type="email" [(ngModel)]="perfilEditado.correo" />
-          </div>
-
-          <div class="modal-group">
-            <label>Teléfono</label>
-            <input type="text" [(ngModel)]="perfilEditado.telefono" />
-          </div>
+          <div class="modal-group"><label>Nombre Completo</label><input type="text" [(ngModel)]="perfilEditado.nombre" /></div>
+          <div class="modal-group"><label>Correo Electrónico</label><input type="email" [(ngModel)]="perfilEditado.correo" /></div>
+          <div class="modal-group"><label>Teléfono</label><input type="text" [(ngModel)]="perfilEditado.telefono" /></div>
+          <div class="modal-group"><label>Cargo</label><input type="text" [value]="usuarioActual?.rol" disabled /></div>
         </div>
-
-        <div class="modal-group">
-          <label>Cargo</label>
-          <input type="text" [value]="usuarioActual?.rol" disabled />
-        </div>
-
         <div class="modal-footer">
           <button class="btn-cancelar" (click)="cerrarEditarPerfil()">✖ Cancelar</button>
-
           <button class="btn-guardar" (click)="guardarPerfil()">💾 Guardar Cambios</button>
         </div>
       </div>
     </div>
   }
 
+  <!-- MODAL CAMBIAR PASSWORD -->
   @if (mostrarCambiarPassword) {
     <div class="hist-overlay">
       <div class="hist-modal">
-        <div class="hist-header">
-          <h3>🔒 Cambiar Contraseña</h3>
-        </div>
-
+        <div class="hist-header"><h3>🔒 Cambiar Contraseña</h3></div>
         <div style="padding: 20px">
-          <div class="modal-group">
-            <label>Contraseña actual</label>
-            <input type="password" [(ngModel)]="passwordData.actual" />
-          </div>
-
-          <div class="modal-group">
-            <label>Nueva Contraseña</label>
-            <input type="password" [(ngModel)]="passwordData.nueva" />
-          </div>
-
-          <div class="modal-group">
-            <label>Confirmar Contraseña</label>
-            <input type="password" [(ngModel)]="passwordData.confirmar" />
-          </div>
+          <div class="modal-group"><label>Contraseña actual</label><input type="password" [(ngModel)]="passwordData.actual" /></div>
+          <div class="modal-group"><label>Nueva Contraseña</label><input type="password" [(ngModel)]="passwordData.nueva" /></div>
+          <div class="modal-group"><label>Confirmar Contraseña</label><input type="password" [(ngModel)]="passwordData.confirmar" /></div>
         </div>
-
         <div class="modal-footer">
           <button class="btn-cancelar" (click)="cerrarCambiarPassword()">✖ Cancelar</button>
-
           <button class="btn-guardar" (click)="guardarPassword()">🔒 Actualizar</button>
         </div>
       </div>
     </div>
   }
+
 </div>

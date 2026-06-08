@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ExpedientePDP } from '../models/expediente-pdp.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,86 +21,7 @@ export class ExpedienteService {
     horasCronologicas: 'Horas cronológicas',
   };
 
-  private expedientes = [
-    {
-      expediente: 'PDP-2026-001',
-      capacitacion: 'GOBIERNO DIGITAL EN LA GESTIÓN PÚBLICA',
-      estado: 'Finalizado',
-      responsable: 'Oficina Central',
-      sede: 'Huancavelica',
-      ejecutor: '22222222',
-      semaforo: 'verde',
-      beneficiarios: 30,
-      presupuesto: 15000,
-      horasLectivas: 24,
-      horasCronologicas: 18,
-    },
-    {
-      expediente: 'PDP-2026-002',
-      capacitacion: 'DERECHO ADMINISTRATIVO Y SEGURIDAD SOCIAL',
-      estado: 'Logística',
-      responsable: 'Oficina Central',
-      sede: 'Ica',
-      ejecutor: '33333333',
-      semaforo: 'amarillo',
-      beneficiarios: 19,
-      presupuesto: 5000,
-      horasLectivas: 32,
-      horasCronologicas: 24,
-    },
-    {
-      expediente: 'PDP-2026-003',
-      capacitacion: 'ARBITRAJE CON LA NUEVA LEY GENERAL DE CONTRATACIONES PUBLICAS',
-      estado: 'Convocatoria',
-      responsable: 'Oficina Central',
-      sede: 'Ancash',
-      ejecutor: '33333333',
-      semaforo: 'rojo',
-      beneficiarios: 19,
-      presupuesto: 5000,
-      horasLectivas: 32,
-      horasCronologicas: 24,
-    },
-    {
-      expediente: 'PDP-2026-004',
-      capacitacion: 'REDACCION DE DOCUMENTOS TECNICOS',
-      estado: 'TDR',
-      responsable: 'Oficina Central',
-      sede: 'Cusco',
-      ejecutor: '22222222',
-      semaforo: 'verde',
-      beneficiarios: 33,
-      presupuesto: 15000,
-      horasLectivas: 18,
-      horasCronologicas: 13.5,
-    },
-    {
-      expediente: 'PDP-2026-005',
-      capacitacion: 'TALLER EDUCACION INICIA: JUEGOS, INTERACCIONES Y PROYECTOS',
-      estado: 'Finalizado',
-      responsable: 'Oficina Central',
-      sede: 'Apurimac',
-      ejecutor: '44444444',
-      semaforo: 'verde',
-      beneficiarios: 37,
-      presupuesto: 5000,
-      horasLectivas: 24,
-      horasCronologicas: 18,
-    },
-    {
-      expediente: 'PDP-2026-006',
-      capacitacion: 'GESTIÓN FINANCIERA EN INSTITUCIONES DE SEGURIDAD SOCIAL',
-      estado: 'Convocatoria',
-      responsable: 'Oficina Central',
-      sede: 'Arequipa',
-      ejecutor: '22222222',
-      semaforo: 'amarillo',
-      beneficiarios: 55,
-      presupuesto: 10000,
-      horasLectivas: 36,
-      horasCronologicas: 24,
-    },
-  ];
+  private expedientes: any[] = [];
 
   private expedientesSubject = new BehaviorSubject<any[]>(this.loadExpedientes());
 
@@ -311,17 +231,27 @@ export class ExpedienteService {
 
     // SECTORISTA
     if (usuario.rol === 'Sectorista') {
-      console.log('SEDES DEL USUARIO:', usuario.sedes);
-
-      expedientes.forEach((e) => {
-        console.log(e.expediente, e.sede, usuario.sedes?.includes(e.sede));
-      });
-
-      return expedientes.filter((e) => usuario.sedes?.includes(e.sede));
+      const sedes: string[] = Array.isArray(usuario.sedes) ? usuario.sedes : (usuario.sedes ? [usuario.sedes] : []);
+      return expedientes.filter((e) =>
+        sedes.some((s) => {
+          const sl = s.toLowerCase();
+          const el = (e.sede || '').toLowerCase();
+          return sl === el || sl.includes(el) || el.includes(sl);
+        })
+      );
     }
     // EJECUTOR
     if (usuario.rol === 'Ejecutor') {
-      return expedientes.filter((e) => e.ejecutor === usuario.dni);
+      const sedes: string[] = Array.isArray(usuario.sedes) ? usuario.sedes : (usuario.sedes ? [usuario.sedes] : []);
+      return expedientes.filter((e) => {
+        if (e.ejecutor === usuario.dni) return true;
+        if (!sedes.length) return false;
+        const el = (e.sede || '').toLowerCase();
+        return sedes.some((s) => {
+          const sl = s.toLowerCase();
+          return sl === el || sl.includes(el) || el.includes(sl);
+        });
+      });
     }
 
     return [];

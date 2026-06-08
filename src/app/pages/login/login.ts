@@ -35,6 +35,7 @@ export class Login {
 
   ingresar() {
     const base = [
+      // ── ADMINISTRADORES ──────────────────────────
       {
         id: 1,
         dni: '90642735',
@@ -43,6 +44,7 @@ export class Login {
         numeroPlantilla: 'PL-0001',
         tipo: 'Especialista PDP',
         rol: 'Administrador',
+        sedes: [],
       },
       {
         id: 2,
@@ -52,6 +54,7 @@ export class Login {
         numeroPlantilla: 'PL-0002',
         tipo: 'Especialista PDP',
         rol: 'Administrador',
+        sedes: [],
       },
       {
         id: 3,
@@ -61,6 +64,7 @@ export class Login {
         numeroPlantilla: 'PL-0003',
         tipo: 'Especialista PDP',
         rol: 'Administrador',
+        sedes: [],
       },
       {
         id: 4,
@@ -70,26 +74,49 @@ export class Login {
         numeroPlantilla: 'PL-0004',
         tipo: 'Especialista PDP',
         rol: 'Administrador',
+        sedes: [],
       },
+      // ── SECTORISTAS ──────────────────────────────
       {
         id: 5,
         dni: '11111111',
         password: 'sector123',
-        nombre: 'María Torres',
+        nombre: 'María Torres Quispe',
         numeroPlantilla: 'PL-0005',
         tipo: 'Sectorista',
         rol: 'Sectorista',
-        sedes: ['Arequipa'],
+        sedes: ['Red Asistencial Arequipa'],
       },
+      {
+        id: 7,
+        dni: '33333333',
+        password: 'sector123',
+        nombre: 'Ana Sofía Paredes Quispe',
+        numeroPlantilla: 'PL-0007',
+        tipo: 'Sectorista',
+        rol: 'Sectorista',
+        sedes: ['Red Asistencial Cusco', 'Red Asistencial Arequipa', 'Red Asistencial Piura'],
+      },
+      // ── EJECUTORES ───────────────────────────────
       {
         id: 6,
         dni: '22222222',
         password: 'ejecutor123',
-        nombre: 'Ricardo Mendoza',
+        nombre: 'Ricardo Mendoza García',
         numeroPlantilla: 'PL-0006',
         tipo: 'Ejecutor',
         rol: 'Ejecutor',
-        sedes: 'Lurin',
+        sedes: ['Lurin'],
+      },
+      {
+        id: 8,
+        dni: '44444444',
+        password: 'ejecutor123',
+        nombre: 'Carlos Alberto Huanca Torres',
+        numeroPlantilla: 'PL-0008',
+        tipo: 'Ejecutor',
+        rol: 'Ejecutor',
+        sedes: ['Red Asistencial Arequipa'],
       },
     ];
 

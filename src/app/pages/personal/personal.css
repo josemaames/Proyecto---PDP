@@ -213,12 +213,43 @@
 /* BADGES */
 
 .badge-rol {
-  background: #eef3fb;
-  color: #1a4fa8;
+  display: inline-block;
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
+  background: #eef3fb;
+  color: #1a4fa8;
+}
+
+.badge-rol-admin     { background: #ede9fe; color: #6d28d9; }
+.badge-rol-sectorista{ background: #dcfce7; color: #15803d; }
+.badge-rol-ejecutor  { background: #fff7ed; color: #c2410c; }
+
+/* SEDES / RED */
+
+.td-sedes { max-width: 260px; }
+
+.sedes-valor {
+  font-size: 12px;
+  color: #374151;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.sedes-admin {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6d28d9;
+}
+
+.campo-sedes { grid-column: 1 / -1; }
+
+.campo-hint {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
 }
 
 .badge-estado {

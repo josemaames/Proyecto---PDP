@@ -1,92 +1,179 @@
-<div class="expedientes-container">
-  <div class="header">
-    <div *ngIf="mostrarFormulario" class="formulario-box">
-      <h3>{{ modoEdicion ? 'Editar Expediente PDP' : 'Nuevo Expediente PDP' }}</h3>
+<div class="exp-container">
 
-      <div class="form-grid">
-        <input type="text" placeholder="Código PDP" [(ngModel)]="nuevoExpediente.expediente" />
-
-        <input type="text" placeholder="Capacitación" [(ngModel)]="nuevoExpediente.capacitacion" />
-
-        <input type="text" placeholder="Responsable" [(ngModel)]="nuevoExpediente.responsable" />
-
-        <select [(ngModel)]="nuevoExpediente.estado">
-          <option>TDR</option>
-          <option>Logística</option>
-          <option>Convocatoria</option>
-          <option>Ejecución</option>
-          <option>Finalizado</option>
-        </select>
-
-        <input type="number" placeholder="Presupuesto" [(ngModel)]="nuevoExpediente.presupuesto" />
-
-        <input
-          type="number"
-          placeholder="Beneficiarios"
-          [(ngModel)]="nuevoExpediente.beneficiarios"
-        />
-
-        <input
-          type="number"
-          placeholder="Horas lectivas"
-          [(ngModel)]="nuevoExpediente.horasLectivas"
-        />
-
-        <input
-          type="number"
-          placeholder="Horas cronológicas"
-          [(ngModel)]="nuevoExpediente.horasCronologicas"
-        />
-      </div>
-
-      <div class="acciones-formulario">
-        <button class="btn-guardar" (click)="guardarExpediente()">Guardar</button>
-
-        <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+  <!-- ENCABEZADO -->
+  <div class="exp-header">
+    <div class="exp-titulo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <div>
+        <h2>Capacitaciones PDP</h2>
+        <span class="exp-subtitulo">{{ total | number }} registros encontrados</span>
       </div>
     </div>
-    <h2>📁 Expedientes PDP</h2>
-
-    <button class="btn-nuevo" (click)="abrirFormulario()">+ Nuevo Expediente</button>
   </div>
 
-  <div class="tabla-box">
-    <table>
-      <thead>
-        <tr>
-          <th>Expediente</th>
-          <th>Capacitación</th>
-          <th>Responsable</th>
-          <th>Estado</th>
-          <th>Presupuesto</th>
-          <th>Beneficiarios</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let item of expedientes">
-          <td>{{ item.expediente }}</td>
-
-          <td>{{ item.capacitacion }}</td>
-
-          <td>{{ item.responsable }}</td>
-
-          <td>{{ item.estado }}</td>
-
-          <td>S/. {{ item.presupuesto }}</td>
-
-          <td>{{ item.beneficiarios }}</td>
-
-          <td>
-            <button class="btn-ver" (click)="verExpediente(item.expediente)">Ver</button>
-
-            <button class="btn-editar" (click)="editarExpediente(item.expediente)">Editar</button>
-
-            <button class="btn-eliminar" (click)="eliminarExpediente(item.expediente)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- FILTROS -->
+  <div class="filtros-bar">
+    <div class="filtro-grupo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Buscar por nombre o código..." [(ngModel)]="busqueda" (keyup.enter)="buscar()" />
+    </div>
+    @if (!redFiltro) {
+      <input class="filtro-input" type="text" placeholder="Filtrar por red asistencial..." [(ngModel)]="filtrored" (keyup.enter)="buscar()" />
+    }
+    <select class="filtro-select" [(ngModel)]="filtroMod" (change)="buscar()">
+      <option value="">Todas las modalidades</option>
+      <option value="Presencial">Presencial</option>
+      <option value="Virtual">Virtual</option>
+      <option value="Semipresencial">Semipresencial</option>
+    </select>
+    <button class="btn-buscar" (click)="buscar()">Buscar</button>
   </div>
+
+  <!-- TABLA -->
+  <div class="tabla-wrap">
+    @if (cargando) {
+      <div class="estado-cargando">
+        <div class="spinner"></div>
+        <span>Cargando capacitaciones...</span>
+      </div>
+    } @else if (capacitaciones.length === 0) {
+      <div class="estado-vacio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p>No se encontraron capacitaciones.</p>
+      </div>
+    } @else {
+      <table class="tabla-cap">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Código ACT</th>
+            <th>Nombre de la Capacitación</th>
+            <th>Red Asistencial</th>
+            <th>Modalidad</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Horas</th>
+            <th>Participantes</th>
+            <th>Presupuesto</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cap of capacitaciones; track cap.id) {
+            <tr>
+              <td class="td-num">{{ cap.numero ?? '—' }}</td>
+              <td class="td-codigo"><span class="badge-codigo">{{ cap.codigo_act }}</span></td>
+              <td class="td-nombre">{{ cap.nombre_actividad || '—' }}</td>
+              <td class="td-red">{{ cap.red_asistencial || '—' }}</td>
+              <td>
+                @if (cap.modalidad) {
+                  <span class="badge-mod" [class.mod-presencial]="cap.modalidad === 'Presencial'"
+                    [class.mod-virtual]="cap.modalidad === 'Virtual'"
+                    [class.mod-semipres]="cap.modalidad === 'Semipresencial'">
+                    {{ cap.modalidad }}
+                  </span>
+                } @else { <span>—</span> }
+              </td>
+              <td>{{ cap.fecha_inicio ? (cap.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
+              <td>{{ cap.fecha_fin   ? (cap.fecha_fin   | date:'dd/MM/yyyy') : '—' }}</td>
+              <td class="td-num">{{ cap.total_horas ?? '—' }}</td>
+              <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
+              <td>{{ cap.presupuesto_ejecutado != null ? (cap.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</td>
+              <td>
+                <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- PAGINACIÓN -->
+      <div class="paginacion">
+        <span class="pag-info">Página {{ pagina }} de {{ totalPaginas }}</span>
+        <div class="pag-botones">
+          <button [disabled]="pagina === 1" (click)="anterior()">← Anterior</button>
+          <button [disabled]="pagina === totalPaginas" (click)="siguiente()">Siguiente →</button>
+        </div>
+      </div>
+    }
+  </div>
+
 </div>
+
+<!-- MODAL DETALLE -->
+@if (seleccionada) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-detalle" (click)="$event.stopPropagation()">
+
+      <div class="modal-head">
+        <div>
+          <span class="badge-codigo">{{ seleccionada.codigo_act }}</span>
+          <h3>{{ seleccionada.nombre_actividad || 'Sin nombre' }}</h3>
+        </div>
+        <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-cuerpo">
+
+        <div class="modal-seccion">
+          <h4>Información General</h4>
+          <div class="modal-grid">
+            <div class="dato"><span class="dato-label">Red Asistencial</span><span>{{ seleccionada.red_asistencial || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Servicio / Área</span><span>{{ seleccionada.servicio_area || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Eje Temático</span><span>{{ seleccionada.eje_tematico || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Público Objetivo</span><span>{{ seleccionada.publico || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Modalidad</span><span>{{ seleccionada.modalidad || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Frecuencia</span><span>{{ seleccionada.frecuencia || '—' }}</span></div>
+          </div>
+        </div>
+
+        <div class="modal-seccion">
+          <h4>Fechas y Horarios</h4>
+          <div class="modal-grid">
+            <div class="dato"><span class="dato-label">Fecha Inicio</span><span>{{ seleccionada.fecha_inicio ? (seleccionada.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Fecha Fin</span><span>{{ seleccionada.fecha_fin ? (seleccionada.fecha_fin | date:'dd/MM/yyyy') : '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Mes Término</span><span>{{ seleccionada.mes_termino || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Hora Inicio</span><span>{{ seleccionada.hora_inicio || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Hora Término</span><span>{{ seleccionada.hora_termino || '—' }}</span></div>
+          </div>
+        </div>
+
+        <div class="modal-seccion">
+          <h4>Horas y Evaluación</h4>
+          <div class="modal-grid">
+            <div class="dato"><span class="dato-label">Total Horas</span><span>{{ seleccionada.total_horas ?? '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Horas fuera de horario</span><span>{{ seleccionada.horas_fuera_horario ?? '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Nivel de Evaluación</span><span>{{ seleccionada.nivel_evaluacion || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Objetivo Estratégico</span><span>{{ seleccionada.objetivo_estrategico || '—' }}</span></div>
+          </div>
+        </div>
+
+        <div class="modal-seccion">
+          <h4>Participantes y Presupuesto</h4>
+          <div class="modal-grid">
+            <div class="dato"><span class="dato-label">Total Participantes</span><span>{{ seleccionada.total_participantes ?? '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Presupuesto Ejecutado</span><span>{{ seleccionada.presupuesto_ejecutado != null ? (seleccionada.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</span></div>
+          </div>
+        </div>
+
+        <div class="modal-seccion">
+          <h4>Proveedor</h4>
+          <div class="modal-grid">
+            <div class="dato"><span class="dato-label">RUC Proveedor</span><span>{{ seleccionada.ruc_proveedor || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Nombre Proveedor</span><span>{{ seleccionada.nombre_proveedor || '—' }}</span></div>
+            <div class="dato"><span class="dato-label">Sector Proveedor</span><span>{{ seleccionada.sector_proveedor || '—' }}</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

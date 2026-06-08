@@ -31,7 +31,7 @@ pool.connect()
 // ══════════════════════════════════════════════
 app.get('/api/participantes', async (req, res) => {
   try {
-    const { q = '', codigo_act = '', page = 1, limit = 50 } = req.query;
+    const { q = '', codigo_act = '', red = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let conditions = [], params = [], idx = 1;
@@ -43,6 +43,17 @@ app.get('/api/participantes', async (req, res) => {
     if (codigo_act) {
       conditions.push(`codigo_act ILIKE $${idx}`);
       params.push(`%${codigo_act}%`); idx++;
+    }
+    if (red) {
+      const redes = red.split(',').map(r => r.trim()).filter(Boolean);
+      if (redes.length === 1) {
+        conditions.push(`red ILIKE $${idx}`);
+        params.push(`%${redes[0]}%`); idx++;
+      } else if (redes.length > 1) {
+        const redConds = redes.map((r, i) => { params.push(`%${r}%`); return `red ILIKE $${idx + i}`; });
+        idx += redes.length;
+        conditions.push(`(${redConds.join(' OR ')})`);
+      }
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -186,19 +197,35 @@ app.delete('/api/actividades/:id', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/personal-essalud', async (req, res) => {
   try {
-    const { q = '', page = 1, limit = 50 } = req.query;
+    const { q = '', red = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
-    const search = `%${q}%`;
+
+    let conditions = [], params = [], idx = 1;
+
+    const search = `%${q || ''}%`;
+    conditions.push(`(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx})`);
+    params.push(search); idx++;
+
+    if (red) {
+      const redes = red.split(',').map(r => r.trim()).filter(Boolean);
+      if (redes.length === 1) {
+        conditions.push(`red ILIKE $${idx}`);
+        params.push(`%${redes[0]}%`); idx++;
+      } else if (redes.length > 1) {
+        const redConds = redes.map((r, i) => { params.push(`%${r}%`); return `red ILIKE $${idx + i}`; });
+        idx += redes.length;
+        conditions.push(`(${redConds.join(' OR ')})`);
+      }
+    }
+
+    const where = `WHERE ${conditions.join(' AND ')}`;
 
     const { rows } = await pool.query(
-      `SELECT * FROM personal
-       WHERE apellidos ILIKE $1 OR nombre ILIKE $1 OR dni_ce ILIKE $1 OR cargo ILIKE $1
-       ORDER BY apellidos, nombre LIMIT $2 OFFSET $3`,
-      [search, parseInt(limit), offset]
+      `SELECT * FROM personal ${where} ORDER BY apellidos, nombre LIMIT $${idx} OFFSET $${idx+1}`,
+      [...params, parseInt(limit), offset]
     );
     const { rows: c } = await pool.query(
-      `SELECT COUNT(*) FROM personal WHERE apellidos ILIKE $1 OR nombre ILIKE $1 OR dni_ce ILIKE $1 OR cargo ILIKE $1`,
-      [search]
+      `SELECT COUNT(*) FROM personal ${where}`, params
     );
     res.json({ data: rows, total: parseInt(c[0].count) });
   } catch (err) { res.status(500).json({ error: err.message }); }

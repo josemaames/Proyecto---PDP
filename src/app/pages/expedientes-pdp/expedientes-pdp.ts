@@ -1,129 +1,63 @@
-import { Component } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ExpedienteService } from '../../services/expediente.service';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { PdpDataService, Actividad } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-expedientes-pdp',
-  imports: [NgFor, NgIf, FormsModule],
+  standalone: true,
+  imports: [FormsModule, CurrencyPipe, DatePipe, DecimalPipe],
   templateUrl: './expedientes-pdp.html',
   styleUrl: './expedientes-pdp.css',
 })
-export class ExpedientesPdp {
-  mostrarFormulario = false;
-  modoEdicion = false;
-  expedienteOriginal = '';
+export class ExpedientesPdp implements OnInit {
+  private pdpData = inject(PdpDataService);
 
-  nuevoExpediente = {
-    expediente: '',
-    capacitacion: '',
-    responsable: '',
-    estado: 'TDR',
-    presupuesto: 0,
-    beneficiarios: 0,
-    horasLectivas: 0,
-    horasCronologicas: 0,
-  };
+  capacitaciones: Actividad[] = [];
+  seleccionada: Actividad | null = null;
 
-  expedientes: any[] = [];
+  busqueda   = '';
+  filtrored  = '';
+  filtroMod  = '';
+  pagina     = 1;
+  limit      = 20;
+  total      = 0;
+  cargando   = false;
+  redFiltro  = '';
 
-  constructor(private expedienteService: ExpedienteService) {}
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.total / this.limit));
+  }
 
   ngOnInit() {
-    this.expedientes = this.expedienteService.getExpedientesPorRol();
-
-    this.expedienteService.getExpedientes$().subscribe(() => {
-      this.expedientes = this.expedienteService.getExpedientesPorRol();
-    });
+    this.redFiltro = this.pdpData.getRedFiltro();
+    this.cargar();
   }
 
-  abrirFormulario() {
-    this.mostrarFormulario = true;
-  }
-
-  cancelar() {
-    this.mostrarFormulario = false;
-  }
-
-  guardarExpediente() {
-    if (this.modoEdicion) {
-      this.expedienteService.updateExpediente(
-        {
-          ...this.nuevoExpediente,
+  cargar() {
+    this.cargando = true;
+    const red = this.filtrored || this.redFiltro;
+    this.pdpData.getActividades(this.busqueda, red, this.filtroMod, this.pagina, this.limit)
+      .subscribe({
+        next: (res) => {
+          this.capacitaciones = res.data;
+          this.total          = res.total;
+          this.cargando       = false;
         },
-        this.expedienteOriginal,
-      );
-    } else {
-      this.expedienteService.addExpediente({
-        ...this.nuevoExpediente,
+        error: () => { this.cargando = false; }
       });
-    }
-
-    this.resetFormulario();
   }
 
-  editarExpediente(expedienteCodigo: string) {
-    const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
+  buscar() { this.pagina = 1; this.cargar(); }
 
-    if (!expediente) {
-      return;
-    }
+  anterior() { if (this.pagina > 1) { this.pagina--; this.cargar(); } }
+  siguiente() { if (this.pagina < this.totalPaginas) { this.pagina++; this.cargar(); } }
 
-    this.modoEdicion = true;
-    this.expedienteOriginal = expediente.expediente;
+  ver(cap: Actividad) { this.seleccionada = cap; }
+  cerrarModal() { this.seleccionada = null; }
 
-    this.nuevoExpediente = {
-      expediente: expediente.expediente,
-      capacitacion: expediente.capacitacion,
-      responsable: expediente.responsable,
-      estado: expediente.estado,
-      presupuesto: expediente.presupuesto,
-      beneficiarios: expediente.beneficiarios,
-      horasLectivas: expediente.horasLectivas || 0,
-      horasCronologicas: expediente.horasCronologicas || 0,
-    };
-
-    this.mostrarFormulario = true;
-  }
-
-  eliminarExpediente(expedienteCodigo: string) {
-    if (confirm(`¿Eliminar expediente ${expedienteCodigo}?`)) {
-      this.expedienteService.deleteExpediente(expedienteCodigo);
-    }
-  }
-
-  verExpediente(expedienteCodigo: string) {
-    const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
-
-    if (!expediente) {
-      alert('Expediente no encontrado');
-      return;
-    }
-
-    alert(
-      `Expediente: ${expediente.expediente}
-Capacitación: ${expediente.capacitacion}
-Responsable: ${expediente.responsable}
-Estado: ${expediente.estado}
-Presupuesto: S/. ${expediente.presupuesto}
-Beneficiarios: ${expediente.beneficiarios}`,
-    );
-  }
-
-  resetFormulario() {
-    this.mostrarFormulario = false;
-    this.modoEdicion = false;
-    this.expedienteOriginal = '';
-
-    this.nuevoExpediente = {
-      expediente: '',
-      capacitacion: '',
-      responsable: '',
-      estado: 'TDR',
-      presupuesto: 0,
-      beneficiarios: 0,
-      horasLectivas: 0,
-      horasCronologicas: 0,
-    };
+  formatMoneda(v: number | undefined): string {
+    if (v == null) return '—';
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(v);
   }
 }

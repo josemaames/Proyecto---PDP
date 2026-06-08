@@ -79,18 +79,36 @@ export class PdpDataService {
 
   constructor(private http: HttpClient) {}
 
+  /** Devuelve el filtro de red para el usuario logueado.
+   *  Admin → '' (sin filtro), Sectorista → sedes separadas por coma, Ejecutor → su sede. */
+  getRedFiltro(): string {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!usuario.rol) return '';
+    if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') return '';
+    if (usuario.rol === 'Sectorista') {
+      const sedes: string[] = Array.isArray(usuario.sedes) ? usuario.sedes : (usuario.sedes ? [usuario.sedes] : []);
+      return sedes.join(',');
+    }
+    if (usuario.rol === 'Ejecutor') {
+      const sede: string = Array.isArray(usuario.sedes) ? (usuario.sedes[0] || '') : (usuario.sedes || usuario.sede || '');
+      return sede;
+    }
+    return '';
+  }
+
   // ── Estadísticas ──────────────────────────────
   getStats(): Observable<Stats> {
     return this.http.get<Stats>(`${this.api}/stats`);
   }
 
   // ── Participantes ─────────────────────────────
-  getParticipantes(q = '', codigo_act = '', page = 1, limit = 50): Observable<ApiResponse<Participante>> {
+  getParticipantes(q = '', codigo_act = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<Participante>> {
     const params = new HttpParams()
       .set('q', q)
       .set('codigo_act', codigo_act)
       .set('page', String(page))
-      .set('limit', String(limit));
+      .set('limit', String(limit))
+      .set('red', red);
     return this.http.get<ApiResponse<Participante>>(`${this.api}/participantes`, { params });
   }
 
@@ -123,9 +141,9 @@ export class PdpDataService {
   }
 
   // ── Personal ESSALUD ──────────────────────────
-  getPersonalEssalud(q = '', page = 1, limit = 50): Observable<ApiResponse<PersonalEssalud>> {
+  getPersonalEssalud(q = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<PersonalEssalud>> {
     const params = new HttpParams()
-      .set('q', q).set('page', String(page)).set('limit', String(limit));
+      .set('q', q).set('page', String(page)).set('limit', String(limit)).set('red', red);
     return this.http.get<ApiResponse<PersonalEssalud>>(`${this.api}/personal-essalud`, { params });
   }
 

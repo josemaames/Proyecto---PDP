@@ -23,6 +23,7 @@ export class PersonalPdp implements OnInit {
   limit       = 50;
   totalRegistros = 0;
   cargando    = false;
+  redFiltro   = '';
 
   personal: PersonalEssalud[] = [];
 
@@ -38,12 +39,13 @@ export class PersonalPdp implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
+    this.redFiltro = this.pdpData.getRedFiltro();
     this.cargarPersonal();
   }
 
   cargarPersonal() {
     this.cargando = true;
-    this.pdpData.getPersonalEssalud(this.busqueda, this.pagina, this.limit)
+    this.pdpData.getPersonalEssalud(this.busqueda, this.pagina, this.limit, this.redFiltro)
       .subscribe({
         next: (res) => {
           this.personal       = res.data;

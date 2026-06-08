@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
+import { roleGuard } from './guards/role-guard';
 
 import { Sectorista } from './pages/sectorista/sectorista';
 import { Login } from './pages/login/login';
@@ -10,6 +11,11 @@ import { Personal } from './pages/personal/personal';
 import { Ejecutor } from './pages/ejecutor/ejecutor';
 import { ListaParticipantes } from './pages/lista-participantes/lista-participantes';
 import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
+
+const ADMIN = ['Administrador', 'Administrativo'];
+const SECTORISTA = ['Sectorista'];
+const EJECUTOR = ['Ejecutor'];
+const TODOS = [...ADMIN, ...SECTORISTA, ...EJECUTOR];
 
 export const routes: Routes = [
   {
@@ -26,55 +32,55 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
-    canActivate: [authGuard],
-  },
-
-  {
-    path: 'hoja-ruta/:expediente',
-    component: HojaRuta,
-    canActivate: [authGuard],
-  },
-
-  {
-    path: 'expedientes',
-    component: ExpedientesPdp,
-    canActivate: [authGuard],
-  },
-
-  {
-    path: 'hoja-ruta',
-    component: HojaRuta,
-    canActivate: [authGuard],
-  },
-
-  {
-    path: 'personal',
-    component: Personal,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(ADMIN)],
   },
 
   {
     path: 'sectorista',
     component: Sectorista,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(SECTORISTA)],
   },
 
   {
     path: 'ejecutor',
     component: Ejecutor,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(EJECUTOR)],
+  },
+
+  {
+    path: 'expedientes',
+    component: ExpedientesPdp,
+    canActivate: [authGuard, roleGuard(TODOS)],
+  },
+
+  {
+    path: 'hoja-ruta',
+    component: HojaRuta,
+    canActivate: [authGuard, roleGuard(TODOS)],
+  },
+
+  {
+    path: 'hoja-ruta/:expediente',
+    component: HojaRuta,
+    canActivate: [authGuard, roleGuard(TODOS)],
   },
 
   {
     path: 'lista-participantes',
     component: ListaParticipantes,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard([...ADMIN, ...SECTORISTA, ...EJECUTOR])],
   },
 
   {
     path: 'personal-pdp',
     component: PersonalPdp,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard([...ADMIN, ...SECTORISTA, ...EJECUTOR])],
+  },
+
+  {
+    path: 'personal',
+    component: Personal,
+    canActivate: [authGuard, roleGuard(ADMIN)],
   },
 
   {

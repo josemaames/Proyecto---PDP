@@ -1,25 +1,27 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgClass, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
+import { PdpDataService, Actividad } from '../../services/pdp-data.service';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgClass, FormsModule, DecimalPipe, BaseChartDirective],
+  imports: [FormsModule, DecimalPipe, BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
-  nombre = '';
+export class Dashboard implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  nombre = '';
   rol = '';
   usuarioActual: any;
   esAdministrador = false;
@@ -27,134 +29,75 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   esEjecutor = false;
   fechaHoy = '';
   inicialUsuario = 'U';
-
   menuItems: string[] = [];
 
-  // HISTORIAL
-  mostrarHistorial = false;
-  mostrarEditarPerfil = false;
+  // ── Perfil / Contraseña ───────────────────────
+  mostrarHistorial       = false;
+  mostrarEditarPerfil    = false;
   mostrarCambiarPassword = false;
 
-  perfilEditado = {
-    nombre: '',
-    correo: '',
-    telefono: '',
-  };
-
-  passwordData = {
-    actual: '',
-    nueva: '',
-    confirmar: '',
-  };
+  perfilEditado  = { nombre: '', correo: '', telefono: '' };
+  passwordData   = { actual: '', nueva: '', confirmar: '' };
   historial: any[] = [];
   filtroHistorial = '';
 
   get historialFiltrado(): any[] {
     const t = this.filtroHistorial.toLowerCase().trim();
     if (!t) return this.historial;
-    return this.historial.filter(
-      (e) =>
-        e.expediente?.toLowerCase().includes(t) ||
-        e.usuario?.toLowerCase().includes(t) ||
-        e.accion?.toLowerCase().includes(t) ||
-        e.detalle?.toLowerCase().includes(t),
+    return this.historial.filter(e =>
+      e.expediente?.toLowerCase().includes(t) ||
+      e.usuario?.toLowerCase().includes(t)    ||
+      e.accion?.toLowerCase().includes(t)     ||
+      e.detalle?.toLowerCase().includes(t),
     );
   }
 
-  textoBusqueda = '';
-  expedienteSeleccionado: any = null;
+  // ── KPIs (datos reales de BD) ─────────────────
+  statsGlobal = { actividades: 0, participantes: 0, presupuesto_total: 0, redes: 0 };
 
-  modoDetalle = false;
+  // ── Resumen por Red Asistencial ───────────────
+  resumenRedes: {
+    red: string;
+    capacitaciones: number;
+    horas: number;
+    participantes: number;
+    presupuesto: number;
+  }[] = [];
+  cargandoResumen = false;
 
-  estadisticasOriginales = {
-    totalExpedientes: 0,
-    presupuestoTotal: 0,
-    beneficiariosTotal: 0,
-  };
-
-  // Configuraciones de gráficos
-  chartConfigEstado: any;
-  chartConfigSemaforo: any;
-  chartConfigResponsable: any;
-
-  // Datos para tablas
-  expedientes: any[] = [];
-  expedientesConEstadisticas: any[] = [];
-
-  calcularEstadisticas() {
-    this.estadisticasTotales = {
-      totalExpedientes: this.expedientesConEstadisticas.length,
-      presupuestoTotal: this.expedientesConEstadisticas.reduce(
-        (sum, e) => sum + (e.presupuesto || 0),
-        0,
-      ),
-      beneficiariosTotal: this.expedientesConEstadisticas.reduce(
-        (sum, e) => sum + (e.beneficiarios || 0),
-        0,
-      ),
-    };
-  }
-
-  estadisticasPorResponsable: any[] = [];
-  estadisticasTotales = {
-    totalExpedientes: 0,
-    presupuestoTotal: 0,
-    beneficiariosTotal: 0,
-  };
-
-  expedientesFiltrados: any[] = [];
+  // ── Gráficos ──────────────────────────────────
+  chartConfigModalidad: any;
+  chartConfigRedes: any;
 
   constructor(
     private router: Router,
     private expedienteService: ExpedienteService,
+    private pdpData: PdpDataService,
   ) {}
 
   ngOnInit() {
-    const usuario = localStorage.getItem('usuario');
-    console.log('USUARIO LOGUEADO:', usuario);
+    const raw = localStorage.getItem('usuario');
+    if (!raw) { this.router.navigate(['/login']); return; }
 
-    if (usuario) {
-      const datos = JSON.parse(usuario);
+    const datos = JSON.parse(raw);
+    this.usuarioActual  = datos;
+    this.nombre         = datos.nombre;
+    this.rol            = datos.rol;
+    this.esAdministrador = ['Administrador', 'Administrativo'].includes(datos.rol);
+    this.esSectorista   = datos.rol === 'Sectorista';
+    this.esEjecutor     = datos.rol === 'Ejecutor';
+    this.inicialUsuario = (datos.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
 
-      this.usuarioActual = datos;
-      this.nombre = datos.nombre;
-      this.rol = datos.rol;
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-      this.esAdministrador = ['Administrador', 'Administrativo'].includes(this.usuarioActual?.rol);
-      this.esSectorista = this.usuarioActual?.rol === 'Sectorista';
-      this.esEjecutor = this.usuarioActual?.rol === 'Ejecutor';
-      this.inicialUsuario = (datos.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
-      const f = new Date().toLocaleDateString('es-PE', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
-      this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+    this.cargarMenuPorRol();
 
-      this.cargarMenuPorRol();
-
-      // Cargar datos de expedientes desde el servicio compartido
-      this.expedienteService
-        .getExpedientes$()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          const expedientesFiltrados = this.expedienteService.getExpedientesPorRol();
-
-          this.expedientesConEstadisticas = expedientesFiltrados;
-
-          this.expedientes = expedientesFiltrados;
-
-          this.calcularEstadisticas();
-          this.cargarGraficos();
-        });
-    } else {
-      this.router.navigate(['/login']);
+    if (this.esAdministrador) {
+      this.cargarDatosAdmin();
     }
-  }
-
-  ngAfterViewInit() {
-    // Inicializar
   }
 
   ngOnDestroy() {
@@ -162,127 +105,91 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  cargarGraficos() {
-    // Obtener datos del servicio
-    const expedientes = this.expedienteService.getExpedientesPorRol();
-    const estadoStats = this.expedienteService.getEstadisticasPorEstado();
-    const semaforoStats = this.expedienteService.getEstadisticasSemaforo();
-    const responsableStats = this.expedienteService.getEstadisticasPorResponsable();
-    const presupuestoStats = this.expedienteService.getPresupuestoPorEstado();
-    const beneficiarioStats = this.expedienteService.getBeneficiariosPorEstado();
+  private cargarDatosAdmin() {
+    this.cargandoResumen = true;
 
-    // Calcular totales
-    this.estadisticasTotales.totalExpedientes = expedientes.length;
-    this.estadisticasTotales.presupuestoTotal = expedientes.reduce(
-      (sum, e) => sum + (e.presupuesto || 0),
-      0,
-    );
-    this.estadisticasTotales.beneficiariosTotal = expedientes.reduce(
-      (sum, e) => sum + (e.beneficiarios || 0),
-      0,
-    );
+    // Cargar estadísticas globales y actividades en paralelo
+    forkJoin({
+      stats:       this.pdpData.getStats(),
+      actividades: this.pdpData.getActividades('', '', '', 1, 1000),
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: ({ stats, actividades }) => {
+        this.statsGlobal = stats;
+        this.construirResumenRedes(actividades.data);
+        this.construirGraficos(stats, actividades.data);
+        this.cargandoResumen = false;
+      },
+      error: () => { this.cargandoResumen = false; },
+    });
+  }
 
-    this.estadisticasPorResponsable = responsableStats;
+  private construirResumenRedes(actividades: Actividad[]) {
+    const mapa = new Map<string, { capacitaciones: number; horas: number; participantes: number; presupuesto: number }>();
 
-    this.estadisticasOriginales = {
-      totalExpedientes: this.estadisticasTotales.totalExpedientes,
-      presupuestoTotal: this.estadisticasTotales.presupuestoTotal,
-      beneficiariosTotal: this.estadisticasTotales.beneficiariosTotal,
-    };
+    for (const a of actividades) {
+      const red = a.red_asistencial?.trim() || 'Sin Red';
+      const actual = mapa.get(red) ?? { capacitaciones: 0, horas: 0, participantes: 0, presupuesto: 0 };
+      mapa.set(red, {
+        capacitaciones: actual.capacitaciones + 1,
+        horas:          actual.horas          + (a.total_horas          || 0),
+        participantes:  actual.participantes   + (a.total_participantes  || 0),
+        presupuesto:    actual.presupuesto     + (a.presupuesto_ejecutado || 0),
+      });
+    }
 
-    // Configuración de gráfico de pastel - Estados
-    this.chartConfigEstado = {
+    this.resumenRedes = Array.from(mapa.entries())
+      .map(([red, d]) => ({ red, ...d }))
+      .sort((a, b) => b.capacitaciones - a.capacitaciones);
+  }
+
+  private construirGraficos(_stats: any, actividades: Actividad[]) {
+    // Gráfico 1 — Capacitaciones por Modalidad
+    const modMap = new Map<string, number>();
+    actividades.forEach(a => {
+      const m = a.modalidad || 'Sin modalidad';
+      modMap.set(m, (modMap.get(m) || 0) + 1);
+    });
+    const modLabels = [...modMap.keys()];
+    const modData   = [...modMap.values()];
+
+    this.chartConfigModalidad = {
       type: 'pie',
       data: {
-        labels: estadoStats.map((s) => s.estado),
-        datasets: [
-          {
-            data: estadoStats.map((s) => s.cantidad),
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
-            borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
-            borderWidth: 1,
-          },
-        ],
+        labels: modLabels,
+        datasets: [{
+          data: modData,
+          backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
+          borderWidth: 1,
+        }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-          },
-          title: {
-            display: true,
-            text: 'Expedientes por Estado',
-          },
-        },
+        responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Capacitaciones por Modalidad' } },
       },
     };
 
-    // Configuración de gráfico de pastel - Semáforo
-    this.chartConfigSemaforo = {
-      type: 'pie',
-      data: {
-        labels: semaforoStats.map((s) => s.color),
-        datasets: [
-          {
-            data: semaforoStats.map((s) => s.cantidad),
-            backgroundColor: ['#4CAF50', '#FFC107', '#F44336'],
-            borderColor: ['#4CAF50', '#FFC107', '#F44336'],
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-          },
-          title: {
-            display: true,
-            text: 'Estado de Cumplimiento',
-          },
-        },
-      },
-    };
-
-    // Configuración de gráfico de barras - Responsable
-    this.chartConfigResponsable = {
+    // Gráfico 2 — Top 8 redes por capacitaciones (barras)
+    const topRedes = this.resumenRedes.slice(0, 8);
+    this.chartConfigRedes = {
       type: 'bar',
       data: {
-        labels: responsableStats.map((s) => s.responsable),
-        datasets: [
-          {
-            label: 'Cantidad de Expedientes',
-            data: responsableStats.map((s) => s.cantidad),
-            backgroundColor: '#36A2EB',
-            borderColor: '#36A2EB',
-            borderWidth: 1,
-          },
-        ],
+        labels: topRedes.map(r => r.red.replace('Red Asistencial ', '')),
+        datasets: [{
+          label: 'Capacitaciones',
+          data: topRedes.map(r => r.capacitaciones),
+          backgroundColor: '#005baa',
+          borderRadius: 6,
+        }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: true,
+        responsive: true, maintainAspectRatio: true,
         plugins: {
-          legend: {
-            display: false,
-          },
-          title: {
-            display: true,
-            text: 'Expedientes por Responsable',
-          },
+          legend: { display: false },
+          title: { display: true, text: 'Capacitaciones por Red Asistencial (Top 8)' },
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-            },
-          },
-        },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
       },
     };
   }
@@ -290,142 +197,26 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   cargarMenuPorRol() {
     switch (this.rol) {
       case 'Administrador':
-        this.menuItems = [
-          'Inicio',
-          'Expedientes',
-          'Hoja de Ruta',
-          'Personal',
-          'Reportes',
-          'Administración',
-        ];
-        break;
-
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Personal', 'Reportes', 'Administración']; break;
       case 'Sectorista':
-        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes'];
-        break;
-
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes']; break;
       case 'Ejecutor':
-        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta'];
-        break;
-
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta']; break;
       default:
         this.menuItems = ['Dashboard'];
     }
   }
 
-  buscar() {
-    const texto = this.textoBusqueda.toLowerCase().trim();
-
-    if (!texto) {
-      this.expedienteSeleccionado = null;
-      this.modoDetalle = false;
-
-      this.estadisticasTotales = {
-        ...this.estadisticasOriginales,
-      };
-
-      this.cargarGraficos();
-
-      return;
-    }
-
-    const encontrado = this.expedientesConEstadisticas.find(
-      (e) =>
-        e.expediente.toLowerCase().includes(texto) || e.capacitacion.toLowerCase().includes(texto),
-    );
-
-    if (encontrado) {
-      this.expedienteSeleccionado = encontrado;
-      this.modoDetalle = true;
-
-      this.estadisticasTotales = {
-        totalExpedientes: 1,
-        presupuestoTotal: encontrado.presupuesto || 0,
-        beneficiariosTotal: encontrado.beneficiarios || 0,
-      };
-
-      this.chartConfigEstado = {
-        ...this.chartConfigEstado,
-        data: {
-          labels: [encontrado.estado],
-          datasets: [
-            {
-              data: [1],
-              backgroundColor: ['#36A2EB'],
-            },
-          ],
-        },
-      };
-
-      this.chartConfigSemaforo = {
-        ...this.chartConfigSemaforo,
-        data: {
-          labels: [encontrado.semaforo],
-          datasets: [
-            {
-              data: [1],
-              backgroundColor: [
-                encontrado.semaforo === 'verde'
-                  ? '#4CAF50'
-                  : encontrado.semaforo === 'amarillo'
-                    ? '#FFC107'
-                    : '#F44336',
-              ],
-            },
-          ],
-        },
-      };
-
-      this.chartConfigResponsable = {
-        ...this.chartConfigResponsable,
-        data: {
-          labels: [encontrado.responsable],
-          datasets: [
-            {
-              label: 'Expedientes',
-              data: [1],
-              backgroundColor: '#36A2EB',
-            },
-          ],
-        },
-      };
-    } else {
-      alert('No se encontró el expediente');
-    }
-  }
-
-  formatearMoneda(valor: number): string {
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: 'PEN',
-    }).format(valor);
-  }
-
   irModulo(modulo: string) {
     switch (modulo) {
-      case 'Inicio':
-        this.router.navigate(['/dashboard']);
-        break;
-      case 'Expedientes':
-        this.router.navigate(['/expedientes']);
-        break;
-      case 'Hoja de Ruta':
-        this.router.navigate(['/hoja-ruta']);
-        break;
-      case 'Personal':
-        this.router.navigate(['/personal']);
-        break;
-      case 'Historial':
-        this.abrirHistorial();
-        break;
-      case 'Reportes':
-        alert('🚧 Módulo Reportes en desarrollo');
-        break;
-      case 'Administración':
-        alert('🚧 Módulo Administración en desarrollo');
-        break;
-      default:
-        alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+      case 'Inicio':          this.router.navigate(['/dashboard']); break;
+      case 'Expedientes':     this.router.navigate(['/expedientes']); break;
+      case 'Hoja de Ruta':   this.router.navigate(['/hoja-ruta']); break;
+      case 'Personal':        this.router.navigate(['/personal']); break;
+      case 'Historial':       this.abrirHistorial(); break;
+      case 'Reportes':        alert('🚧 Módulo Reportes en desarrollo'); break;
+      case 'Administración': alert('🚧 Módulo Administración en desarrollo'); break;
+      default: alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
     }
   }
 
@@ -434,66 +225,48 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.filtroHistorial = '';
     this.mostrarHistorial = true;
   }
-
-  cerrarHistorial() {
-    this.mostrarHistorial = false;
-  }
-
-  verRuta() {
-    this.router.navigate(['/hoja-ruta']);
-  }
+  cerrarHistorial()      { this.mostrarHistorial = false; }
 
   abrirEditarPerfil() {
     this.perfilEditado = {
-      nombre: this.usuarioActual?.nombre || '',
-      correo: this.usuarioActual?.correo || '',
+      nombre:   this.usuarioActual?.nombre  || '',
+      correo:   this.usuarioActual?.correo  || '',
       telefono: this.usuarioActual?.telefono || '',
     };
-
     this.mostrarEditarPerfil = true;
   }
-
-  cerrarEditarPerfil() {
-    this.mostrarEditarPerfil = false;
-  }
+  cerrarEditarPerfil()   { this.mostrarEditarPerfil = false; }
 
   abrirCambiarPassword() {
-    this.passwordData = {
-      actual: '',
-      nueva: '',
-      confirmar: '',
-    };
-
+    this.passwordData = { actual: '', nueva: '', confirmar: '' };
     this.mostrarCambiarPassword = true;
   }
-
-  cerrarCambiarPassword() {
-    this.mostrarCambiarPassword = false;
-  }
+  cerrarCambiarPassword() { this.mostrarCambiarPassword = false; }
 
   guardarPerfil() {
-    console.log('Perfil actualizado:', this.perfilEditado);
-
     alert('Perfil actualizado correctamente');
-
     this.cerrarEditarPerfil();
   }
 
   guardarPassword() {
     if (this.passwordData.nueva !== this.passwordData.confirmar) {
-      alert('Las contraseñas no coinciden');
-      return;
+      alert('Las contraseñas no coinciden'); return;
     }
-
-    console.log('Cambiar contraseña');
-
     alert('Contraseña actualizada correctamente');
-
     this.cerrarCambiarPassword();
   }
 
   cerrarSesion() {
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
+  }
+
+  get totalCapacitaciones() { return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0); }
+  get totalHoras()          { return this.resumenRedes.reduce((s, r) => s + r.horas,          0); }
+  get totalParticipantes()  { return this.resumenRedes.reduce((s, r) => s + r.participantes,  0); }
+  get totalPresupuesto()    { return this.resumenRedes.reduce((s, r) => s + r.presupuesto,    0); }
+
+  formatMoneda(v: number): string {
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(v);
   }
 }
