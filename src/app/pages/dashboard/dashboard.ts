@@ -32,6 +32,20 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
   // HISTORIAL
   mostrarHistorial = false;
+  mostrarEditarPerfil = false;
+  mostrarCambiarPassword = false;
+
+  perfilEditado = {
+    nombre: '',
+    correo: '',
+    telefono: '',
+  };
+
+  passwordData = {
+    actual: '',
+    nueva: '',
+    confirmar: '',
+  };
   historial: any[] = [];
   filtroHistorial = '';
 
@@ -427,6 +441,55 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
   verRuta() {
     this.router.navigate(['/hoja-ruta']);
+  }
+
+  abrirEditarPerfil() {
+    this.perfilEditado = {
+      nombre: this.usuarioActual?.nombre || '',
+      correo: this.usuarioActual?.correo || '',
+      telefono: this.usuarioActual?.telefono || '',
+    };
+
+    this.mostrarEditarPerfil = true;
+  }
+
+  cerrarEditarPerfil() {
+    this.mostrarEditarPerfil = false;
+  }
+
+  abrirCambiarPassword() {
+    this.passwordData = {
+      actual: '',
+      nueva: '',
+      confirmar: '',
+    };
+
+    this.mostrarCambiarPassword = true;
+  }
+
+  cerrarCambiarPassword() {
+    this.mostrarCambiarPassword = false;
+  }
+
+  guardarPerfil() {
+    console.log('Perfil actualizado:', this.perfilEditado);
+
+    alert('Perfil actualizado correctamente');
+
+    this.cerrarEditarPerfil();
+  }
+
+  guardarPassword() {
+    if (this.passwordData.nueva !== this.passwordData.confirmar) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+
+    console.log('Cambiar contraseña');
+
+    alert('Contraseña actualizada correctamente');
+
+    this.cerrarCambiarPassword();
   }
 
   cerrarSesion() {
