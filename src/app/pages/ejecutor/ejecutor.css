@@ -39,7 +39,9 @@
   border: 1.5px solid #dde3ef;
   border-radius: 10px;
   padding: 0 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .campo-busqueda:focus-within {
@@ -368,5 +370,352 @@
   .tabla-participantes {
     display: block;
     overflow-x: auto;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-busqueda {
+  background: white;
+  width: 90%;
+  max-width: 1100px;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-cerrar {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.tabla-expedientes {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-expedientes th,
+.tabla-expedientes td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.btn-ver {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.detalle-expediente {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+/* MODAL BÚSQUEDA */
+
+.modal-busqueda-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 50, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-busqueda {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 920px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-busqueda-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 26px 16px;
+  border-bottom: 1.5px solid #e8edf8;
+}
+
+.modal-busqueda-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a4fa8;
+}
+
+.modal-busqueda-titulo svg {
+  width: 22px;
+  height: 22px;
+}
+.modal-busqueda-titulo h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.modal-cerrar {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: background 0.2s;
+}
+.modal-cerrar:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.modal-cerrar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-busqueda-buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 26px;
+  border-bottom: 1.5px solid #e8edf8;
+  background: #f8fafd;
+}
+
+.modal-busqueda-buscador svg {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.modal-busqueda-buscador input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14.5px;
+  color: #1a1a2e;
+  font-family: inherit;
+}
+.modal-busqueda-buscador input::placeholder {
+  color: #94a3b8;
+}
+
+.modal-busqueda-resultados {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.modal-sin-resultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #94a3b8;
+}
+.modal-sin-resultados p {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tabla-expedientes-modal {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-expedientes-modal thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tabla-expedientes-modal th {
+  background: #1a4fa8;
+  color: white;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla-expedientes-modal td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef2fa;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.tabla-expedientes-modal tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tabla-expedientes-modal tbody tr:hover td {
+  background: #f0f5fb;
+}
+.tabla-expedientes-modal tbody tr.fila-seleccionada td {
+  background: #e8f0fc;
+}
+
+.cod-expediente {
+  font-weight: 700;
+  color: #1a4fa8;
+  font-size: 12.5px;
+}
+.centrado {
+  text-align: center;
+}
+
+.badge-estado-exp {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #eef3fb;
+  color: #1a4fa8;
+}
+
+.semaforo-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.semaforo-dot.verde {
+  background: #22c55e;
+}
+.semaforo-dot.amarillo {
+  background: #f59e0b;
+}
+.semaforo-dot.rojo {
+  background: #ef4444;
+}
+
+.detalle-exp-panel {
+  padding: 18px 26px;
+  background: #f5f8fd;
+  border-top: 2px solid #dde8f8;
+}
+
+.detalle-exp-panel h4 {
+  color: #1a4fa8;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+.detalle-exp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.detalle-exp-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detalle-exp-item span {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.detalle-exp-item strong {
+  font-size: 13.5px;
+  color: #1a1a2e;
+  font-weight: 700;
+}
+
+.modal-busqueda-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 26px;
+  border-top: 1.5px solid #e8edf8;
+  background: #f8fafd;
+}
+
+.modal-total {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.btn-cerrar-modal {
+  background: #1a4fa8;
+  color: white;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-cerrar-modal:hover {
+  background: #163e88;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .datos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .detalle-exp-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .datos-grid {
+    grid-template-columns: 1fr;
+  }
+  .tabla-beneficiarios {
+    display: block;
+    overflow-x: auto;
+  }
+  .tabla-expedientes-modal {
+    display: block;
+    overflow-x: auto;
+  }
+  .detalle-exp-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

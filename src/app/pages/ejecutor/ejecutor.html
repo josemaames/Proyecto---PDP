@@ -109,7 +109,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
-        <h2>Formulario de Información estadística mensual de acciones de capacitación ejecutadas</h2>
+        <h2>
+          Formulario de Información estadística mensual de acciones de capacitación ejecutadas
+        </h2>
       </div>
 
       <!-- ===== TABLA DE ACTIVIDADES REGISTRADAS ===== -->
@@ -173,7 +175,13 @@
                     <td>{{ a.fecha_fin || '—' }}</td>
                     <td>{{ a.total_horas ?? '—' }}</td>
                     <td>{{ a.total_participantes ?? '—' }}</td>
-                    <td>{{ a.presupuesto_ejecutado != null ? (a.presupuesto_ejecutado | number:'1.2-2') : '—' }}</td>
+                    <td>
+                      {{
+                        a.presupuesto_ejecutado != null
+                          ? (a.presupuesto_ejecutado | number: '1.2-2')
+                          : '—'
+                      }}
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -183,7 +191,9 @@
           <div class="paginacion">
             <button (click)="paginaActAnterior()" [disabled]="paginaAct <= 1">← Anterior</button>
             <span>Página {{ paginaAct }} de {{ totalPaginasAct }}</span>
-            <button (click)="paginaActSiguiente()" [disabled]="paginaAct >= totalPaginasAct">Siguiente →</button>
+            <button (click)="paginaActSiguiente()" [disabled]="paginaAct >= totalPaginasAct">
+              Siguiente →
+            </button>
           </div>
         }
       </div>
@@ -224,11 +234,19 @@
           </div>
           <div class="campo">
             <label>Red asistencial / Unidad orgánica solicitante</label>
-            <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="formulario.redAsistencial" />
+            <input
+              type="text"
+              placeholder="Ej: Red Asistencial Almenara"
+              [(ngModel)]="formulario.redAsistencial"
+            />
           </div>
           <div class="campo">
             <label>Servicio / Área solicitante</label>
-            <input type="text" placeholder="Ej: Recursos Humanos" [(ngModel)]="formulario.servicioArea" />
+            <input
+              type="text"
+              placeholder="Ej: Recursos Humanos"
+              [(ngModel)]="formulario.servicioArea"
+            />
           </div>
         </div>
       </div>
@@ -238,7 +256,11 @@
         <div class="card-section-title">🎓 Datos de la Actividad</div>
         <div class="campo" style="margin-bottom: 18px">
           <label>Nombre de la actividad de capacitación</label>
-          <input type="text" placeholder="Ej: Gestión Documental Electrónica" [(ngModel)]="formulario.nombreActividad" />
+          <input
+            type="text"
+            placeholder="Ej: Gestión Documental Electrónica"
+            [(ngModel)]="formulario.nombreActividad"
+          />
         </div>
         <div class="datos-grid tres-col">
           <div class="campo">
@@ -247,11 +269,20 @@
           </div>
           <div class="campo">
             <label>Horas ejecutadas fuera del horario laboral (cronológicas)</label>
-            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.horasFueraHorario" />
+            <input
+              type="number"
+              min="0"
+              placeholder="0"
+              [(ngModel)]="formulario.horasFueraHorario"
+            />
           </div>
           <div class="campo">
             <label>Frecuencia de desarrollo de la actividad</label>
-            <input type="text" placeholder="Ej: Única, Diaria, Semanal" [(ngModel)]="formulario.frecuencia" />
+            <input
+              type="text"
+              placeholder="Ej: Única, Diaria, Semanal"
+              [(ngModel)]="formulario.frecuencia"
+            />
           </div>
           <div class="campo">
             <label>Hora de inicio de la actividad</label>
@@ -281,16 +312,29 @@
           </div>
           <div class="campo">
             <label>Nivel de evaluación ejecutado</label>
-            <input type="text" placeholder="Ej: Reacción, Aprendizaje" [(ngModel)]="formulario.nivelEvaluacion" />
+            <input
+              type="text"
+              placeholder="Ej: Reacción, Aprendizaje"
+              [(ngModel)]="formulario.nivelEvaluacion"
+            />
           </div>
           <div class="campo">
             <label>Objetivo estratégico total de participantes (planilla)</label>
-            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.totalParticipantes" />
+            <input
+              type="number"
+              min="0"
+              placeholder="0"
+              [(ngModel)]="formulario.totalParticipantes"
+            />
           </div>
         </div>
         <div class="campo" style="margin-top: 18px">
           <label>Eje temático</label>
-          <input type="text" placeholder="Ej: Gestión Pública, Salud, Tecnología" [(ngModel)]="formulario.ejeTematico" />
+          <input
+            type="text"
+            placeholder="Ej: Gestión Pública, Salud, Tecnología"
+            [(ngModel)]="formulario.ejeTematico"
+          />
         </div>
       </div>
 
@@ -301,7 +345,12 @@
           <div class="campo">
             <label>RUC del proveedor adjudicado</label>
             <div class="input-btn-row">
-              <input type="text" placeholder="20123456789" [(ngModel)]="formulario.rucProveedor" maxlength="11" />
+              <input
+                type="text"
+                placeholder="20123456789"
+                [(ngModel)]="formulario.rucProveedor"
+                maxlength="11"
+              />
               <button class="btn-buscar-ruc" (click)="buscarRuc()" [disabled]="buscandoRuc">
                 {{ buscandoRuc ? 'Buscando…' : '🔍 Buscar' }}
               </button>
@@ -312,7 +361,11 @@
           </div>
           <div class="campo">
             <label>Nombre del proveedor adjudicado</label>
-            <input type="text" placeholder="Se completará al buscar el RUC" [(ngModel)]="formulario.nombreProveedor" />
+            <input
+              type="text"
+              placeholder="Se completará al buscar el RUC"
+              [(ngModel)]="formulario.nombreProveedor"
+            />
           </div>
           <div class="campo">
             <label>Sector al que pertenece el proveedor</label>
@@ -330,7 +383,13 @@
         <div class="card-section-title">💰 Presupuesto</div>
         <div class="campo" style="max-width: 320px">
           <label>Presupuesto ejecutado (S/)</label>
-          <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="formulario.presupuestoEjecutado" />
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            [(ngModel)]="formulario.presupuestoEjecutado"
+          />
         </div>
       </div>
 
@@ -338,3 +397,141 @@
     </main>
   </div>
 </div>
+
+@if (mostrarBusqueda) {
+  <div class="modal-busqueda-overlay" (click)="cerrarBusqueda()">
+    <div class="modal-busqueda" (click)="$event.stopPropagation()">
+      <div class="modal-busqueda-header">
+        <div class="modal-busqueda-titulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <h3>Búsqueda de Expedientes</h3>
+        </div>
+        <button class="modal-cerrar" (click)="cerrarBusqueda()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-busqueda-buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por código, capacitación, responsable o estado..."
+          [(ngModel)]="textoBusqueda"
+          autofocus
+        />
+      </div>
+
+      <div class="modal-busqueda-resultados">
+        @if (expedientesFiltrados.length === 0) {
+          <div class="modal-sin-resultados">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              width="48"
+              height="48"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <p>No se encontraron expedientes</p>
+          </div>
+        } @else {
+          <table class="tabla-expedientes-modal">
+            <thead>
+              <tr>
+                <th>Expediente</th>
+                <th>Capacitación</th>
+                <th>Estado</th>
+                <th>Semáforo</th>
+                <th>Responsable</th>
+                <th>Beneficiarios</th>
+                <th>Presupuesto (S/)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (exp of expedientesFiltrados; track exp.expediente) {
+                <tr
+                  (click)="verDetalleExpediente(exp)"
+                  [class.fila-seleccionada]="expedienteDetalle?.expediente === exp.expediente"
+                >
+                  <td class="cod-expediente">{{ exp.expediente }}</td>
+                  <td>{{ exp.capacitacion }}</td>
+                  <td>
+                    <span
+                      class="badge-estado-exp"
+                      [class]="'estado-' + exp.estado.toLowerCase().replace(' ', '-')"
+                    >
+                      {{ exp.estado }}
+                    </span>
+                  </td>
+                  <td><span class="semaforo-dot" [class]="exp.semaforo"></span></td>
+                  <td>{{ exp.responsable }}</td>
+                  <td class="centrado">{{ exp.beneficiarios }}</td>
+                  <td class="centrado">{{ exp.presupuesto | number: '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (expedienteDetalle) {
+            <div class="detalle-exp-panel">
+              <h4>Detalle: {{ expedienteDetalle.expediente }}</h4>
+              <div class="detalle-exp-grid">
+                <div class="detalle-exp-item">
+                  <span>Capacitación</span><strong>{{ expedienteDetalle.capacitacion }}</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Responsable</span><strong>{{ expedienteDetalle.responsable }}</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Estado</span><strong>{{ expedienteDetalle.estado }}</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Beneficiarios</span><strong>{{ expedienteDetalle.beneficiarios }}</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Presupuesto</span
+                  ><strong>S/ {{ expedienteDetalle.presupuesto | number: '1.0-0' }}</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Horas lectivas</span><strong>{{ expedienteDetalle.horasLectivas }}h</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Horas cronológicas</span
+                  ><strong>{{ expedienteDetalle.horasCronologicas }}h</strong>
+                </div>
+                <div class="detalle-exp-item">
+                  <span>Semáforo</span>
+                  <strong
+                    ><span class="semaforo-dot" [class]="expedienteDetalle.semaforo"></span>
+                    {{ expedienteDetalle.semaforo }}</strong
+                  >
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="modal-busqueda-footer">
+        <span class="modal-total"
+          >{{ expedientesFiltrados.length }} expediente(s) encontrado(s)</span
+        >
+        <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<div></div>

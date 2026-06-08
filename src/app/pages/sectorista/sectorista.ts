@@ -95,10 +95,13 @@ export class Sectorista implements OnInit {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
     const f = new Date().toLocaleDateString('es-PE', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
-    this.expedientes = this.expedienteService.getExpedientes();
+    this.expedientes = this.expedienteService.getExpedientesPorRol();
   }
 
   irA(ruta: string) {
@@ -116,7 +119,10 @@ export class Sectorista implements OnInit {
 
   // BÚSQUEDA DE EXPEDIENTES
   abrirBusqueda() {
-    this.expedientes = this.expedienteService.getExpedientes();
+    this.expedientes = this.expedienteService.getExpedientesPorRol();
+
+    console.log('EXPEDIENTES FILTRADOS:', this.expedientes);
+
     this.textoBusqueda = '';
     this.expedienteDetalle = null;
     this.mostrarBusqueda = true;
@@ -130,11 +136,12 @@ export class Sectorista implements OnInit {
   get expedientesFiltrados(): any[] {
     const texto = this.textoBusqueda.toLowerCase().trim();
     if (!texto) return this.expedientes;
-    return this.expedientes.filter(e =>
-      e.expediente.toLowerCase().includes(texto) ||
-      e.capacitacion.toLowerCase().includes(texto) ||
-      e.responsable.toLowerCase().includes(texto) ||
-      e.estado.toLowerCase().includes(texto)
+    return this.expedientes.filter(
+      (e) =>
+        e.expediente.toLowerCase().includes(texto) ||
+        e.capacitacion.toLowerCase().includes(texto) ||
+        e.responsable.toLowerCase().includes(texto) ||
+        e.estado.toLowerCase().includes(texto),
     );
   }
 
@@ -203,13 +210,13 @@ export class Sectorista implements OnInit {
     const errores: string[] = [];
 
     // Datos Generales
-    if (!this.matriz.responsable.trim())        errores.push('Responsable ORH');
-    if (!this.matriz.correo.trim())             errores.push('Correo ORH');
-    if (!this.matriz.telefono.trim())           errores.push('Teléfono');
+    if (!this.matriz.responsable.trim()) errores.push('Responsable ORH');
+    if (!this.matriz.correo.trim()) errores.push('Correo ORH');
+    if (!this.matriz.telefono.trim()) errores.push('Teléfono');
 
     // Capacitación
-    if (!this.matriz.accionFormacion.trim())    errores.push('Acción de Formación');
-    if (!this.matriz.tipoAccion)                errores.push('Tipo de Acción');
+    if (!this.matriz.accionFormacion.trim()) errores.push('Acción de Formación');
+    if (!this.matriz.tipoAccion) errores.push('Tipo de Acción');
     if (!this.matriz.costoTotal || this.matriz.costoTotal <= 0) errores.push('Costo Total');
 
     // Duración
@@ -217,19 +224,26 @@ export class Sectorista implements OnInit {
       errores.push('Horas de capacitación');
 
     // Evaluación
-    if (!this.matriz.nivelEvaluacion)           errores.push('Nivel de Evaluación');
+    if (!this.matriz.nivelEvaluacion) errores.push('Nivel de Evaluación');
     if (!this.matriz.resultadoAprendizaje.trim()) errores.push('Resultado de aprendizaje');
-    if (!this.matriz.resultadoAplicacion.trim())  errores.push('Resultado de aplicación');
+    if (!this.matriz.resultadoAplicacion.trim()) errores.push('Resultado de aplicación');
 
     // Proveedor
     if (!this.matriz.rucProveedor || this.matriz.rucProveedor.length !== 11)
       errores.push('RUC Proveedor (11 dígitos)');
-    if (!this.matriz.proveedor.trim())          errores.push('Nombre del Proveedor');
-    if (!this.matriz.sectorProveedor)           errores.push('Sector del Proveedor');
+    if (!this.matriz.proveedor.trim()) errores.push('Nombre del Proveedor');
+    if (!this.matriz.sectorProveedor) errores.push('Sector del Proveedor');
 
     // Beneficiarios
     this.beneficiarios.forEach((b, i) => {
-      if (!b.nombre.trim() || !b.dni.trim() || !b.genero || !b.regimen.trim() || !b.unidad.trim() || !b.puesto.trim())
+      if (
+        !b.nombre.trim() ||
+        !b.dni.trim() ||
+        !b.genero ||
+        !b.regimen.trim() ||
+        !b.unidad.trim() ||
+        !b.puesto.trim()
+      )
         errores.push(`Beneficiario #${i + 1}: complete todos los campos`);
     });
 
@@ -240,7 +254,9 @@ export class Sectorista implements OnInit {
     if (errores.length > 0) {
       this.errorFormulario = 'Campos incompletos: ' + errores.join(', ') + '.';
       setTimeout(() => {
-        document.querySelector('.error-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document
+          .querySelector('.error-formulario')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 50);
       return;
     }

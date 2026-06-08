@@ -30,9 +30,10 @@ export class ExpedientesPdp {
   constructor(private expedienteService: ExpedienteService) {}
 
   ngOnInit() {
-    this.expedientes = this.expedienteService.getExpedientes();
-    this.expedienteService.getExpedientes$().subscribe((expedientes) => {
-      this.expedientes = expedientes;
+    this.expedientes = this.expedienteService.getExpedientesPorRol();
+
+    this.expedienteService.getExpedientes$().subscribe(() => {
+      this.expedientes = this.expedienteService.getExpedientesPorRol();
     });
   }
 
@@ -63,12 +64,14 @@ export class ExpedientesPdp {
 
   editarExpediente(expedienteCodigo: string) {
     const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
+
     if (!expediente) {
       return;
     }
 
     this.modoEdicion = true;
     this.expedienteOriginal = expediente.expediente;
+
     this.nuevoExpediente = {
       expediente: expediente.expediente,
       capacitacion: expediente.capacitacion,
@@ -79,6 +82,7 @@ export class ExpedientesPdp {
       horasLectivas: expediente.horasLectivas || 0,
       horasCronologicas: expediente.horasCronologicas || 0,
     };
+
     this.mostrarFormulario = true;
   }
 
@@ -90,17 +94,27 @@ export class ExpedientesPdp {
 
   verExpediente(expedienteCodigo: string) {
     const expediente = this.expedientes.find((item) => item.expediente === expedienteCodigo);
+
     if (!expediente) {
       alert('Expediente no encontrado');
       return;
     }
-    alert(`Expediente: ${expediente.expediente}\nCapacitación: ${expediente.capacitacion}\nResponsable: ${expediente.responsable}\nEstado: ${expediente.estado}\nPresupuesto: S/. ${expediente.presupuesto}\nBeneficiarios: ${expediente.beneficiarios}`);
+
+    alert(
+      `Expediente: ${expediente.expediente}
+Capacitación: ${expediente.capacitacion}
+Responsable: ${expediente.responsable}
+Estado: ${expediente.estado}
+Presupuesto: S/. ${expediente.presupuesto}
+Beneficiarios: ${expediente.beneficiarios}`,
+    );
   }
 
   resetFormulario() {
     this.mostrarFormulario = false;
     this.modoEdicion = false;
     this.expedienteOriginal = '';
+
     this.nuevoExpediente = {
       expediente: '',
       capacitacion: '',

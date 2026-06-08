@@ -15,11 +15,13 @@ export class HojaRuta implements OnInit {
   constructor(private expedienteService: ExpedienteService) {}
 
   ngOnInit() {
-    this.expedientes = this.expedienteService.getExpedientes();
-    this.expedienteService.getExpedientes$().subscribe((expedientes) => {
-      this.expedientes = expedientes;
-      if (!this.expedienteSeleccionado && expedientes.length) {
-        this.expedienteSeleccionado = expedientes[0];
+    this.expedientes = this.expedienteService.getExpedientesPorRol();
+
+    this.expedienteService.getExpedientes$().subscribe(() => {
+      this.expedientes = this.expedienteService.getExpedientesPorRol();
+
+      if (!this.expedienteSeleccionado && this.expedientes.length) {
+        this.expedienteSeleccionado = this.expedientes[0];
       }
     });
   }

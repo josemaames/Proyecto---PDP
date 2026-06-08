@@ -79,6 +79,7 @@ export class Login {
         numeroPlantilla: 'PL-0005',
         tipo: 'Sectorista',
         rol: 'Sectorista',
+        sedes: ['Arequipa'],
       },
       {
         id: 6,
@@ -88,6 +89,7 @@ export class Login {
         numeroPlantilla: 'PL-0006',
         tipo: 'Ejecutor',
         rol: 'Ejecutor',
+        sedes: 'Lurin',
       },
     ];
 
@@ -111,11 +113,20 @@ export class Login {
     this.error = '';
 
     switch (usuario.rol) {
-      case 'Administrador':  this.router.navigate(['/dashboard']); break;
-      case 'Sectorista':     this.router.navigate(['/sectorista']); break;
-      case 'Ejecutor':       this.router.navigate(['/ejecutor']); break;
-      case 'Administrativo': this.router.navigate(['/dashboard']); break;
-      default:               this.router.navigate(['/dashboard']);
+      case 'Administrador':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'Sectorista':
+        this.router.navigate(['/sectorista']);
+        break;
+      case 'Ejecutor':
+        this.router.navigate(['/ejecutor']);
+        break;
+      case 'Administrativo':
+        this.router.navigate(['/dashboard']);
+        break;
+      default:
+        this.router.navigate(['/dashboard']);
     }
   }
 
@@ -162,6 +173,9 @@ export class Login {
       fechaNac: this.regFechaNac,
       tipo: this.regRol,
       rol: this.regRol,
+
+      sedes: [],
+      sede: '',
     });
 
     localStorage.setItem('usuariosRegistrados', JSON.stringify(registrados));

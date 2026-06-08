@@ -7,15 +7,18 @@ import { ExpedientePDP } from '../models/expediente-pdp.model';
 })
 export class ExpedienteService {
   private readonly storageKey = 'expedientes';
-  private readonly auditKey   = 'historialEdiciones';
+  private readonly auditKey = 'historialEdiciones';
 
   private readonly nombreCampo: Record<string, string> = {
-    capacitacion:      'Capacitación',
-    estado:            'Estado',
-    responsable:       'Responsable',
-    presupuesto:       'Presupuesto (S/)',
-    beneficiarios:     'Beneficiarios',
-    horasLectivas:     'Horas lectivas',
+    capacitacion: 'Capacitación',
+    estado: 'Estado',
+    responsable: 'Responsable',
+    sede: 'Sede',
+    ejecutor: 'Ejecutor',
+    semaforo: 'Semáforo',
+    presupuesto: 'Presupuesto (S/)',
+    beneficiarios: 'Beneficiarios',
+    horasLectivas: 'Horas lectivas',
     horasCronologicas: 'Horas cronológicas',
   };
 
@@ -25,6 +28,8 @@ export class ExpedienteService {
       capacitacion: 'GOBIERNO DIGITAL EN LA GESTIÓN PÚBLICA',
       estado: 'Finalizado',
       responsable: 'Oficina Central',
+      sede: 'Huancavelica',
+      ejecutor: '22222222',
       semaforo: 'verde',
       beneficiarios: 30,
       presupuesto: 15000,
@@ -36,6 +41,8 @@ export class ExpedienteService {
       capacitacion: 'DERECHO ADMINISTRATIVO Y SEGURIDAD SOCIAL',
       estado: 'Logística',
       responsable: 'Oficina Central',
+      sede: 'Ica',
+      ejecutor: '33333333',
       semaforo: 'amarillo',
       beneficiarios: 19,
       presupuesto: 5000,
@@ -47,6 +54,8 @@ export class ExpedienteService {
       capacitacion: 'ARBITRAJE CON LA NUEVA LEY GENERAL DE CONTRATACIONES PUBLICAS',
       estado: 'Convocatoria',
       responsable: 'Oficina Central',
+      sede: 'Ancash',
+      ejecutor: '33333333',
       semaforo: 'rojo',
       beneficiarios: 19,
       presupuesto: 5000,
@@ -58,6 +67,8 @@ export class ExpedienteService {
       capacitacion: 'REDACCION DE DOCUMENTOS TECNICOS',
       estado: 'TDR',
       responsable: 'Oficina Central',
+      sede: 'Cusco',
+      ejecutor: '22222222',
       semaforo: 'verde',
       beneficiarios: 33,
       presupuesto: 15000,
@@ -69,6 +80,8 @@ export class ExpedienteService {
       capacitacion: 'TALLER EDUCACION INICIA: JUEGOS, INTERACCIONES Y PROYECTOS',
       estado: 'Finalizado',
       responsable: 'Oficina Central',
+      sede: 'Apurimac',
+      ejecutor: '44444444',
       semaforo: 'verde',
       beneficiarios: 37,
       presupuesto: 5000,
@@ -80,6 +93,8 @@ export class ExpedienteService {
       capacitacion: 'GESTIÓN FINANCIERA EN INSTITUCIONES DE SEGURIDAD SOCIAL',
       estado: 'Convocatoria',
       responsable: 'Oficina Central',
+      sede: 'Arequipa',
+      ejecutor: '22222222',
       semaforo: 'amarillo',
       beneficiarios: 55,
       presupuesto: 10000,
@@ -132,14 +147,14 @@ export class ExpedienteService {
 
   updateExpediente(expediente: any, originalExpediente?: string): void {
     const codigo = originalExpediente || expediente.expediente;
-    const viejo  = this.expedientes.find(e => e.expediente === codigo);
+    const viejo = this.expedientes.find((e) => e.expediente === codigo);
 
     const v: any = viejo;
     const n: any = expediente;
     const diff = v
       ? Object.keys(this.nombreCampo)
-          .filter(k => String(v[k]) !== String(n[k]))
-          .map(k => `${this.nombreCampo[k]}: "${v[k]}" → "${n[k]}"`)
+          .filter((k) => String(v[k]) !== String(n[k]))
+          .map((k) => `${this.nombreCampo[k]}: "${v[k]}" → "${n[k]}"`)
           .join(' | ')
       : '';
 
@@ -158,18 +173,23 @@ export class ExpedienteService {
 
   private registrarAudit(accion: string, expediente: string, detalle: string): void {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    const ahora   = new Date();
+    const ahora = new Date();
     const entrada = {
       timestamp: ahora.toISOString(),
       fecha: ahora.toLocaleDateString('es-PE', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
       }),
       hora: ahora.toLocaleTimeString('es-PE', {
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
       }),
       usuario: usuario.nombre || usuario.dni || 'Desconocido',
-      dni:     usuario.dni    || '',
-      rol:     usuario.rol    || '',
+      dni: usuario.dni || '',
+      rol: usuario.rol || '',
       accion,
       expediente,
       detalle,
@@ -203,7 +223,12 @@ export class ExpedienteService {
   }
 
   // Obtener estadísticas por responsable
-  getEstadisticasPorResponsable(): { responsable: string; cantidad: number; beneficiarios: number; presupuesto: number }[] {
+  getEstadisticasPorResponsable(): {
+    responsable: string;
+    cantidad: number;
+    beneficiarios: number;
+    presupuesto: number;
+  }[] {
     const responsables = new Map();
 
     this.expedientes.forEach((exp) => {
@@ -265,15 +290,40 @@ export class ExpedienteService {
 
     this.expedientes.forEach((exp) => {
       const estado = exp.estado;
-      beneficiarios.set(
-        estado,
-        (beneficiarios.get(estado) || 0) + exp.beneficiarios,
-      );
+      beneficiarios.set(estado, (beneficiarios.get(estado) || 0) + exp.beneficiarios);
     });
 
     return Array.from(beneficiarios.entries()).map(([estado, beneficiarios]) => ({
       estado,
       beneficiarios,
     }));
+  }
+
+  getExpedientesPorRol(): any[] {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+    const expedientes = this.getExpedientes();
+
+    // ADMIN
+    if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') {
+      return expedientes;
+    }
+
+    // SECTORISTA
+    if (usuario.rol === 'Sectorista') {
+      console.log('SEDES DEL USUARIO:', usuario.sedes);
+
+      expedientes.forEach((e) => {
+        console.log(e.expediente, e.sede, usuario.sedes?.includes(e.sede));
+      });
+
+      return expedientes.filter((e) => usuario.sedes?.includes(e.sede));
+    }
+    // EJECUTOR
+    if (usuario.rol === 'Ejecutor') {
+      return expedientes.filter((e) => e.ejecutor === usuario.dni);
+    }
+
+    return [];
   }
 }
