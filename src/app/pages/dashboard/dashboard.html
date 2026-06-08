@@ -352,10 +352,22 @@
       <div class="hist-modal">
         <div class="hist-header"><h3>👤 Editar Perfil de Usuario</h3></div>
         <div style="padding: 20px">
-          <div class="modal-group"><label>Nombre Completo</label><input type="text" [(ngModel)]="perfilEditado.nombre" /></div>
-          <div class="modal-group"><label>Correo Electrónico</label><input type="email" [(ngModel)]="perfilEditado.correo" /></div>
-          <div class="modal-group"><label>Teléfono</label><input type="text" [(ngModel)]="perfilEditado.telefono" /></div>
-          <div class="modal-group"><label>Cargo</label><input type="text" [value]="usuarioActual?.rol" disabled /></div>
+          <div class="modal-group">
+            <label>Nombre Completo</label>
+            <input type="text" [(ngModel)]="perfilEditado.nombre" />
+          </div>
+          <div class="modal-group">
+            <label>Correo Electrónico</label>
+            <input type="email" [(ngModel)]="perfilEditado.correo" />
+          </div>
+          <div class="modal-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="perfilEditado.telefono" />
+          </div>
+          <div class="modal-group">
+            <label>Cargo</label>
+            <input type="text" [value]="usuarioActual?.rol" disabled />
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn-cancelar" (click)="cerrarEditarPerfil()">✖ Cancelar</button>
