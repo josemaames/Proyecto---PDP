@@ -854,9 +854,98 @@ tr:hover td {
   font-size: 14px;
 }
 
+/* ── BUSCADOR RED ASISTENCIAL ────────────────── */
+.buscador-red {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f3f4f6;
+  border-radius: 9px;
+  padding: 0 12px;
+  margin-bottom: 14px;
+  border: 1.5px solid #e5e7eb;
+  transition: border-color 0.2s;
+}
+.buscador-red:focus-within {
+  border-color: #1a4fa8;
+  background: #fff;
+}
+.buscador-red svg {
+  width: 16px; height: 16px;
+  stroke: #9ca3af;
+  flex-shrink: 0;
+}
+.buscador-red input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 14px;
+  outline: none;
+  color: #111827;
+}
+.buscador-red input::placeholder { color: #9ca3af; }
+.btn-limpiar {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+.btn-limpiar:hover { color: #374151; background: #e5e7eb; }
+
 /* ── GRÁFICO ANCHO ────────────────────────────── */
 .grafico-wide {
   grid-column: 1 / -1;
+}
+
+/* ── SKELETON LOADER KPIs ────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.kpi-skel { pointer-events: none; }
+
+.skel-icono {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #e8edf5 25%, #d1d9e8 50%, #e8edf5 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  flex-shrink: 0;
+}
+
+.skel-val {
+  width: 80px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8edf5 25%, #d1d9e8 50%, #e8edf5 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  margin-bottom: 8px;
+}
+
+.skel-lbl {
+  width: 120px; height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e8edf5 25%, #d1d9e8 50%, #e8edf5 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+/* ── GRÁFICO CARGANDO ────────────────────────── */
+.grafico-cargando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 200px;
+  color: #9ca3af;
+  font-size: 13px;
 }
 
 .perfil-superior .sidebar-nav {

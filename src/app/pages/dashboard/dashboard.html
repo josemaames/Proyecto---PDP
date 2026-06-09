@@ -127,68 +127,67 @@
       <!-- KPIs ADMINISTRADOR -->
       @if (esAdministrador) {
         <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-icono">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
+          @if (cargandoKpis) {
+            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
+            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
+            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
+            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
+          } @else {
+            <div class="kpi-card">
+              <div class="kpi-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">{{ statsGlobal.actividades | number }}</span>
+                <span class="kpi-label">Capacitaciones PDP</span>
+              </div>
             </div>
 
-            <div class="kpi-info">
-              <span class="kpi-valor">{{ statsGlobal.actividades | number }}</span>
-              <span class="kpi-label">Capacitaciones PDP</span>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-icono kpi-icono-verde">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-
-            <div class="kpi-info">
-              <span class="kpi-valor">{{ statsGlobal.participantes | number }}</span>
-              <span class="kpi-label">Participantes Totales</span>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-icono kpi-icono-naranja">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
+            <div class="kpi-card">
+              <div class="kpi-icono kpi-icono-verde">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">{{ statsGlobal.participantes | number }}</span>
+                <span class="kpi-label">Participantes Totales</span>
+              </div>
             </div>
 
-            <div class="kpi-info">
-              <span class="kpi-valor">
-                {{ statsGlobal.presupuesto_total | number: '1.0-0' }}
-              </span>
-              <span class="kpi-label">Presupuesto Total (S/.)</span>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-icono" style="background: #eff6ff">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path
-                  d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-                />
-              </svg>
+            <div class="kpi-card">
+              <div class="kpi-icono kpi-icono-naranja">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">{{ statsGlobal.presupuesto_total | number: '1.0-0' }}</span>
+                <span class="kpi-label">Presupuesto Total (S/.)</span>
+              </div>
             </div>
 
-            <div class="kpi-info">
-              <span class="kpi-valor">{{ statsGlobal.redes | number }}</span>
-              <span class="kpi-label">Redes Asistenciales</span>
+            <div class="kpi-card">
+              <div class="kpi-icono" style="background: #eff6ff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">{{ statsGlobal.redes | number }}</span>
+                <span class="kpi-label">Redes Asistenciales</span>
+              </div>
             </div>
-          </div>
+          }
         </div>
       }
 
@@ -235,33 +234,33 @@
       <!-- GRÁFICOS ADMINISTRADOR -->
       @if (esAdministrador) {
         <div class="graficos-container">
-          @if (chartConfigModalidad) {
-            <div class="dash-card grafico-box">
-              <h3>Capacitaciones por Modalidad</h3>
-
+          <div class="dash-card grafico-box">
+            <h3>Capacitaciones por Modalidad</h3>
+            @if (chartConfigModalidad) {
               <canvas
                 baseChart
                 [type]="chartConfigModalidad.type"
                 [data]="chartConfigModalidad.data"
                 [options]="chartConfigModalidad.options"
-              >
-              </canvas>
-            </div>
-          }
+              ></canvas>
+            } @else {
+              <div class="grafico-cargando"><div class="spinner-sm"></div><span>Cargando gráfico...</span></div>
+            }
+          </div>
 
-          @if (chartConfigRedes) {
-            <div class="dash-card grafico-box grafico-wide">
-              <h3>Capacitaciones por Red Asistencial</h3>
-
+          <div class="dash-card grafico-box grafico-wide">
+            <h3>Capacitaciones por Red Asistencial</h3>
+            @if (chartConfigRedes) {
               <canvas
                 baseChart
                 [type]="chartConfigRedes.type"
                 [data]="chartConfigRedes.data"
                 [options]="chartConfigRedes.options"
-              >
-              </canvas>
-            </div>
-          }
+              ></canvas>
+            } @else {
+              <div class="grafico-cargando"><div class="spinner-sm"></div><span>Cargando gráfico...</span></div>
+            }
+          </div>
         </div>
       }
 
@@ -270,13 +269,24 @@
         <div class="dash-card estadisticas-responsable-box">
           <div class="box-header">
             <h3>Resumen por Red Asistencial</h3>
-
             @if (cargandoResumen) {
               <span class="cargando-badge">Cargando...</span>
             } @else {
-              <span class="total-badge"> {{ resumenRedes.length }} redes </span>
+              <span class="total-badge">{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span>
             }
           </div>
+
+          @if (!cargandoResumen && resumenRedes.length > 0) {
+            <div class="buscador-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" [(ngModel)]="busquedaRed" placeholder="Buscar red asistencial..." />
+              @if (busquedaRed) {
+                <button class="btn-limpiar" (click)="busquedaRed=''">✕</button>
+              }
+            </div>
+          }
 
           @if (cargandoResumen) {
             <div class="tabla-cargando">
@@ -309,7 +319,10 @@
                 </thead>
 
                 <tbody>
-                  @for (item of resumenRedes; track item.red; let i = $index) {
+                  @if (resumenRedesFiltrado.length === 0) {
+                    <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">Sin resultados para "{{ busquedaRed }}"</td></tr>
+                  }
+                  @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
                     <tr>
                       <td class="td-num">
                         {{ i + 1 }}
@@ -344,11 +357,11 @@
 
                 <tfoot>
                   <tr class="fila-total">
-                    <td colspan="2">TOTAL</td>
-                    <td class="td-num">{{ totalCapacitaciones | number }}</td>
-                    <td class="td-num">{{ totalHoras | number: '1.0-1' }}</td>
-                    <td class="td-num">{{ totalParticipantes | number }}</td>
-                    <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
+                    <td colspan="2">TOTAL {{ busquedaRed ? '(filtrado)' : '' }}</td>
+                    <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
+                    <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
+                    <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
+                    <td class="td-monto">{{ formatMoneda(totalPresupuestoFiltrado) }}</td>
                   </tr>
                 </tfoot>
               </table>

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-personal',
@@ -9,7 +10,8 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './personal.css',
 })
 export class Personal implements OnInit {
-  private router = inject(Router);
+  private router   = inject(Router);
+  private pdpData  = inject(PdpDataService);
 
   usuarioActual: any = {};
   fechaHoy = '';
@@ -20,6 +22,10 @@ export class Personal implements OnInit {
   mostrarDetalle = false;
   usuarioSeleccionado: any = null;
 
+  redesDisponibles: string[] = [];
+  sedesSeleccionadas: string[] = [];
+  mostrarPassword = false;
+
   nuevoUsuarioData = {
     dni: '',
     nombre: '',
@@ -27,6 +33,7 @@ export class Personal implements OnInit {
     rol: 'Ejecutor',
     estado: 'Activo',
     sedes: '',
+    password: '',
   };
 
   usuarios: any[] = [
@@ -163,6 +170,12 @@ export class Personal implements OnInit {
       const dniBase = this.usuarios.map((u) => u.dni);
       guardados.filter((g: any) => !dniBase.includes(g.dni)).forEach((extra: any) => this.usuarios.push(extra));
     }
+
+    this.pdpData.getResumenRedes().subscribe({
+      next: (redes) => {
+        this.redesDisponibles = redes.map(r => r.red).filter(r => r !== 'Sin Red');
+      },
+    });
   }
 
   irA(ruta: string) { this.router.navigate([ruta]); }
@@ -173,23 +186,36 @@ export class Personal implements OnInit {
   }
 
   nuevoUsuario() {
+    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
+    this.sedesSeleccionadas = [];
+    this.mostrarPassword = false;
+    this.modoEdicion = false;
     this.mostrarFormulario = true;
   }
 
   editarUsuario(dni: string) {
     const usuario = this.usuarios.find((u) => u.dni === dni);
-
     if (!usuario) return;
 
+    const sedesStr = Array.isArray(usuario.sedes)
+      ? usuario.sedes.join(',')
+      : (usuario.sedes || '');
+
     this.nuevoUsuarioData = {
-      dni: usuario.dni,
-      nombre: usuario.nombre,
-      cargo: usuario.cargo,
-      rol: usuario.rol,
-      estado: usuario.estado,
-      sedes: this.sedesTexto(usuario) === '—' ? '' : this.sedesTexto(usuario),
+      dni:      usuario.dni,
+      nombre:   usuario.nombre,
+      cargo:    usuario.cargo,
+      rol:      usuario.rol,
+      estado:   usuario.estado,
+      sedes:    usuario.rol === 'Ejecutor' ? sedesStr : '',
+      password: usuario.password || '',
     };
 
+    this.sedesSeleccionadas = usuario.rol === 'Sectorista'
+      ? sedesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : [];
+
+    this.mostrarPassword = false;
     this.dniEditando = dni;
     this.modoEdicion = true;
     this.mostrarFormulario = true;
@@ -218,27 +244,37 @@ export class Personal implements OnInit {
     this.mostrarDetalle = false;
   }
 
+  toggleSede(red: string) {
+    const idx = this.sedesSeleccionadas.indexOf(red);
+    if (idx === -1) this.sedesSeleccionadas.push(red);
+    else this.sedesSeleccionadas.splice(idx, 1);
+  }
+
+  sedeSeleccionada(red: string): boolean {
+    return this.sedesSeleccionadas.includes(red);
+  }
+
   guardarUsuario() {
+    const rol = this.nuevoUsuarioData.rol;
+    if (rol === 'Sectorista') {
+      this.nuevoUsuarioData.sedes = this.sedesSeleccionadas.join(',');
+    } else if (rol === 'Administrador' || rol === 'Administrativo') {
+      this.nuevoUsuarioData.sedes = '';
+    }
+    // Ejecutor: nuevoUsuarioData.sedes ya viene del select
+
     if (this.modoEdicion) {
       const index = this.usuarios.findIndex((u) => u.dni === this.dniEditando);
-      if (index !== -1) {
-        this.usuarios[index] = { ...this.nuevoUsuarioData };
-      }
+      if (index !== -1) this.usuarios[index] = { ...this.nuevoUsuarioData };
     } else {
       this.usuarios.push({ ...this.nuevoUsuarioData });
     }
 
     localStorage.setItem('usuarios', JSON.stringify(this.usuarios));
 
-    this.nuevoUsuarioData = {
-      dni: '',
-      nombre: '',
-      cargo: '',
-      rol: 'Ejecutor',
-      estado: 'Activo',
-      sedes: '',
-    };
-
+    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
+    this.sedesSeleccionadas = [];
+    this.mostrarPassword = false;
     this.mostrarFormulario = false;
     this.modoEdicion = false;
     this.dniEditando = '';
