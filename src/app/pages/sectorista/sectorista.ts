@@ -2,21 +2,22 @@ import { Component, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { DecimalPipe } from '@angular/common';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-sectorista',
-  imports: [FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe],
   templateUrl: './sectorista.html',
   styleUrl: './sectorista.css',
 })
 export class Sectorista implements OnInit {
-  private http             = inject(HttpClient);
-  private router           = inject(Router);
+  private http = inject(HttpClient);
+  private router = inject(Router);
   private expedienteService = inject(ExpedienteService);
-  private pdpData          = inject(PdpDataService);
+  private pdpData = inject(PdpDataService);
 
   usuario: any = {};
   fechaHoy = '';
@@ -25,16 +26,67 @@ export class Sectorista implements OnInit {
   cargandoRuc = false;
   errorRuc = '';
   errorFormulario = '';
+  camposError: Record<string, boolean> = {};
+
+  get porcentajeCompletado(): number {
+    const campos = [
+      this.matriz.responsable,
+      this.matriz.correo,
+      this.matriz.telefono,
+
+      this.matriz.accionFormacion,
+      this.matriz.tipoAccion,
+      this.matriz.costoTotal,
+      this.matriz.cantidadBeneficiarios,
+
+      this.matriz.horasCapacitacion,
+      this.matriz.horasFueraJornada,
+
+      this.matriz.nivelEvaluacion,
+      this.matriz.resultadoAprendizaje,
+      this.matriz.resultadoAplicacion,
+
+      this.matriz.rucProveedor,
+      this.matriz.sectorProveedor,
+
+      this.matriz.financiamiento,
+      this.matriz.montoCofinanciado,
+
+      this.matriz.modificacionPdp,
+      this.matriz.informeOrh,
+    ];
+
+    let completados = campos.filter((c) => {
+      if (typeof c === 'number') {
+        return c > 100;
+      }
+
+      return c !== null && c !== undefined && c.toString().trim() !== '';
+    }).length;
+
+    const beneficiario = this.beneficiarios[0];
+
+    if (beneficiario?.nombre) completados++;
+    if (beneficiario?.dni) completados++;
+    if (beneficiario?.genero) completados++;
+    if (beneficiario?.regimen) completados++;
+    if (beneficiario?.unidad) completados++;
+    if (beneficiario?.puesto) completados++;
+
+    const totalCampos = 24;
+
+    return Math.round((completados / totalCampos) * 100);
+  }
 
   // BÚSQUEDA DE CAPACITACIONES
-  mostrarBusqueda     = false;
-  textoBusqueda       = '';
-  codigoBusqueda      = '';
-  actividades: any[]  = [];
+  mostrarBusqueda = false;
+  textoBusqueda = '';
+  codigoBusqueda = '';
+  actividades: any[] = [];
   actividadDetalle: any = null;
-  cargandoAct         = false;
-  redFiltro           = '';
-  totalActividades    = 0;
+  cargandoAct = false;
+  redFiltro = '';
+  totalActividades = 0;
 
   matriz = {
     // DATOS GENERALES
@@ -75,12 +127,12 @@ export class Sectorista implements OnInit {
 
     // FINANCIAMIENTO
 
-    financiamiento: 'Sí',
+    financiamiento: '',
     montoCofinanciado: 0,
 
     // MODIFICACIÓN PDP
 
-    modificacionPdp: 'No',
+    modificacionPdp: '',
     informeOrh: '',
   };
 
@@ -125,8 +177,8 @@ export class Sectorista implements OnInit {
 
   // BÚSQUEDA DE CAPACITACIONES
   abrirBusqueda() {
-    this.textoBusqueda   = '';
-    this.codigoBusqueda  = '';
+    this.textoBusqueda = '';
+    this.codigoBusqueda = '';
     this.actividadDetalle = null;
     this.mostrarBusqueda = true;
     this.buscarActividades();
@@ -137,16 +189,18 @@ export class Sectorista implements OnInit {
     const q = this.codigoBusqueda.trim() || this.textoBusqueda.trim();
     this.pdpData.getActividades(q, this.redFiltro, '', 1, 100).subscribe({
       next: (res) => {
-        this.actividades      = res.data;
+        this.actividades = res.data;
         this.totalActividades = res.total;
-        this.cargandoAct      = false;
+        this.cargandoAct = false;
       },
-      error: () => { this.cargandoAct = false; },
+      error: () => {
+        this.cargandoAct = false;
+      },
     });
   }
 
   cerrarBusqueda() {
-    this.mostrarBusqueda  = false;
+    this.mostrarBusqueda = false;
     this.actividadDetalle = null;
   }
 
@@ -212,32 +266,82 @@ export class Sectorista implements OnInit {
 
   guardarMatriz() {
     this.errorFormulario = '';
+    this.camposError = {};
+
     const errores: string[] = [];
 
+    // Limpiar errores anteriores
+    this.camposError = {};
+
     // Datos Generales
-    if (!this.matriz.responsable.trim()) errores.push('Responsable ORH');
-    if (!this.matriz.correo.trim()) errores.push('Correo ORH');
-    if (!this.matriz.telefono.trim()) errores.push('Teléfono');
+    if (!this.matriz.responsable.trim()) {
+      errores.push('Responsable ORH');
+      this.camposError['responsable'] = true;
+    }
+
+    if (!this.matriz.correo.trim()) {
+      errores.push('Correo ORH');
+      this.camposError['correo'] = true;
+    }
+
+    if (!this.matriz.telefono.trim()) {
+      errores.push('Teléfono');
+      this.camposError['telefono'] = true;
+    }
 
     // Capacitación
-    if (!this.matriz.accionFormacion.trim()) errores.push('Acción de Formación');
-    if (!this.matriz.tipoAccion) errores.push('Tipo de Acción');
-    if (!this.matriz.costoTotal || this.matriz.costoTotal <= 0) errores.push('Costo Total');
+    if (!this.matriz.accionFormacion.trim()) {
+      errores.push('Acción de Formación');
+      this.camposError['accionFormacion'] = true;
+    }
+
+    if (!this.matriz.tipoAccion) {
+      errores.push('Tipo de Acción');
+      this.camposError['tipoAccion'] = true;
+    }
+
+    if (!this.matriz.costoTotal || this.matriz.costoTotal <= 0) {
+      errores.push('Costo Total');
+      this.camposError['costoTotal'] = true;
+    }
 
     // Duración
-    if (!this.matriz.horasCapacitacion || this.matriz.horasCapacitacion <= 0)
+    if (!this.matriz.horasCapacitacion || this.matriz.horasCapacitacion <= 0) {
       errores.push('Horas de capacitación');
+      this.camposError['horasCapacitacion'] = true;
+    }
 
     // Evaluación
-    if (!this.matriz.nivelEvaluacion) errores.push('Nivel de Evaluación');
-    if (!this.matriz.resultadoAprendizaje.trim()) errores.push('Resultado de aprendizaje');
-    if (!this.matriz.resultadoAplicacion.trim()) errores.push('Resultado de aplicación');
+    if (!this.matriz.nivelEvaluacion) {
+      errores.push('Nivel de Evaluación');
+      this.camposError['nivelEvaluacion'] = true;
+    }
+
+    if (!this.matriz.resultadoAprendizaje.trim()) {
+      errores.push('Resultado de aprendizaje');
+      this.camposError['resultadoAprendizaje'] = true;
+    }
+
+    if (!this.matriz.resultadoAplicacion.trim()) {
+      errores.push('Resultado de aplicación');
+      this.camposError['resultadoAplicacion'] = true;
+    }
 
     // Proveedor
-    if (!this.matriz.rucProveedor || this.matriz.rucProveedor.length !== 11)
+    if (!this.matriz.rucProveedor || this.matriz.rucProveedor.length !== 11) {
       errores.push('RUC Proveedor (11 dígitos)');
-    if (!this.matriz.proveedor.trim()) errores.push('Nombre del Proveedor');
-    if (!this.matriz.sectorProveedor) errores.push('Sector del Proveedor');
+      this.camposError['rucProveedor'] = true;
+    }
+
+    if (!this.matriz.proveedor.trim()) {
+      errores.push('Nombre del Proveedor');
+      this.camposError['proveedor'] = true;
+    }
+
+    if (!this.matriz.sectorProveedor) {
+      errores.push('Sector del Proveedor');
+      this.camposError['sectorProveedor'] = true;
+    }
 
     // Beneficiarios
     this.beneficiarios.forEach((b, i) => {
@@ -248,27 +352,36 @@ export class Sectorista implements OnInit {
         !b.regimen.trim() ||
         !b.unidad.trim() ||
         !b.puesto.trim()
-      )
+      ) {
         errores.push(`Beneficiario #${i + 1}: complete todos los campos`);
+      }
     });
 
     // Modificación PDP
-    if (this.matriz.modificacionPdp !== 'No' && !this.matriz.informeOrh.trim())
+    if (this.matriz.modificacionPdp !== 'No' && !this.matriz.informeOrh.trim()) {
       errores.push('Informe ORH (requerido al haber modificación)');
-
+      this.camposError['informeOrh'] = true;
+    }
+    console.log(this.camposError);
     if (errores.length > 0) {
-      this.errorFormulario = 'Campos incompletos: ' + errores.join(', ') + '.';
+      this.errorFormulario = errores.map((error) => `• ${error}`).join('\n');
+
       setTimeout(() => {
-        document
-          .querySelector('.error-formulario')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.querySelector('.error-validacion')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       }, 50);
+
       return;
     }
 
     this.matriz.cantidadBeneficiarios = this.beneficiarios.length;
+
     localStorage.setItem('matrizPdp', JSON.stringify(this.matriz));
+
     localStorage.setItem('beneficiariosPdp', JSON.stringify(this.beneficiarios));
+
     alert('✅ Registro exitoso.\n\nLa Matriz de Ejecución PDP fue almacenada correctamente.');
-  }
-}
+  } // <- cierra guardarMatriz()
+} // <- cierra la clase Sectorista
