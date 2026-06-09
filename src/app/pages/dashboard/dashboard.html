@@ -232,36 +232,12 @@
         </div>
       }
 
-      <!-- FILTRO POR RED ASISTENCIAL -->
-      @if (esAdministrador && redesDisponibles.length) {
-        <div class="filtro-red-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          <span class="filtro-label">Red Asistencial:</span>
-          <select class="filtro-select" [(ngModel)]="filtroRed" (ngModelChange)="aplicarFiltroRed($event)">
-            <option value="">Todas las redes</option>
-            @for (red of redesDisponibles; track red) {
-              <option [value]="red">{{ red }}</option>
-            }
-          </select>
-          @if (filtroRed) {
-            <button class="filtro-limpiar" (click)="aplicarFiltroRed('')">✕ Limpiar filtro</button>
-          }
-          @if (cargandoResumen) {
-            <span class="filtro-spinner"></span>
-          }
-        </div>
-      }
-
       <!-- GRÁFICOS ADMINISTRADOR -->
       @if (esAdministrador) {
         <div class="graficos-container">
-          @if (pieData) {
+          @if (chartConfigModalidad) {
             <div class="dash-card grafico-box">
               <h3>Capacitaciones por Modalidad</h3>
-<<<<<<< HEAD
 
               <canvas
                 baseChart
@@ -283,22 +259,6 @@
                 [data]="chartConfigRedes.data"
                 [options]="chartConfigRedes.options"
               >
-=======
-              <canvas baseChart
-                [type]="pieType"
-                [data]="pieData"
-                [options]="pieOptions">
-              </canvas>
-            </div>
-          }
-          @if (barData) {
-            <div class="dash-card grafico-box grafico-wide">
-              <h3>Capacitaciones por Red Asistencial (Top 8)</h3>
-              <canvas baseChart
-                [type]="barType"
-                [data]="barData"
-                [options]="barOptions">
->>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
               </canvas>
             </div>
           }

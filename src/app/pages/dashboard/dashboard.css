@@ -176,58 +176,6 @@
 
 /* GRÁFICOS */
 
-/* ── Filtro por Red Asistencial ─────────────── */
-.filtro-red-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f0f6ff;
-  border: 1px solid #c7d9f5;
-  border-radius: 10px;
-  padding: 10px 16px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-.filtro-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a4fa8;
-  white-space: nowrap;
-}
-.filtro-select {
-  flex: 1;
-  min-width: 220px;
-  max-width: 380px;
-  padding: 6px 10px;
-  border: 1px solid #93b9e8;
-  border-radius: 7px;
-  font-size: 13px;
-  color: #1e293b;
-  background: #fff;
-  cursor: pointer;
-}
-.filtro-select:focus { outline: none; border-color: #005baa; }
-.filtro-limpiar {
-  padding: 5px 12px;
-  background: #fff;
-  border: 1px solid #e05353;
-  border-radius: 7px;
-  color: #e05353;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.filtro-limpiar:hover { background: #fff0f0; }
-.filtro-spinner {
-  width: 16px; height: 16px;
-  border: 2px solid #c7d9f5;
-  border-top-color: #005baa;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
 .graficos-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
