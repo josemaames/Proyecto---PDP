@@ -8,6 +8,26 @@ app.use(cors());
 app.use(express.json());
 
 // ──────────────────────────────────────────────
+// Caché en memoria (evita queries repetidas)
+// ──────────────────────────────────────────────
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutos
+const cache = new Map();
+
+function getCache(key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { cache.delete(key); return null; }
+  return entry.data;
+}
+function setCache(key, data) {
+  cache.set(key, { data, ts: Date.now() });
+}
+function invalidarCache() {
+  cache.clear();
+  console.log('✓ Caché invalidada');
+}
+
+// ──────────────────────────────────────────────
 // Conexión PostgreSQL
 // ──────────────────────────────────────────────
 const pool = new Pool({
@@ -27,10 +47,27 @@ pool.connect()
 
 async function crearIndices() {
   const indices = [
+    // Filtros por red (RBAC y resumen-redes)
     `CREATE INDEX IF NOT EXISTS idx_actividad_red ON datos_actividad(red_asistencial)`,
     `CREATE INDEX IF NOT EXISTS idx_personal_red ON personal(red)`,
     `CREATE INDEX IF NOT EXISTS idx_participantes_red ON lista_participantes(red)`,
     `CREATE INDEX IF NOT EXISTS idx_participantes_codigo ON lista_participantes(codigo_act)`,
+
+    // Covering index para /api/resumen-redes: permite index-only scan sin tocar la tabla
+    `CREATE INDEX IF NOT EXISTS idx_actividad_resumen_cov
+       ON datos_actividad(red_asistencial)
+       INCLUDE (total_horas, total_participantes, presupuesto_ejecutado)`,
+
+    // GROUP BY del dashboard
+    `CREATE INDEX IF NOT EXISTS idx_actividad_modalidad ON datos_actividad(modalidad)`,
+    `CREATE INDEX IF NOT EXISTS idx_actividad_mes ON datos_actividad(mes_termino)`,
+    `CREATE INDEX IF NOT EXISTS idx_actividad_servicio ON datos_actividad(servicio_area)`,
+    `CREATE INDEX IF NOT EXISTS idx_participantes_sexo ON lista_participantes(sexo)`,
+
+    // Búsqueda por DNI en personal
+    `CREATE INDEX IF NOT EXISTS idx_personal_dni ON personal(dni_ce)`,
+
+    // Trigramas para búsquedas ILIKE eficientes
     `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
     `CREATE INDEX IF NOT EXISTS idx_actividad_nombre_trgm ON datos_actividad USING gin(nombre_actividad gin_trgm_ops)`,
     `CREATE INDEX IF NOT EXISTS idx_personal_apellidos_trgm ON personal USING gin(apellidos gin_trgm_ops)`,
@@ -224,6 +261,7 @@ app.post('/api/actividades', async (req, res) => {
         f.eje_tematico,
       ],
     );
+    invalidarCache();
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -258,6 +296,7 @@ app.put('/api/actividades/:id', async (req, res) => {
       ],
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
+    invalidarCache();
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -267,6 +306,7 @@ app.put('/api/actividades/:id', async (req, res) => {
 app.delete('/api/actividades/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM datos_actividad WHERE id=$1', [parseInt(req.params.id)]);
+    invalidarCache();
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -335,6 +375,9 @@ app.get('/api/personal-essalud/dni/:dni', async (req, res) => {
 app.get('/api/resumen-redes', async (req, res) => {
   try {
     const { redes = '' } = req.query;
+    const cacheKey = `resumen-redes:${redes}`;
+    const cached = getCache(cacheKey);
+    if (cached) return res.json(cached);
 
     let where = '';
     const params = [];
@@ -363,6 +406,7 @@ app.get('/api/resumen-redes', async (req, res) => {
        ORDER BY capacitaciones DESC`,
       params
     );
+    setCache(cacheKey, rows);
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -373,30 +417,38 @@ app.get('/api/resumen-redes', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/stats', async (req, res) => {
   try {
+    const { red = '' } = req.query;
+    const cacheKey = `stats:${red}`;
+    const cached = getCache(cacheKey);
+    if (cached) return res.json(cached);
+
+    const actWhere  = red ? `WHERE red_asistencial ILIKE $1` : '';
+    const partWhere = red ? `WHERE red ILIKE $1`             : '';
+    const p         = red ? [`%${red}%`]                     : [];
+
     const queries = await Promise.all([
-      pool.query('SELECT COUNT(*) FROM datos_actividad'),
-      pool.query('SELECT COUNT(*) FROM lista_participantes'),
-      pool.query('SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad'),
-      pool.query('SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad'),
+      pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`,  p),
+      pool.query(`SELECT COUNT(*) FROM lista_participantes ${partWhere}`, p),
+      pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`, p),
+      pool.query(`SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`, p),
       pool.query(`
         SELECT modalidad, COUNT(*) as total
-        FROM datos_actividad
-        GROUP BY modalidad
-        ORDER BY total DESC
-      `),
+        FROM datos_actividad ${actWhere}
+        GROUP BY modalidad ORDER BY total DESC
+      `, p),
     ]);
 
-    res.json({
-      actividades: parseInt(queries[0].rows[0].count),
-      participantes: parseInt(queries[1].rows[0].count),
+    const result = {
+      actividades:       parseInt(queries[0].rows[0].count),
+      participantes:     parseInt(queries[1].rows[0].count),
       presupuesto_total: parseFloat(queries[2].rows[0].coalesce),
-      redes: parseInt(queries[3].rows[0].count),
-      por_modalidad: queries[4].rows,
-    });
+      redes:             parseInt(queries[3].rows[0].count),
+      por_modalidad:     queries[4].rows,
+    };
+    setCache(cacheKey, result);
+    res.json(result);
   } catch (err) {
-    res.status(500).json({
-      error: err.message,
-    });
+    res.status(500).json({ error: err.message });
   }
 });
 

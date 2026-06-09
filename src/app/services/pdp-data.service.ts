@@ -105,8 +105,9 @@ export class PdpDataService {
   }
 
   // ── Estadísticas ──────────────────────────────
-  getStats(): Observable<Stats> {
-    return this.http.get<Stats>(`${this.api}/stats`);
+  getStats(red = ''): Observable<Stats> {
+    const params = red ? new HttpParams().set('red', red) : new HttpParams();
+    return this.http.get<Stats>(`${this.api}/stats`, { params });
   }
 
   getResumenRedes(redes = ''): Observable<ResumenRed[]> {

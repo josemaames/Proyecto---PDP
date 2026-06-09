@@ -3,8 +3,14 @@ import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
+<<<<<<< HEAD
 import { Chart, registerables } from 'chart.js';
 import { Subject } from 'rxjs';
+=======
+import { ChartData, ChartOptions } from 'chart.js';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+>>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
 import { ExpedienteService } from '../../services/expediente.service';
 import { forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -16,8 +22,6 @@ type ResumenRed = {
   participantes: number;
   presupuesto: number;
 };
-
-Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -64,13 +68,31 @@ export class Dashboard implements OnInit, OnDestroy {
   // ── KPIs (datos reales de BD) ─────────────────
   statsGlobal = { actividades: 0, participantes: 0, presupuesto_total: 0, redes: 0 };
 
-  // ── Resumen por Red Asistencial ───────────────
+  // ── Filtro y resumen por Red Asistencial ─────
+  filtroRed = '';
+  redesDisponibles: string[] = [];
   resumenRedes: ResumenRed[] = [];
   cargandoResumen = false;
 
+  private readonly LC_KEY = 'dash_admin_cache';
+  private readonly LC_TTL = 3 * 60 * 1000;
+
   // ── Gráficos ──────────────────────────────────
-  chartConfigModalidad: any;
-  chartConfigRedes: any;
+  readonly pieType = 'pie' as const;
+  readonly barType = 'bar' as const;
+  pieData: ChartData<'pie'> | null = null;
+  barData: ChartData<'bar'> | null = null;
+  pieOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { position: 'bottom' } },
+  };
+  barOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+  };
 
   constructor(
     private router: Router,
@@ -117,9 +139,20 @@ export class Dashboard implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private cargarDatosAdmin() {
-    this.cargandoResumen = true;
+  private cargarDatosAdmin(red = '') {
+    // Mostrar caché local inmediatamente si existe
+    const cacheKey = `${this.LC_KEY}:${red}`;
+    const cached = this.leerCache(cacheKey);
+    if (cached) {
+      this.aplicarDatos(cached.stats, cached.resumen);
+      // Si el caché tiene menos de TTL, no hace falta ir a la red
+      if (Date.now() - cached.ts < this.LC_TTL) return;
+    }
 
+    // Sin caché → mostrar spinner; con caché → actualizar silenciosamente
+    this.cargandoResumen = !cached;
+
+<<<<<<< HEAD
     forkJoin({})
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -164,10 +197,64 @@ export class Dashboard implements OnInit, OnDestroy {
           title: { display: true, text: 'Capacitaciones por Modalidad' },
         },
       },
+=======
+    forkJoin({
+      stats:   this.pdpData.getStats(red),
+      resumen: this.pdpData.getResumenRedes(red),
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: ({ stats, resumen }) => {
+        this.aplicarDatos(stats, resumen);
+        this.guardarCache(cacheKey, stats, resumen);
+        this.cargandoResumen = false;
+      },
+      error: () => { this.cargandoResumen = false; },
+    });
+  }
+
+  private aplicarDatos(stats: any, resumen: ResumenRed[]) {
+    this.statsGlobal  = stats;
+    this.resumenRedes = resumen;
+    if (!this.redesDisponibles.length) {
+      this.redesDisponibles = resumen.map(r => r.red);
+    }
+    this.construirGraficos(stats, resumen);
+  }
+
+  private leerCache(key: string): { stats: any; resumen: ResumenRed[]; ts: number } | null {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  private guardarCache(key: string, stats: any, resumen: ResumenRed[]) {
+    try {
+      localStorage.setItem(key, JSON.stringify({ stats, resumen, ts: Date.now() }));
+    } catch { /* ignora errores de cuota */ }
+  }
+
+  aplicarFiltroRed(red: string) {
+    this.filtroRed = red;
+    this.cargarDatosAdmin(red);
+  }
+
+  private construirGraficos(stats: any, resumen: ResumenRed[]) {
+    const porModalidad: { modalidad: string; total: number }[] = stats.por_modalidad ?? [];
+
+    this.pieData = {
+      labels: porModalidad.map(m => m.modalidad || 'Sin modalidad'),
+      datasets: [{
+        data: porModalidad.map(m => Number(m.total)),
+        backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
+        borderWidth: 1,
+      }],
+>>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
     };
 
-    // Gráfico 2 — Top 8 redes por capacitaciones (barras)
     const topRedes = resumen.slice(0, 8);
+<<<<<<< HEAD
     this.chartConfigRedes = {
       type: 'bar',
       data: {
@@ -190,12 +277,23 @@ export class Dashboard implements OnInit, OnDestroy {
         },
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
       },
+=======
+    this.barData = {
+      labels: topRedes.map(r => r.red.replace('Red Asistencial ', '')),
+      datasets: [{
+        label: 'Capacitaciones',
+        data: topRedes.map(r => r.capacitaciones),
+        backgroundColor: '#005baa',
+        borderRadius: 6,
+      }],
+>>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
     };
   }
 
   cargarMenuPorRol() {
     switch (this.rol) {
       case 'Administrador':
+<<<<<<< HEAD
         this.menuItems = [
           'Inicio',
           'Expedientes',
@@ -206,6 +304,9 @@ export class Dashboard implements OnInit, OnDestroy {
           'Administración',
         ];
         break;
+=======
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Personal', 'Participantes', 'Reportes', 'Administración']; break;
+>>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
       case 'Sectorista':
         this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes'];
         break;
@@ -219,6 +320,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   irModulo(modulo: string) {
     switch (modulo) {
+<<<<<<< HEAD
       case 'Inicio':
         this.router.navigate(['/dashboard']);
         break;
@@ -245,6 +347,17 @@ export class Dashboard implements OnInit, OnDestroy {
         break;
       default:
         alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+=======
+      case 'Inicio':          this.router.navigate(['/dashboard']); break;
+      case 'Expedientes':     this.router.navigate(['/expedientes']); break;
+      case 'Hoja de Ruta':   this.router.navigate(['/hoja-ruta']); break;
+      case 'Personal':        this.router.navigate(['/personal-pdp']); break;
+      case 'Participantes':   this.router.navigate(['/lista-participantes']); break;
+      case 'Historial':       this.abrirHistorial(); break;
+      case 'Reportes':        alert('🚧 Módulo Reportes en desarrollo'); break;
+      case 'Administración':  this.router.navigate(['/personal']); break;
+      default: alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+>>>>>>> 1628c46b1c517e83466119f1e34648838608ac81
     }
   }
 
