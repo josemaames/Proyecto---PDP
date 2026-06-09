@@ -134,47 +134,40 @@
         </p>
       </div>
 
-      <!-- BUSCADOR GLOBAL ADMIN -->
-      @if (esAdministrador && !cargandoKpis && resumenRedes.length > 0) {
-        <div class="buscador-global-admin">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            [(ngModel)]="busquedaRed"
-            (ngModelChange)="onBusquedaChange($event)"
-            placeholder="Filtrar todo el dashboard por red asistencial..."
-          />
-          @if (busquedaRed) {
-            <span class="bg-count">{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span>
-            <button class="bg-limpiar" (click)="busquedaRed=''; onBusquedaChange('')">✕ Limpiar</button>
-          }
-        </div>
-      }
-
-      <!-- BANNER FILTRO ACTIVO -->
-      @if (esAdministrador && filtrandoPorRed) {
-        <div class="filtro-activo-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filtrando por: <strong>{{ busquedaRed }}</strong>
-          <span class="filtro-redes-count">{{ resumenRedesFiltrado.length }} de {{ resumenRedes.length }} redes</span>
-          <button class="filtro-btn-limpiar" (click)="busquedaRed=''; onBusquedaChange('')">Quitar filtro</button>
-        </div>
-      }
-
       <!-- KPIs ADMINISTRADOR -->
       @if (esAdministrador) {
         <div class="kpi-grid">
           @if (cargandoKpis) {
-            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
-            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
-            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
-            <div class="kpi-card kpi-skel"><div class="skel-icono"></div><div class="kpi-info"><div class="skel-val"></div><div class="skel-lbl"></div></div></div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
           } @else {
-            <div class="kpi-card" [class.kpi-filtrado]="filtrandoPorRed">
+            <div class="kpi-card">
               <div class="kpi-icono">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -182,12 +175,12 @@
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ kpiCapacitaciones | number }}</span>
+                <span class="kpi-valor">{{ statsGlobal.actividades | number }}</span>
                 <span class="kpi-label">Capacitaciones PDP</span>
               </div>
             </div>
 
-            <div class="kpi-card" [class.kpi-filtrado]="filtrandoPorRed">
+            <div class="kpi-card">
               <div class="kpi-icono kpi-icono-verde">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -197,12 +190,12 @@
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ kpiParticipantes | number }}</span>
+                <span class="kpi-valor">{{ statsGlobal.participantes | number }}</span>
                 <span class="kpi-label">Participantes Totales</span>
               </div>
             </div>
 
-            <div class="kpi-card" [class.kpi-filtrado]="filtrandoPorRed">
+            <div class="kpi-card">
               <div class="kpi-icono kpi-icono-naranja">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="12" y1="1" x2="12" y2="23" />
@@ -210,21 +203,23 @@
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ kpiPresupuesto | number: '1.0-0' }}</span>
+                <span class="kpi-valor">{{ statsGlobal.presupuesto_total | number: '1.0-0' }}</span>
                 <span class="kpi-label">Presupuesto Total (S/.)</span>
               </div>
             </div>
 
-            <div class="kpi-card" [class.kpi-filtrado]="filtrandoPorRed">
+            <div class="kpi-card">
               <div class="kpi-icono" style="background: #eff6ff">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="2" y1="12" x2="22" y2="12" />
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  <path
+                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                  />
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ kpiRedes | number }}</span>
+                <span class="kpi-valor">{{ statsGlobal.redes | number }}</span>
                 <span class="kpi-label">Redes Asistenciales</span>
               </div>
             </div>
@@ -273,10 +268,13 @@
       }
 
       <!-- GRÁFICOS ADMINISTRADOR -->
+
       @if (esAdministrador) {
         <div class="graficos-container">
+          <!-- Modalidad -->
           <div class="dash-card grafico-box">
             <h3>Capacitaciones por Modalidad</h3>
+
             @if (chartConfigModalidad) {
               <canvas
                 baseChart
@@ -284,13 +282,13 @@
                 [data]="chartConfigModalidad.data"
                 [options]="chartConfigModalidad.options"
               ></canvas>
-            } @else {
-              <div class="grafico-cargando"><div class="spinner-sm"></div><span>Cargando gráfico...</span></div>
             }
           </div>
 
+          <!-- Red -->
           <div class="dash-card grafico-box grafico-wide">
             <h3>Capacitaciones por Red Asistencial</h3>
+
             @if (chartConfigRedes) {
               <canvas
                 baseChart
@@ -298,8 +296,38 @@
                 [data]="chartConfigRedes.data"
                 [options]="chartConfigRedes.options"
               ></canvas>
-            } @else {
-              <div class="grafico-cargando"><div class="spinner-sm"></div><span>Cargando gráfico...</span></div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (esAdministrador) {
+        <div class="graficos-container">
+          <!-- Sexo -->
+          <div class="dash-card grafico-box">
+            <h3>Participantes por Sexo</h3>
+
+            @if (chartConfigSexo) {
+              <canvas
+                baseChart
+                [type]="chartConfigSexo.type"
+                [data]="chartConfigSexo.data"
+                [options]="chartConfigSexo.options"
+              ></canvas>
+            }
+          </div>
+
+          <!-- Meses -->
+          <div class="dash-card grafico-box">
+            <h3>Actividades por Mes</h3>
+
+            @if (chartConfigMeses) {
+              <canvas
+                baseChart
+                [type]="chartConfigMeses.type"
+                [data]="chartConfigMeses.data"
+                [options]="chartConfigMeses.options"
+              ></canvas>
             }
           </div>
         </div>
@@ -313,11 +341,30 @@
             @if (cargandoResumen) {
               <span class="cargando-badge">Cargando...</span>
             } @else {
-              <span class="total-badge">{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span>
+              <span class="total-badge"
+                >{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span
+              >
             }
           </div>
 
-@if (cargandoResumen) {
+          @if (!cargandoResumen && resumenRedes.length > 0) {
+            <div class="buscador-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                [(ngModel)]="busquedaRed"
+                placeholder="Buscar red asistencial..."
+              />
+              @if (busquedaRed) {
+                <button class="btn-limpiar" (click)="busquedaRed = ''">✕</button>
+              }
+            </div>
+          }
+
+          @if (cargandoResumen) {
             <div class="tabla-cargando">
               <div class="spinner-sm"></div>
               <span>Cargando datos de la base de datos...</span>
@@ -349,7 +396,11 @@
 
                 <tbody>
                   @if (resumenRedesFiltrado.length === 0) {
-                    <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px">Sin resultados para "{{ busquedaRed }}"</td></tr>
+                    <tr>
+                      <td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px">
+                        Sin resultados para "{{ busquedaRed }}"
+                      </td>
+                    </tr>
                   }
                   @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
                     <tr>

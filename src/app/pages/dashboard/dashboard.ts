@@ -4,7 +4,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Subject, forkJoin } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
 
@@ -24,8 +24,7 @@ type ResumenRed = {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, OnDestroy {
-  private destroy$      = new Subject<void>();
-  private busquedaSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   nombre = '';
   rol = '';
@@ -68,35 +67,30 @@ export class Dashboard implements OnInit, OnDestroy {
   cargandoResumen = false;
   busquedaRed = '';
 
-  get filtrandoPorRed(): boolean { return !!this.busquedaRed.trim(); }
-
   get resumenRedesFiltrado(): ResumenRed[] {
     const q = this.busquedaRed.trim().toLowerCase();
     if (!q) return this.resumenRedes;
-    return this.resumenRedes.filter(r => r.red.toLowerCase().includes(q));
+    return this.resumenRedes.filter((r) => r.red.toLowerCase().includes(q));
   }
 
-  get totalCapacitacionesFiltrado() { return this.resumenRedesFiltrado.reduce((s, r) => s + r.capacitaciones, 0); }
-  get totalHorasFiltrado()          { return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.horas), 0); }
-  get totalParticipantesFiltrado()  { return this.resumenRedesFiltrado.reduce((s, r) => s + r.participantes, 0); }
-  get totalPresupuestoFiltrado()    { return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.presupuesto), 0); }
-
-  get kpiCapacitaciones(): number {
-    return this.filtrandoPorRed ? this.totalCapacitacionesFiltrado : this.statsGlobal.actividades;
+  get totalCapacitacionesFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + r.capacitaciones, 0);
   }
-  get kpiParticipantes(): number {
-    return this.filtrandoPorRed ? this.totalParticipantesFiltrado : this.statsGlobal.participantes;
+  get totalHorasFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.horas), 0);
   }
-  get kpiPresupuesto(): number {
-    return this.filtrandoPorRed ? this.totalPresupuestoFiltrado : this.statsGlobal.presupuesto_total;
+  get totalParticipantesFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + r.participantes, 0);
   }
-  get kpiRedes(): number {
-    return this.filtrandoPorRed ? this.resumenRedesFiltrado.length : this.statsGlobal.redes;
+  get totalPresupuestoFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.presupuesto), 0);
   }
 
   // ── Gráficos ──────────────────────────────────
   chartConfigModalidad: any;
   chartConfigRedes: any;
+  chartConfigSexo: any;
+  chartConfigMeses: any;
 
   constructor(
     private router: Router,
@@ -138,12 +132,6 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (this.esAdministrador) {
       this.cargarDatosAdmin();
-
-      this.busquedaSubject.pipe(
-        debounceTime(350),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      ).subscribe(q => this.refrescarPieChart(q));
     }
   }
 
@@ -153,45 +141,113 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private cargarDatosAdmin() {
-    this.cargandoKpis    = true;
+    this.cargandoKpis = true;
     this.cargandoResumen = true;
 
     forkJoin({
-      stats:   this.pdpData.getStats(),
+      stats: this.pdpData.getStats(),
       resumen: this.pdpData.getResumenRedes(),
+      dashboard: this.pdpData.getDashboard(),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ stats, resumen }) => {
-          this.statsGlobal     = stats;
-          this.resumenRedes    = resumen;
-          this.cargandoKpis    = false;
+        next: ({ stats, resumen, dashboard }) => {
+          this.statsGlobal = stats;
+          this.resumenRedes = resumen;
+          // Participantes por sexo
+          // Agrupar sexo (FEMENINO/Femenino)
+          const sexoAgrupado: any = {};
+
+          dashboard.participantesSexo.forEach((x: any) => {
+            const sexo = (x.sexo || 'Sin dato').toUpperCase();
+
+            sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
+          });
+
+          this.chartConfigSexo = {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(sexoAgrupado),
+              datasets: [
+                {
+                  data: Object.values(sexoAgrupado),
+                  backgroundColor: ['#ec4899', '#3b82f6'],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+            },
+          };
+
+          // Ordenar meses correctamente
+          const ordenMeses = [
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Setiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre',
+          ];
+
+          const mesesOrdenados = [...dashboard.actividadesMes].sort(
+            (a: any, b: any) =>
+              ordenMeses.indexOf(a.mes_termino) - ordenMeses.indexOf(b.mes_termino),
+          );
+
+          this.chartConfigMeses = {
+            type: 'line',
+            data: {
+              labels: mesesOrdenados.map((x: any) => x.mes_termino),
+              datasets: [
+                {
+                  label: 'Actividades',
+                  data: mesesOrdenados.map((x: any) => Number(x.total)),
+                  borderColor: '#005baa',
+                  backgroundColor: '#005baa',
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+            },
+          };
+          this.cargandoKpis = false;
           this.cargandoResumen = false;
           this.construirGraficos(stats, resumen);
         },
         error: () => {
-          this.cargandoKpis    = false;
+          this.cargandoKpis = false;
           this.cargandoResumen = false;
         },
       });
   }
 
-  private construirGraficos(stats: any, _resumen: ResumenRed[]) {
-    this.reconstruirPieChart(stats);
-    this.actualizarGraficoRedes();
-  }
-
-  private reconstruirPieChart(stats: any) {
+  private construirGraficos(stats: any, resumen: ResumenRed[]) {
     const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
+    const modLabels = porModalidad.map((m) => m.modalidad || 'Sin modalidad');
+    const modData = porModalidad.map((m) => Number(m.total));
+
     this.chartConfigModalidad = {
       type: 'pie',
       data: {
-        labels: porModalidad.map(m => m.modalidad || 'Sin modalidad'),
-        datasets: [{
-          data: porModalidad.map(m => Number(m.total)),
-          backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
-          borderWidth: 1,
-        }],
+        labels: modLabels,
+        datasets: [
+          {
+            data: modData,
+            backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
+            borderWidth: 1,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -202,60 +258,30 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       },
     };
-  }
 
-  private refrescarPieChart(q: string) {
-    this.chartConfigModalidad = null;
-    this.pdpData.getStats(q)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next:  stats => this.reconstruirPieChart(stats),
-        error: ()    => this.reconstruirPieChart(this.statsGlobal),
-      });
-  }
+    // Gráfico 2 — Top 8 redes por capacitaciones (barras)
 
-  onBusquedaChange(q: string) {
-    this.actualizarGraficoRedes();
-    if (!q.trim()) {
-      this.reconstruirPieChart(this.statsGlobal);
-    } else {
-      this.busquedaSubject.next(q);
-    }
-  }
-
-  actualizarGraficoRedes() {
-    const redes = this.filtrandoPorRed
-      ? this.resumenRedesFiltrado
-      : this.resumenRedes.slice(0, 8);
-
-    if (!redes.length) {
-      this.chartConfigRedes = null;
-      return;
-    }
-
-    const titulo = this.filtrandoPorRed
-      ? `Resultado para "${this.busquedaRed.trim()}"`
-      : 'Capacitaciones por Red Asistencial (Top 8)';
-
+    const topRedes = resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
       data: {
-        labels: redes.map(r => r.red.replace('Red Asistencial ', '')),
+        labels: topRedes.map((r) => r.red.replace('Red Asistencial ', '')),
         datasets: [
           {
             label: 'Capacitaciones',
-            data: redes.map(r => r.capacitaciones),
+            data: topRedes.map((r) => r.capacitaciones),
             backgroundColor: '#005baa',
             borderRadius: 6,
           },
         ],
       },
+
       options: {
         responsive: true,
         maintainAspectRatio: true,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: titulo },
+          title: { display: true, text: 'Capacitaciones por Red Asistencial (Top 8)' },
         },
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
       },
@@ -365,10 +391,18 @@ export class Dashboard implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  get totalCapacitaciones() { return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0); }
-  get totalHoras()          { return this.resumenRedes.reduce((s, r) => s + Number(r.horas), 0); }
-  get totalParticipantes()  { return this.resumenRedes.reduce((s, r) => s + r.participantes, 0); }
-  get totalPresupuesto()    { return this.resumenRedes.reduce((s, r) => s + Number(r.presupuesto), 0); }
+  get totalCapacitaciones() {
+    return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0);
+  }
+  get totalHoras() {
+    return this.resumenRedes.reduce((s, r) => s + Number(r.horas), 0);
+  }
+  get totalParticipantes() {
+    return this.resumenRedes.reduce((s, r) => s + r.participantes, 0);
+  }
+  get totalPresupuesto() {
+    return this.resumenRedes.reduce((s, r) => s + Number(r.presupuesto), 0);
+  }
 
   formatMoneda(v: number): string {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(v);

@@ -82,47 +82,9 @@ export interface Stats {
 
 @Injectable({ providedIn: 'root' })
 export class PdpDataService {
-
   private api = '/api';
 
   constructor(private http: HttpClient) {}
-
-  private normalizarSede(sede: string): string {
-    const mapa: Record<string, string> = {
-      'red asistencial arequipa': 'RA AREQUIPA',
-      'red asistencial cusco': 'RA CUSCO',
-      'red asistencial piura': 'RA PIURA',
-      'red asistencial la libertad': 'RA LA LIBERTAD',
-      'red asistencial ancash': 'RA ANCASH',
-      'red asistencial tacna': 'RA TACNA',
-      'red asistencial ica': 'RA ICA',
-      'red asistencial puno': 'RA PUNO',
-      'red asistencial loreto': 'RA LORETO',
-      'red asistencial pasco': 'RA PASCO',
-      'red asistencial junin': 'RA JUNIN',
-      'red asistencial juliaca': 'RA JULIACA',
-      'red asistencial apurimac': 'RA APURIMAC',
-      'red asistencial ayacucho': 'RA AYACUCHO',
-      'red asistencial cajamarca': 'RA CAJAMARCA',
-      'red asistencial tarapoto': 'RA TARAPOTO',
-      'red asistencial moyobamba': 'RA MOYOBAMBA',
-      'red asistencial moquegua': 'RA MOQUEGUA',
-      'red asistencial madre de dios': 'RA MADRE DE DIOS',
-      'red asistencial tumbes': 'RA TUMBES',
-      'red asistencial huanuco': 'RA HUANUCO',
-      'red asistencial huaraz': 'RA HUARAZ',
-      'red asistencial ucayali': 'RA UCAYALI',
-      'red asistencial huancavelica': 'RA HUANCAVELICA',
-      'red asistencial amazonas': 'RA AMAZONAS',
-      'red asistencial jaen': 'RA JAEN',
-      'red prestacional rebagliati': 'RP REBAGLIATI',
-      'red prestacional almenara': 'RP ALMENARA',
-      'red prestacional lambayeque': 'RP LAMBAYEQUE',
-      'red prestacional sabogal': 'RP SABOGAL',
-      'lurin': 'RP REBAGLIATI',
-    };
-    return mapa[sede.toLowerCase().trim()] ?? sede;
-  }
 
   /** Devuelve el filtro de red para el usuario logueado.
    *  Admin → '' (sin filtro), Sectorista → sedes separadas por coma, Ejecutor → su sede. */
@@ -131,12 +93,18 @@ export class PdpDataService {
     if (!usuario.rol) return '';
     if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') return '';
     if (usuario.rol === 'Sectorista') {
-      const sedes: string[] = Array.isArray(usuario.sedes) ? usuario.sedes : (usuario.sedes ? [usuario.sedes] : []);
-      return sedes.map(s => this.normalizarSede(s)).join(',');
+      const sedes: string[] = Array.isArray(usuario.sedes)
+        ? usuario.sedes
+        : usuario.sedes
+          ? [usuario.sedes]
+          : [];
+      return sedes.join(',');
     }
     if (usuario.rol === 'Ejecutor') {
-      const sede: string = Array.isArray(usuario.sedes) ? (usuario.sedes[0] || '') : (usuario.sedes || usuario.sede || '');
-      return this.normalizarSede(sede);
+      const sede: string = Array.isArray(usuario.sedes)
+        ? usuario.sedes[0] || ''
+        : usuario.sedes || usuario.sede || '';
+      return sede;
     }
     return '';
   }
@@ -153,7 +121,13 @@ export class PdpDataService {
   }
 
   // ── Participantes ─────────────────────────────
-  getParticipantes(q = '', codigo_act = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<Participante>> {
+  getParticipantes(
+    q = '',
+    codigo_act = '',
+    page = 1,
+    limit = 50,
+    red = '',
+  ): Observable<ApiResponse<Participante>> {
     const params = new HttpParams()
       .set('q', q)
       .set('codigo_act', codigo_act)
@@ -172,10 +146,19 @@ export class PdpDataService {
   }
 
   // ── Actividades ───────────────────────────────
-  getActividades(q = '', red = '', modalidad = '', page = 1, limit = 50): Observable<ApiResponse<Actividad>> {
+  getActividades(
+    q = '',
+    red = '',
+    modalidad = '',
+    page = 1,
+    limit = 50,
+  ): Observable<ApiResponse<Actividad>> {
     const params = new HttpParams()
-      .set('q', q).set('red', red).set('modalidad', modalidad)
-      .set('page', String(page)).set('limit', String(limit));
+      .set('q', q)
+      .set('red', red)
+      .set('modalidad', modalidad)
+      .set('page', String(page))
+      .set('limit', String(limit));
     return this.http.get<ApiResponse<Actividad>>(`${this.api}/actividades`, { params });
   }
 
@@ -192,14 +175,26 @@ export class PdpDataService {
   }
 
   // ── Personal ESSALUD ──────────────────────────
-  getPersonalEssalud(q = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<PersonalEssalud>> {
+  getPersonalEssalud(
+    q = '',
+    page = 1,
+    limit = 50,
+    red = '',
+  ): Observable<ApiResponse<PersonalEssalud>> {
     const params = new HttpParams()
-      .set('q', q).set('page', String(page)).set('limit', String(limit)).set('red', red);
+      .set('q', q)
+      .set('page', String(page))
+      .set('limit', String(limit))
+      .set('red', red);
     return this.http.get<ApiResponse<PersonalEssalud>>(`${this.api}/personal-essalud`, { params });
   }
 
   // Buscar por DNI para autocompletar formulario
   getPersonalPorDni(dni: string): Observable<PersonalEssalud> {
     return this.http.get<PersonalEssalud>(`${this.api}/personal-essalud/dni/${dni}`);
+  }
+
+  getDashboard(): Observable<any> {
+    return this.http.get<any>(`${this.api}/dashboard`);
   }
 }
