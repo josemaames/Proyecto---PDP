@@ -381,7 +381,6 @@ app.get('/api/personal-essalud', async (req, res) => {
         .split(',')
         .map((r) => expandirRed(r))
         .filter(Boolean);
-
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
         params.push(`%${redes[0]}%`);
@@ -611,6 +610,34 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// ──────────────────────────────────────────────
+// SUNAT — consulta por RUC
+// ──────────────────────────────────────────────
+app.get('/api/sunat/ruc', async (req, res) => {
+  const { numero } = req.query;
+  if (!numero || String(numero).length !== 11) {
+    return res.status(400).json({ error: 'RUC debe tener 11 dígitos' });
+  }
+
+  try {
+    const token = process.env.DECOLECTA_TOKEN || process.env.APIS_NET_PE_TOKEN || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(
+      `https://api.decolecta.com/v1/sunat/ruc?numero=${numero}`,
+      { headers }
+    );
+
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(404).json({ error: 'No se encontró información para este RUC' });
+  }
+});
+
 // INICIAR SERVIDOR
 // ──────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;

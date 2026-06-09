@@ -24,6 +24,8 @@ export class Ejecutor implements OnInit {
   inicialUsuario = 'U';
   buscandoRuc = false;
   errorRuc = '';
+  errorFormulario = '';
+  camposInvalidos: string[] = [];
 
   // BÚSQUEDA DE EXPEDIENTES
   mostrarBusqueda = false;
@@ -166,7 +168,7 @@ export class Ejecutor implements OnInit {
     this.errorRuc = '';
     this.buscandoRuc = true;
 
-    this.http.get<any>(`/api/sunat/ruc?numero=${ruc}`).subscribe({
+    this.http.get<any>(`http://localhost:3001/api/sunat/ruc?numero=${ruc}`).subscribe({
       next: (data) => {
         this.formulario.nombreProveedor = data.razon_social || data.razonSocial || data.nombre || '';
         this.buscandoRuc = false;
@@ -179,6 +181,33 @@ export class Ejecutor implements OnInit {
   }
 
   guardarFormulario() {
+    this.errorFormulario = '';
+    this.camposInvalidos = [];
+
+    const f = this.formulario;
+    const errores: string[] = [];
+
+    if (!f.codigoAct.trim())         errores.push('Código de actividad');
+    if (!f.fechaInicio)               errores.push('Fecha de inicio');
+    if (!f.fechaFin)                  errores.push('Fecha de finalización');
+    if (!f.mesTermino)                errores.push('Mes de término');
+    if (!f.redAsistencial.trim())     errores.push('Red asistencial / Unidad orgánica');
+    if (!f.nombreActividad.trim())    errores.push('Nombre de la actividad');
+    if (!f.totalHoras || f.totalHoras <= 0) errores.push('Total horas ejecutadas');
+    if (!f.frecuencia)                errores.push('Frecuencia de desarrollo');
+    if (!f.modalidad)                 errores.push('Modalidad');
+    if (!f.nivelEvaluacion)           errores.push('Nivel de evaluación');
+    if (!f.totalParticipantes || f.totalParticipantes <= 0) errores.push('Total de participantes');
+
+    if (errores.length > 0) {
+      this.camposInvalidos = errores;
+      this.errorFormulario = 'Debe completar los siguientes campos obligatorios:';
+      setTimeout(() => {
+        document.querySelector('.error-formulario-ej')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+
     alert('✅ Formulario guardado correctamente');
   }
 }

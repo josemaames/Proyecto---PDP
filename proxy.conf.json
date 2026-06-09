@@ -3,16 +3,5 @@
     "target": "http://localhost:3001",
     "secure": false,
     "changeOrigin": true
-  },
-  "/api/sunat": {
-    "target": "https://api.decolecta.com",
-    "secure": true,
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/api/sunat": "/v1/sunat"
-    },
-    "headers": {
-      "Authorization": "Bearer sk_16093.PxU18zqKbqgjfMWTuw48dslkqheFtgFp"
-    }
   }
 }

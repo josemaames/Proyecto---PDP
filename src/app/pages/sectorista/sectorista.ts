@@ -170,7 +170,7 @@ export class Sectorista implements OnInit {
   buscarRuc(ruc: string) {
     this.cargandoRuc = true;
 
-    this.http.get<any>(`/api/sunat/ruc?numero=${ruc}`).subscribe({
+    this.http.get<any>(`http://localhost:3001/api/sunat/ruc?numero=${ruc}`).subscribe({
       next: (data) => {
         this.cargandoRuc = false;
         this.matriz.proveedor = data.razon_social || data.razonSocial || '';

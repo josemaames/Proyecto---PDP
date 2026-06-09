@@ -302,6 +302,30 @@
   background: #c53030;
 }
 
+/* ERROR FORMULARIO */
+.error-formulario-ej {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+}
+.error-formulario-ej svg { stroke: #dc2626; flex-shrink: 0; margin-top: 2px; }
+.error-formulario-ej strong { display: block; margin-bottom: 6px; font-size: 14px; }
+.error-formulario-ej ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2px 16px;
+}
+.error-formulario-ej li { font-size: 13px; }
+
 .btn-guardar {
   width: 100%;
   padding: 15px;
