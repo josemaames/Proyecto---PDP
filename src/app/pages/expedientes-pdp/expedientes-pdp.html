@@ -25,6 +25,16 @@
       @for (r of redesAsignadas; track r) {
         <span class="badge-red-item">{{ r }}</span>
       }
+      @if (rolUsuario === 'Sectorista') {
+        <button class="btn-gestionar" (click)="abrirModalAsignar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Gestionar Ejecutores
+        </button>
+      }
     </div>
   }
 
@@ -129,6 +139,94 @@
   </div>
 
 </div>
+
+<!-- MODAL GESTIONAR EJECUTORES -->
+@if (mostrarModalAsignar) {
+  <div class="modal-overlay" (click)="cerrarModalAsignar()">
+    <div class="modal-asignar" (click)="$event.stopPropagation()">
+
+      <div class="modal-head">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="vertical-align:middle;margin-right:8px;stroke:#005baa">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h3 style="display:inline">Gestionar Ejecutores por Red</h3>
+        </div>
+        <button class="btn-cerrar" (click)="cerrarModalAsignar()">✕</button>
+      </div>
+
+      <div class="modal-asignar-cuerpo">
+
+        <!-- TABLA DE ASIGNACIONES ACTUALES -->
+        <table class="asig-tabla">
+          <thead>
+            <tr>
+              <th>Red Asistencial</th>
+              <th>Ejecutor Asignado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (red of redesSectorista; track red) {
+              <tr [class.asig-fila-activa]="asignRedSeleccionada === red">
+                <td><span class="badge-red-item">{{ red }}</span></td>
+                <td>
+                  @if (getEjecutorAsignado(red); as asig) {
+                    <span class="asig-nombre">{{ asig.nombre }}</span>
+                  } @else {
+                    <span class="asig-vacio">Sin asignar</span>
+                  }
+                </td>
+                <td class="asig-acciones">
+                  <button class="btn-asig-accion" (click)="prepararAsignacion(red)">
+                    {{ getEjecutorAsignado(red) ? 'Cambiar' : 'Asignar' }}
+                  </button>
+                  @if (getEjecutorAsignado(red)) {
+                    <button class="btn-asig-quitar" (click)="quitarAsignacion(red)">Quitar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <!-- FORMULARIO DE ASIGNACIÓN -->
+        @if (asignRedSeleccionada) {
+          <div class="asig-form">
+            <p class="asig-form-titulo">
+              Asignar ejecutor a <strong>{{ asignRedSeleccionada }}</strong>
+            </p>
+            <select class="asig-select" [(ngModel)]="asignEjecutorDni">
+              <option value="">— Seleccione un ejecutor —</option>
+              @for (ej of ejecutoresDisponibles; track ej.dni) {
+                <option [value]="ej.dni">{{ ej.nombre }} ({{ ej.dni }})</option>
+              }
+            </select>
+            <div class="asig-form-btns">
+              <button class="btn-asig-guardar" [disabled]="!asignEjecutorDni" (click)="guardarAsignacion()">
+                Guardar asignación
+              </button>
+              <button class="btn-asig-cancelar" (click)="asignRedSeleccionada = ''">Cancelar</button>
+            </div>
+          </div>
+        }
+
+        <!-- MENSAJE DE ÉXITO -->
+        @if (asigExito) {
+          <div class="asig-exito">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Asignación guardada. El ejecutor verá los datos de la red al iniciar sesión.
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}
 
 <!-- MODAL DETALLE -->
 @if (seleccionada) {

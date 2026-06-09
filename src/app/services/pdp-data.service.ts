@@ -86,6 +86,43 @@ export class PdpDataService {
 
   constructor(private http: HttpClient) {}
 
+  private normalizarSede(sede: string): string {
+    const mapa: Record<string, string> = {
+      'red asistencial arequipa': 'RA AREQUIPA',
+      'red asistencial cusco': 'RA CUSCO',
+      'red asistencial piura': 'RA PIURA',
+      'red asistencial la libertad': 'RA LA LIBERTAD',
+      'red asistencial ancash': 'RA ANCASH',
+      'red asistencial tacna': 'RA TACNA',
+      'red asistencial ica': 'RA ICA',
+      'red asistencial puno': 'RA PUNO',
+      'red asistencial loreto': 'RA LORETO',
+      'red asistencial pasco': 'RA PASCO',
+      'red asistencial junin': 'RA JUNIN',
+      'red asistencial juliaca': 'RA JULIACA',
+      'red asistencial apurimac': 'RA APURIMAC',
+      'red asistencial ayacucho': 'RA AYACUCHO',
+      'red asistencial cajamarca': 'RA CAJAMARCA',
+      'red asistencial tarapoto': 'RA TARAPOTO',
+      'red asistencial moyobamba': 'RA MOYOBAMBA',
+      'red asistencial moquegua': 'RA MOQUEGUA',
+      'red asistencial madre de dios': 'RA MADRE DE DIOS',
+      'red asistencial tumbes': 'RA TUMBES',
+      'red asistencial huanuco': 'RA HUANUCO',
+      'red asistencial huaraz': 'RA HUARAZ',
+      'red asistencial ucayali': 'RA UCAYALI',
+      'red asistencial huancavelica': 'RA HUANCAVELICA',
+      'red asistencial amazonas': 'RA AMAZONAS',
+      'red asistencial jaen': 'RA JAEN',
+      'red prestacional rebagliati': 'RP REBAGLIATI',
+      'red prestacional almenara': 'RP ALMENARA',
+      'red prestacional lambayeque': 'RP LAMBAYEQUE',
+      'red prestacional sabogal': 'RP SABOGAL',
+      'lurin': 'RP REBAGLIATI',
+    };
+    return mapa[sede.toLowerCase().trim()] ?? sede;
+  }
+
   /** Devuelve el filtro de red para el usuario logueado.
    *  Admin → '' (sin filtro), Sectorista → sedes separadas por coma, Ejecutor → su sede. */
   getRedFiltro(): string {
@@ -93,18 +130,24 @@ export class PdpDataService {
     if (!usuario.rol) return '';
     if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') return '';
     if (usuario.rol === 'Sectorista') {
-      const sedes: string[] = Array.isArray(usuario.sedes)
-        ? usuario.sedes
-        : usuario.sedes
-          ? [usuario.sedes]
-          : [];
-      return sedes.join(',');
+      let sedesArr: string[];
+      if (Array.isArray(usuario.sedes)) {
+        sedesArr = usuario.sedes;
+      } else if (usuario.sedes) {
+        sedesArr = (usuario.sedes as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+      } else {
+        sedesArr = [];
+      }
+      return sedesArr.map(s => this.normalizarSede(s)).join(',');
     }
     if (usuario.rol === 'Ejecutor') {
-      const sede: string = Array.isArray(usuario.sedes)
-        ? usuario.sedes[0] || ''
-        : usuario.sedes || usuario.sede || '';
-      return sede;
+      let sede: string;
+      if (Array.isArray(usuario.sedes)) {
+        sede = usuario.sedes[0] || '';
+      } else {
+        sede = (usuario.sedes as string) || usuario.sede || '';
+      }
+      return this.normalizarSede(sede.split(',')[0].trim());
     }
     return '';
   }

@@ -342,3 +342,186 @@
   font-size: 14px;
   color: #111827;
 }
+
+/* ── BOTÓN GESTIONAR EJECUTORES ──────────────── */
+.btn-gestionar {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1d4ed8;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.btn-gestionar:hover { background: #1e40af; }
+
+/* ── MODAL ASIGNAR EJECUTOR ──────────────────── */
+.modal-asignar {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-asignar-cuerpo {
+  padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Tabla de asignaciones */
+.asig-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.asig-tabla thead tr {
+  background: #f8faff;
+}
+
+.asig-tabla th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.asig-tabla td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.asig-fila-activa td { background: #eff6ff; }
+
+.asig-nombre { font-weight: 600; color: #111827; }
+.asig-vacio  { color: #9ca3af; font-style: italic; font-size: 12px; }
+
+.asig-acciones {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-asig-accion {
+  background: #005baa;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-asig-accion:hover { background: #004a8f; }
+
+.btn-asig-quitar {
+  background: white;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-asig-quitar:hover { background: #fef2f2; border-color: #dc2626; }
+
+/* Formulario inline */
+.asig-form {
+  background: #f8faff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asig-form-titulo {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.asig-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  outline: none;
+  cursor: pointer;
+}
+.asig-select:focus { border-color: #005baa; box-shadow: 0 0 0 3px rgba(0,91,170,0.1); }
+
+.asig-form-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-asig-guardar {
+  background: #005baa;
+  color: white;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-asig-guardar:hover:not(:disabled) { background: #004a8f; }
+.btn-asig-guardar:disabled { opacity: 0.45; cursor: default; }
+
+.btn-asig-cancelar {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-asig-cancelar:hover { background: #f3f4f6; }
+
+/* Mensaje de éxito */
+.asig-exito {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dcfce7;
+  border: 1.5px solid #86efac;
+  color: #15803d;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  animation: fadeIn 0.25s ease;
+}
+.asig-exito svg { stroke: #15803d; flex-shrink: 0; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }

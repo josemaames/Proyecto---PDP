@@ -80,7 +80,7 @@ export class Personal implements OnInit {
       cargo: 'Sectorista Red Arequipa',
       rol: 'Sectorista',
       estado: 'Activo',
-      sedes: 'Red Asistencial Arequipa',
+      sedes: 'RA AREQUIPA',
     },
     {
       dni: '33333333',
@@ -88,7 +88,7 @@ export class Personal implements OnInit {
       cargo: 'Sectorista Redes Sur-Centro',
       rol: 'Sectorista',
       estado: 'Activo',
-      sedes: 'Red Asistencial Cusco,Red Asistencial Arequipa,Red Asistencial Piura',
+      sedes: 'RA CUSCO,RA AREQUIPA,RA PIURA',
     },
     {
       dni: '48562134',
@@ -96,7 +96,7 @@ export class Personal implements OnInit {
       cargo: 'Sectorista Red Rebagliati',
       rol: 'Sectorista',
       estado: 'Activo',
-      sedes: 'Red Asistencial Rebagliati',
+      sedes: 'RP REBAGLIATI',
     },
     {
       dni: '71234589',
@@ -104,7 +104,7 @@ export class Personal implements OnInit {
       cargo: 'Sectorista Red Almenara',
       rol: 'Sectorista',
       estado: 'Activo',
-      sedes: 'Red Asistencial Almenara',
+      sedes: 'RP ALMENARA',
     },
 
     // EJECUTORES
@@ -114,7 +114,7 @@ export class Personal implements OnInit {
       cargo: 'Ejecutor Red Lurin',
       rol: 'Ejecutor',
       estado: 'Activo',
-      sedes: 'Lurin',
+      sedes: 'RP REBAGLIATI',
     },
     {
       dni: '44444444',
@@ -122,7 +122,7 @@ export class Personal implements OnInit {
       cargo: 'Ejecutor Red Arequipa',
       rol: 'Ejecutor',
       estado: 'Activo',
-      sedes: 'Red Asistencial Arequipa',
+      sedes: 'RA AREQUIPA',
     },
     {
       dni: '59874123',
@@ -154,7 +154,7 @@ export class Personal implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-    const VERSION = 'v2';
+    const VERSION = 'v3';
     if (localStorage.getItem('usuariosVersion') !== VERSION) {
       localStorage.removeItem('usuarios');
       localStorage.setItem('usuariosVersion', VERSION);

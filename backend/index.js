@@ -355,7 +355,14 @@ app.get('/api/personal-essalud', async (req, res) => {
     params.push(search); idx++;
 
     if (red) {
-      const redes = red.split(',').map(r => r.trim()).filter(Boolean);
+      // Expand abbreviations: RA XXXXX → RED ASISTENCIAL XXXXX, RP XXXXX → RED PRESTACIONAL XXXXX
+      const expandirRed = (r) => {
+        const u = r.trim().toUpperCase();
+        if (u.startsWith('RA ')) return 'RED ASISTENCIAL ' + u.slice(3);
+        if (u.startsWith('RP ')) return 'RED PRESTACIONAL ' + u.slice(3);
+        return u;
+      };
+      const redes = red.split(',').map(r => expandirRed(r)).filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
         params.push(`%${redes[0]}%`); idx++;
