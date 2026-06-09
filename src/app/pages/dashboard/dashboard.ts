@@ -67,6 +67,13 @@ export class Dashboard implements OnInit, OnDestroy {
   cargandoResumen = false;
   busquedaRed = '';
 
+  // ── Filtro de red seleccionado ───────────────
+  redSeleccionada = '';
+
+  actualizarGraficos() {
+    this.construirGraficos(this.statsGlobal, this.resumenRedes);
+  }
+
   get resumenRedesFiltrado(): ResumenRed[] {
     const q = this.busquedaRed.trim().toLowerCase();
     if (!q) return this.resumenRedes;
@@ -261,7 +268,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
     // Gráfico 2 — Top 8 redes por capacitaciones (barras)
 
-    const topRedes = resumen.slice(0, 8);
+    const topRedes = this.busquedaRed ? this.resumenRedesFiltrado : resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
       data: {

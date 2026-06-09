@@ -16,7 +16,10 @@ const cache = new Map();
 function getCache(key) {
   const entry = cache.get(key);
   if (!entry) return null;
-  if (Date.now() - entry.ts > CACHE_TTL) { cache.delete(key); return null; }
+  if (Date.now() - entry.ts > CACHE_TTL) {
+    cache.delete(key);
+    return null;
+  }
   return entry.data;
 }
 function setCache(key, data) {
@@ -38,12 +41,13 @@ const pool = new Pool({
   password: process.env.DB_PASS || 'admin123',
 });
 
-pool.connect()
+pool
+  .connect()
   .then(() => {
     console.log('✓ Conectado a PostgreSQL');
     crearIndices();
   })
-  .catch(err => console.error('✗ Error de conexión:', err.message));
+  .catch((err) => console.error('✗ Error de conexión:', err.message));
 
 async function crearIndices() {
   const indices = [
@@ -115,12 +119,19 @@ app.get('/api/participantes', async (req, res) => {
       idx++;
     }
     if (red) {
-      const redes = red.split(',').map(r => r.trim()).filter(Boolean);
+      const redes = red
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
-        params.push(`%${redes[0]}%`); idx++;
+        params.push(`%${redes[0]}%`);
+        idx++;
       } else if (redes.length > 1) {
-        const redConds = redes.map((r, i) => { params.push(`%${r}%`); return `red ILIKE $${idx + i}`; });
+        const redConds = redes.map((r, i) => {
+          params.push(`%${r}%`);
+          return `red ILIKE $${idx + i}`;
+        });
         idx += redes.length;
         conditions.push(`(${redConds.join(' OR ')})`);
       }
@@ -207,7 +218,10 @@ app.get('/api/actividades', async (req, res) => {
       idx++;
     }
     if (red) {
-      const redList = red.split(',').map(r => r.trim()).filter(Boolean);
+      const redList = red
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (redList.length === 1) {
         conditions.push(`red_asistencial ILIKE $${idx}`);
         params.push(`%${redList[0]}%`);
@@ -215,7 +229,7 @@ app.get('/api/actividades', async (req, res) => {
       } else {
         const orClauses = redList.map((_, i) => `red_asistencial ILIKE $${idx + i}`).join(' OR ');
         conditions.push(`(${orClauses})`);
-        params.push(...redList.map(r => `%${r}%`));
+        params.push(...redList.map((r) => `%${r}%`));
         idx += redList.length;
       }
     }
@@ -348,19 +362,31 @@ app.get('/api/personal-essalud', async (req, res) => {
     const { q = '', red = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    let conditions = [], params = [], idx = 1;
+    let conditions = [],
+      params = [],
+      idx = 1;
 
     const search = `%${q || ''}%`;
-    conditions.push(`(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx})`);
-    params.push(search); idx++;
+    conditions.push(
+      `(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx})`,
+    );
+    params.push(search);
+    idx++;
 
     if (red) {
-      const redes = red.split(',').map(r => r.trim()).filter(Boolean);
+      const redes = red
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
-        params.push(`%${redes[0]}%`); idx++;
+        params.push(`%${redes[0]}%`);
+        idx++;
       } else if (redes.length > 1) {
-        const redConds = redes.map((r, i) => { params.push(`%${r}%`); return `red ILIKE $${idx + i}`; });
+        const redConds = redes.map((r, i) => {
+          params.push(`%${r}%`);
+          return `red ILIKE $${idx + i}`;
+        });
         idx += redes.length;
         conditions.push(`(${redConds.join(' OR ')})`);
       }
@@ -369,12 +395,10 @@ app.get('/api/personal-essalud', async (req, res) => {
     const where = `WHERE ${conditions.join(' AND ')}`;
 
     const { rows } = await pool.query(
-      `SELECT * FROM personal ${where} ORDER BY apellidos, nombre LIMIT $${idx} OFFSET $${idx+1}`,
-      [...params, parseInt(limit), offset]
+      `SELECT * FROM personal ${where} ORDER BY apellidos, nombre LIMIT $${idx} OFFSET $${idx + 1}`,
+      [...params, parseInt(limit), offset],
     );
-    const { rows: c } = await pool.query(
-      `SELECT COUNT(*) FROM personal ${where}`, params
-    );
+    const { rows: c } = await pool.query(`SELECT COUNT(*) FROM personal ${where}`, params);
     res.json({ data: rows, total: parseInt(c[0].count) });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -409,12 +433,18 @@ app.get('/api/resumen-redes', async (req, res) => {
     const params = [];
 
     if (redes) {
-      const lista = redes.split(',').map(r => r.trim()).filter(Boolean);
+      const lista = redes
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (lista.length === 1) {
         where = `WHERE red_asistencial ILIKE $1`;
         params.push(`%${lista[0]}%`);
       } else if (lista.length > 1) {
-        const conds = lista.map((r, i) => { params.push(`%${r}%`); return `red_asistencial ILIKE $${i + 1}`; });
+        const conds = lista.map((r, i) => {
+          params.push(`%${r}%`);
+          return `red_asistencial ILIKE $${i + 1}`;
+        });
         where = `WHERE (${conds.join(' OR ')})`;
       }
     }
@@ -430,13 +460,14 @@ app.get('/api/resumen-redes', async (req, res) => {
        ${where}
        GROUP BY COALESCE(red_asistencial, 'Sin Red')
        ORDER BY capacitaciones DESC`,
-      params
+      params,
     );
     setCache(cacheKey, rows);
     res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
 
 // ══════════════════════════════════════════════
 // ESTADÍSTICAS
@@ -448,28 +479,34 @@ app.get('/api/stats', async (req, res) => {
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
-    const actWhere  = red ? `WHERE red_asistencial ILIKE $1` : '';
-    const partWhere = red ? `WHERE red ILIKE $1`             : '';
-    const p         = red ? [`%${red}%`]                     : [];
+    const actWhere = red ? `WHERE red_asistencial ILIKE $1` : '';
+    const partWhere = red ? `WHERE red ILIKE $1` : '';
+    const p = red ? [`%${red}%`] : [];
 
     const queries = await Promise.all([
-      pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`,  p),
+      pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`, p),
       pool.query(`SELECT COUNT(*) FROM lista_participantes ${partWhere}`, p),
-      pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`, p),
+      pool.query(
+        `SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`,
+        p,
+      ),
       pool.query(`SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`, p),
-      pool.query(`
+      pool.query(
+        `
         SELECT modalidad, COUNT(*) as total
         FROM datos_actividad ${actWhere}
         GROUP BY modalidad ORDER BY total DESC
-      `, p),
+      `,
+        p,
+      ),
     ]);
 
     const result = {
-      actividades:       parseInt(queries[0].rows[0].count),
-      participantes:     parseInt(queries[1].rows[0].count),
+      actividades: parseInt(queries[0].rows[0].count),
+      participantes: parseInt(queries[1].rows[0].count),
       presupuesto_total: parseFloat(queries[2].rows[0].coalesce),
-      redes:             parseInt(queries[3].rows[0].count),
-      por_modalidad:     queries[4].rows,
+      redes: parseInt(queries[3].rows[0].count),
+      por_modalidad: queries[4].rows,
     };
     setCache(cacheKey, result);
     res.json(result);
@@ -483,6 +520,10 @@ app.get('/api/stats', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/dashboard', async (req, res) => {
   try {
+    const red = req.query.red || '';
+    const whereActividad = red ? `WHERE red_asistencial = '${red}'` : '';
+
+    const whereParticipante = red ? `WHERE red = '${red}'` : '';
     const [
       personal,
       actividades,

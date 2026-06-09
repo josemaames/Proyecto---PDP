@@ -175,7 +175,11 @@
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ statsGlobal.actividades | number }}</span>
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed ? totalCapacitacionesFiltrado : statsGlobal.actividades) | number
+                  }}
+                </span>
                 <span class="kpi-label">Capacitaciones PDP</span>
               </div>
             </div>
@@ -189,8 +193,13 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
+
               <div class="kpi-info">
-                <span class="kpi-valor">{{ statsGlobal.participantes | number }}</span>
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed ? totalParticipantesFiltrado : statsGlobal.participantes) | number
+                  }}
+                </span>
                 <span class="kpi-label">Participantes Totales</span>
               </div>
             </div>
@@ -202,8 +211,14 @@
                   <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
               </div>
+
               <div class="kpi-info">
-                <span class="kpi-valor">{{ statsGlobal.presupuesto_total | number: '1.0-0' }}</span>
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed ? totalPresupuestoFiltrado : statsGlobal.presupuesto_total)
+                      | number: '1.0-0'
+                  }}
+                </span>
                 <span class="kpi-label">Presupuesto Total (S/.)</span>
               </div>
             </div>
@@ -349,15 +364,15 @@
 
           @if (!cargandoResumen && resumenRedes.length > 0) {
             <div class="buscador-red">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <svg ...></svg>
+
               <input
                 type="text"
                 [(ngModel)]="busquedaRed"
+                (input)="actualizarGraficos()"
                 placeholder="Buscar red asistencial..."
               />
+
               @if (busquedaRed) {
                 <button class="btn-limpiar" (click)="busquedaRed = ''">✕</button>
               }
