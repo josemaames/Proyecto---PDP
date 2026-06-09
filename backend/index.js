@@ -119,10 +119,6 @@ app.get('/api/participantes', async (req, res) => {
       idx++;
     }
     if (red) {
-      const redes = red
-        .split(',')
-        .map((r) => r.trim())
-        .filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
         params.push(`%${redes[0]}%`);
@@ -374,12 +370,6 @@ app.get('/api/personal-essalud', async (req, res) => {
     idx++;
 
     if (red) {
-<<<<<<< HEAD
-      const redes = red
-        .split(',')
-        .map((r) => r.trim())
-        .filter(Boolean);
-=======
       // Expand abbreviations: RA XXXXX → RED ASISTENCIAL XXXXX, RP XXXXX → RED PRESTACIONAL XXXXX
       const expandirRed = (r) => {
         const u = r.trim().toUpperCase();
@@ -387,8 +377,11 @@ app.get('/api/personal-essalud', async (req, res) => {
         if (u.startsWith('RP ')) return 'RED PRESTACIONAL ' + u.slice(3);
         return u;
       };
-      const redes = red.split(',').map(r => expandirRed(r)).filter(Boolean);
->>>>>>> 4813bb0ccb82d2959a72865df09f514d17256234
+      const redes = red
+        .split(',')
+        .map((r) => expandirRed(r))
+        .filter(Boolean);
+
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
         params.push(`%${redes[0]}%`);
@@ -558,17 +551,19 @@ app.get('/api/dashboard', async (req, res) => {
       `),
 
       pool.query(`
-        SELECT mes_termino, COUNT(*) total
-        FROM datos_actividad
-        GROUP BY mes_termino
-        ORDER BY total DESC
-      `),
+  SELECT mes_termino, COUNT(*) total
+  FROM datos_actividad
+  ${whereActividad}
+  GROUP BY mes_termino
+  ORDER BY total DESC
+`),
 
       pool.query(`
-        SELECT sexo, COUNT(*) total
-        FROM lista_participantes
-        GROUP BY sexo
-      `),
+  SELECT sexo, COUNT(*) total
+  FROM lista_participantes
+  ${whereParticipante}
+  GROUP BY sexo
+`),
 
       pool.query(`
         SELECT red, COUNT(*) total
@@ -579,10 +574,11 @@ app.get('/api/dashboard', async (req, res) => {
       `),
 
       pool.query(`
-        SELECT modalidad, COUNT(*) total
-        FROM datos_actividad
-        GROUP BY modalidad
-      `),
+  SELECT modalidad, COUNT(*) total
+  FROM datos_actividad
+  ${whereActividad}
+  GROUP BY modalidad
+`),
 
       pool.query(`
         SELECT servicio_area, COUNT(*) total

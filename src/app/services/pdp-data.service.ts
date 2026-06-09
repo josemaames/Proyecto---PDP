@@ -118,7 +118,7 @@ export class PdpDataService {
       'red prestacional almenara': 'RP ALMENARA',
       'red prestacional lambayeque': 'RP LAMBAYEQUE',
       'red prestacional sabogal': 'RP SABOGAL',
-      'lurin': 'RP REBAGLIATI',
+      lurin: 'RP REBAGLIATI',
     };
     return mapa[sede.toLowerCase().trim()] ?? sede;
   }
@@ -134,11 +134,14 @@ export class PdpDataService {
       if (Array.isArray(usuario.sedes)) {
         sedesArr = usuario.sedes;
       } else if (usuario.sedes) {
-        sedesArr = (usuario.sedes as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+        sedesArr = (usuario.sedes as string)
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean);
       } else {
         sedesArr = [];
       }
-      return sedesArr.map(s => this.normalizarSede(s)).join(',');
+      return sedesArr.map((s) => this.normalizarSede(s)).join(',');
     }
     if (usuario.rol === 'Ejecutor') {
       let sede: string;
@@ -237,7 +240,9 @@ export class PdpDataService {
     return this.http.get<PersonalEssalud>(`${this.api}/personal-essalud/dni/${dni}`);
   }
 
-  getDashboard(): Observable<any> {
-    return this.http.get<any>(`${this.api}/dashboard`);
+  getDashboard(red = ''): Observable<any> {
+    const params = red ? new HttpParams().set('red', red) : new HttpParams();
+
+    return this.http.get<any>(`${this.api}/dashboard`, { params });
   }
 }

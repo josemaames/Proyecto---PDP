@@ -71,7 +71,66 @@ export class Dashboard implements OnInit, OnDestroy {
   redSeleccionada = '';
 
   actualizarGraficos() {
-    this.construirGraficos(this.statsGlobal, this.resumenRedes);
+    const total = this.totalParticipantesFiltrado;
+
+    const mujeres = Math.round(total * 0.73);
+    const hombres = total - mujeres;
+
+    this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
+      this.construirGraficos(stats, this.resumenRedesFiltrado);
+    });
+
+    this.pdpData.getDashboard(this.busquedaRed).subscribe((dashboard) => {
+      const ordenMeses = [
+        'ENERO',
+        'FEBRERO',
+        'MARZO',
+        'ABRIL',
+        'MAYO',
+        'JUNIO',
+        'JULIO',
+        'AGOSTO',
+        'SETIEMBRE',
+        'OCTUBRE',
+        'NOVIEMBRE',
+        'DICIEMBRE',
+      ];
+
+      const mesesOrdenados = [...dashboard.actividadesMes].sort(
+        (a: any, b: any) =>
+          ordenMeses.indexOf((a.mes_termino || '').toUpperCase()) -
+          ordenMeses.indexOf((b.mes_termino || '').toUpperCase()),
+      );
+
+      this.chartConfigMeses = {
+        type: 'line',
+        data: {
+          labels: mesesOrdenados.map((x: any) => x.mes_termino),
+          datasets: [
+            {
+              label: 'Actividades',
+              data: mesesOrdenados.map((x: any) => Number(x.total)),
+              borderColor: '#005baa',
+              backgroundColor: '#005baa',
+              tension: 0.3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+        },
+      };
+    });
+
+    if (!this.busquedaRed) {
+      this.construirGraficos(this.statsGlobal, this.resumenRedes);
+      return;
+    }
+
+    this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
+      this.construirGraficos(stats, this.resumenRedesFiltrado);
+    });
   }
 
   get resumenRedesFiltrado(): ResumenRed[] {
@@ -409,6 +468,14 @@ export class Dashboard implements OnInit, OnDestroy {
   }
   get totalPresupuesto() {
     return this.resumenRedes.reduce((s, r) => s + Number(r.presupuesto), 0);
+  }
+
+  get porcentajeFemenino() {
+    return 73;
+  }
+
+  get porcentajeMasculino() {
+    return 27;
   }
 
   formatMoneda(v: number): string {
