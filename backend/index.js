@@ -207,9 +207,17 @@ app.get('/api/actividades', async (req, res) => {
       idx++;
     }
     if (red) {
-      conditions.push(`red_asistencial ILIKE $${idx}`);
-      params.push(`%${red}%`);
-      idx++;
+      const redList = red.split(',').map(r => r.trim()).filter(Boolean);
+      if (redList.length === 1) {
+        conditions.push(`red_asistencial ILIKE $${idx}`);
+        params.push(`%${redList[0]}%`);
+        idx++;
+      } else {
+        const orClauses = redList.map((_, i) => `red_asistencial ILIKE $${idx + i}`).join(' OR ');
+        conditions.push(`(${orClauses})`);
+        params.push(...redList.map(r => `%${r}%`));
+        idx += redList.length;
+      }
     }
     if (modalidad) {
       conditions.push(`modalidad ILIKE $${idx}`);

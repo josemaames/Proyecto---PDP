@@ -15,6 +15,19 @@
     </div>
   </div>
 
+  <!-- BADGE RED ASIGNADA (sectorista / ejecutor) -->
+  @if (redFiltro) {
+    <div class="filtro-red-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      Mostrando solo capacitaciones de:
+      @for (r of redesAsignadas; track r) {
+        <span class="badge-red-item">{{ r }}</span>
+      }
+    </div>
+  }
+
   <!-- FILTROS -->
   <div class="filtros-bar">
     <div class="filtro-grupo">

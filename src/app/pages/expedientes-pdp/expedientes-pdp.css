@@ -20,6 +20,32 @@
 
 .exp-subtitulo { font-size: 13px; color: #6b7280; margin-top: 2px; display: block; }
 
+/* ── BADGE RED ASIGNADA ──────────────────────── */
+.filtro-red-badge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.filtro-red-badge svg { stroke: #1d4ed8; flex-shrink: 0; }
+.badge-red-item {
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
 /* ── FILTROS ─────────────────────────────────── */
 .filtros-bar {
   display: flex;

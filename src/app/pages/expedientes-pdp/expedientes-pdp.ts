@@ -29,6 +29,10 @@ export class ExpedientesPdp implements OnInit {
     return Math.max(1, Math.ceil(this.total / this.limit));
   }
 
+  get redesAsignadas(): string[] {
+    return this.redFiltro.split(',').map(r => r.trim()).filter(Boolean);
+  }
+
   ngOnInit() {
     this.redFiltro = this.pdpData.getRedFiltro();
     this.cargar();
@@ -37,6 +41,7 @@ export class ExpedientesPdp implements OnInit {
   cargar() {
     this.cargando = true;
     const red = this.filtrored || this.redFiltro;
+    console.log('[Expedientes] redFiltro=', this.redFiltro, '| red usado=', red);
     this.pdpData.getActividades(this.busqueda, red, this.filtroMod, this.pagina, this.limit)
       .subscribe({
         next: (res) => {

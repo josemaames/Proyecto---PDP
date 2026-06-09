@@ -85,7 +85,7 @@ export class Login {
         numeroPlantilla: 'PL-0005',
         tipo: 'Sectorista',
         rol: 'Sectorista',
-        sedes: ['Red Asistencial Arequipa'],
+        sedes: ['RA AREQUIPA'],
       },
       {
         id: 7,
@@ -95,7 +95,7 @@ export class Login {
         numeroPlantilla: 'PL-0007',
         tipo: 'Sectorista',
         rol: 'Sectorista',
-        sedes: ['Red Asistencial Cusco', 'Red Asistencial Arequipa', 'Red Asistencial Piura'],
+        sedes: ['RA CUSCO', 'RA AREQUIPA', 'RA PIURA'],
       },
       // ── EJECUTORES ───────────────────────────────
       {
@@ -106,7 +106,7 @@ export class Login {
         numeroPlantilla: 'PL-0006',
         tipo: 'Ejecutor',
         rol: 'Ejecutor',
-        sedes: ['Lurin'],
+        sedes: ['RP REBAGLIATI'],
       },
       {
         id: 8,
@@ -116,7 +116,7 @@ export class Login {
         numeroPlantilla: 'PL-0008',
         tipo: 'Ejecutor',
         rol: 'Ejecutor',
-        sedes: ['Red Asistencial Arequipa'],
+        sedes: ['RA AREQUIPA'],
       },
     ];
 

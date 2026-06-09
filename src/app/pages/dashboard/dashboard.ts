@@ -4,7 +4,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
 
@@ -24,7 +24,8 @@ type ResumenRed = {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+  private destroy$      = new Subject<void>();
+  private busquedaSubject = new Subject<string>();
 
   nombre = '';
   rol = '';
@@ -67,6 +68,8 @@ export class Dashboard implements OnInit, OnDestroy {
   cargandoResumen = false;
   busquedaRed = '';
 
+  get filtrandoPorRed(): boolean { return !!this.busquedaRed.trim(); }
+
   get resumenRedesFiltrado(): ResumenRed[] {
     const q = this.busquedaRed.trim().toLowerCase();
     if (!q) return this.resumenRedes;
@@ -77,6 +80,19 @@ export class Dashboard implements OnInit, OnDestroy {
   get totalHorasFiltrado()          { return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.horas), 0); }
   get totalParticipantesFiltrado()  { return this.resumenRedesFiltrado.reduce((s, r) => s + r.participantes, 0); }
   get totalPresupuestoFiltrado()    { return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.presupuesto), 0); }
+
+  get kpiCapacitaciones(): number {
+    return this.filtrandoPorRed ? this.totalCapacitacionesFiltrado : this.statsGlobal.actividades;
+  }
+  get kpiParticipantes(): number {
+    return this.filtrandoPorRed ? this.totalParticipantesFiltrado : this.statsGlobal.participantes;
+  }
+  get kpiPresupuesto(): number {
+    return this.filtrandoPorRed ? this.totalPresupuestoFiltrado : this.statsGlobal.presupuesto_total;
+  }
+  get kpiRedes(): number {
+    return this.filtrandoPorRed ? this.resumenRedesFiltrado.length : this.statsGlobal.redes;
+  }
 
   // ── Gráficos ──────────────────────────────────
   chartConfigModalidad: any;
@@ -122,6 +138,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (this.esAdministrador) {
       this.cargarDatosAdmin();
+
+      this.busquedaSubject.pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      ).subscribe(q => this.refrescarPieChart(q));
     }
   }
 
@@ -154,22 +176,22 @@ export class Dashboard implements OnInit, OnDestroy {
       });
   }
 
-  private construirGraficos(stats: any, resumen: ResumenRed[]) {
-    const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
-    const modLabels = porModalidad.map(m => m.modalidad || 'Sin modalidad');
-    const modData   = porModalidad.map(m => Number(m.total));
+  private construirGraficos(stats: any, _resumen: ResumenRed[]) {
+    this.reconstruirPieChart(stats);
+    this.actualizarGraficoRedes();
+  }
 
+  private reconstruirPieChart(stats: any) {
+    const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
     this.chartConfigModalidad = {
       type: 'pie',
       data: {
-        labels: modLabels,
-        datasets: [
-          {
-            data: modData,
-            backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
-            borderWidth: 1,
-          },
-        ],
+        labels: porModalidad.map(m => m.modalidad || 'Sin modalidad'),
+        datasets: [{
+          data: porModalidad.map(m => Number(m.total)),
+          backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
+          borderWidth: 1,
+        }],
       },
       options: {
         responsive: true,
@@ -180,17 +202,49 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       },
     };
+  }
 
-    // Gráfico 2 — Top 8 redes por capacitaciones (barras)
-    const topRedes = resumen.slice(0, 8);
+  private refrescarPieChart(q: string) {
+    this.chartConfigModalidad = null;
+    this.pdpData.getStats(q)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next:  stats => this.reconstruirPieChart(stats),
+        error: ()    => this.reconstruirPieChart(this.statsGlobal),
+      });
+  }
+
+  onBusquedaChange(q: string) {
+    this.actualizarGraficoRedes();
+    if (!q.trim()) {
+      this.reconstruirPieChart(this.statsGlobal);
+    } else {
+      this.busquedaSubject.next(q);
+    }
+  }
+
+  actualizarGraficoRedes() {
+    const redes = this.filtrandoPorRed
+      ? this.resumenRedesFiltrado
+      : this.resumenRedes.slice(0, 8);
+
+    if (!redes.length) {
+      this.chartConfigRedes = null;
+      return;
+    }
+
+    const titulo = this.filtrandoPorRed
+      ? `Resultado para "${this.busquedaRed.trim()}"`
+      : 'Capacitaciones por Red Asistencial (Top 8)';
+
     this.chartConfigRedes = {
       type: 'bar',
       data: {
-        labels: topRedes.map((r) => r.red.replace('Red Asistencial ', '')),
+        labels: redes.map(r => r.red.replace('Red Asistencial ', '')),
         datasets: [
           {
             label: 'Capacitaciones',
-            data: topRedes.map((r) => r.capacitaciones),
+            data: redes.map(r => r.capacitaciones),
             backgroundColor: '#005baa',
             borderRadius: 6,
           },
@@ -201,7 +255,7 @@ export class Dashboard implements OnInit, OnDestroy {
         maintainAspectRatio: true,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Capacitaciones por Red Asistencial (Top 8)' },
+          title: { display: true, text: titulo },
         },
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
       },

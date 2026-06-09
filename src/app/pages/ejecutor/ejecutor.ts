@@ -166,9 +166,9 @@ export class Ejecutor implements OnInit {
     this.errorRuc = '';
     this.buscandoRuc = true;
 
-    this.http.get<any>(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`).subscribe({
+    this.http.get<any>(`/api/sunat/ruc?numero=${ruc}`).subscribe({
       next: (data) => {
-        this.formulario.nombreProveedor = data.nombre || '';
+        this.formulario.nombreProveedor = data.razon_social || data.razonSocial || data.nombre || '';
         this.buscandoRuc = false;
       },
       error: () => {
