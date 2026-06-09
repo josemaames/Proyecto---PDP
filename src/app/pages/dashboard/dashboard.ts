@@ -3,11 +3,10 @@ import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart, registerables } from 'chart.js';
-import { Subject } from 'rxjs';
-import { ExpedienteService } from '../../services/expediente.service';
-import { forkJoin } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ExpedienteService } from '../../services/expediente.service';
+import { PdpDataService } from '../../services/pdp-data.service';
 
 type ResumenRed = {
   red: string;
@@ -16,8 +15,6 @@ type ResumenRed = {
   participantes: number;
   presupuesto: number;
 };
-
-Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -63,18 +60,42 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // ── KPIs (datos reales de BD) ─────────────────
   statsGlobal = { actividades: 0, participantes: 0, presupuesto_total: 0, redes: 0 };
+  cargandoKpis = false;
 
   // ── Resumen por Red Asistencial ───────────────
   resumenRedes: ResumenRed[] = [];
   cargandoResumen = false;
+  busquedaRed = '';
+
+  get resumenRedesFiltrado(): ResumenRed[] {
+    const q = this.busquedaRed.trim().toLowerCase();
+    if (!q) return this.resumenRedes;
+    return this.resumenRedes.filter((r) => r.red.toLowerCase().includes(q));
+  }
+
+  get totalCapacitacionesFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + r.capacitaciones, 0);
+  }
+  get totalHorasFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.horas), 0);
+  }
+  get totalParticipantesFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + r.participantes, 0);
+  }
+  get totalPresupuestoFiltrado() {
+    return this.resumenRedesFiltrado.reduce((s, r) => s + Number(r.presupuesto), 0);
+  }
 
   // ── Gráficos ──────────────────────────────────
   chartConfigModalidad: any;
   chartConfigRedes: any;
+  chartConfigSexo: any;
+  chartConfigMeses: any;
 
   constructor(
     private router: Router,
     private expedienteService: ExpedienteService,
+    private pdpData: PdpDataService,
   ) {}
 
   ngOnInit() {
@@ -109,7 +130,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.cargarMenuPorRol();
 
-    this.cargandoResumen = false;
+    if (this.esAdministrador) {
+      this.cargarDatosAdmin();
+    }
   }
 
   ngOnDestroy() {
@@ -118,31 +141,101 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private cargarDatosAdmin() {
+    this.cargandoKpis = true;
     this.cargandoResumen = true;
 
-    forkJoin({})
+    forkJoin({
+      stats: this.pdpData.getStats(),
+      resumen: this.pdpData.getResumenRedes(),
+      dashboard: this.pdpData.getDashboard(),
+    })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ stats, resumen }: any) => {
+        next: ({ stats, resumen, dashboard }) => {
           this.statsGlobal = stats;
           this.resumenRedes = resumen;
-          this.construirGraficos(stats, resumen);
+          // Participantes por sexo
+          // Agrupar sexo (FEMENINO/Femenino)
+          const sexoAgrupado: any = {};
+
+          dashboard.participantesSexo.forEach((x: any) => {
+            const sexo = (x.sexo || 'Sin dato').toUpperCase();
+
+            sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
+          });
+
+          this.chartConfigSexo = {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(sexoAgrupado),
+              datasets: [
+                {
+                  data: Object.values(sexoAgrupado),
+                  backgroundColor: ['#ec4899', '#3b82f6'],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+            },
+          };
+
+          // Ordenar meses correctamente
+          const ordenMeses = [
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Setiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre',
+          ];
+
+          const mesesOrdenados = [...dashboard.actividadesMes].sort(
+            (a: any, b: any) =>
+              ordenMeses.indexOf(a.mes_termino) - ordenMeses.indexOf(b.mes_termino),
+          );
+
+          this.chartConfigMeses = {
+            type: 'line',
+            data: {
+              labels: mesesOrdenados.map((x: any) => x.mes_termino),
+              datasets: [
+                {
+                  label: 'Actividades',
+                  data: mesesOrdenados.map((x: any) => Number(x.total)),
+                  borderColor: '#005baa',
+                  backgroundColor: '#005baa',
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+            },
+          };
+          this.cargandoKpis = false;
           this.cargandoResumen = false;
+          this.construirGraficos(stats, resumen);
         },
         error: () => {
+          this.cargandoKpis = false;
           this.cargandoResumen = false;
         },
       });
   }
 
   private construirGraficos(stats: any, resumen: ResumenRed[]) {
-    // Gráfico 1 — Capacitaciones por Modalidad (viene ya agrupado del servidor)
-    const modLabels = (stats.por_modalidad as { modalidad: string; total: number }[]).map(
-      (m) => m.modalidad || 'Sin modalidad',
-    );
-    const modData = (stats.por_modalidad as { modalidad: string; total: number }[]).map((m) =>
-      Number(m.total),
-    );
+    const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
+    const modLabels = porModalidad.map((m) => m.modalidad || 'Sin modalidad');
+    const modData = porModalidad.map((m) => Number(m.total));
 
     this.chartConfigModalidad = {
       type: 'pie',
@@ -167,6 +260,7 @@ export class Dashboard implements OnInit, OnDestroy {
     };
 
     // Gráfico 2 — Top 8 redes por capacitaciones (barras)
+
     const topRedes = resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
@@ -181,6 +275,7 @@ export class Dashboard implements OnInit, OnDestroy {
           },
         ],
       },
+
       options: {
         responsive: true,
         maintainAspectRatio: true,
@@ -300,13 +395,13 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0);
   }
   get totalHoras() {
-    return this.resumenRedes.reduce((s, r) => s + r.horas, 0);
+    return this.resumenRedes.reduce((s, r) => s + Number(r.horas), 0);
   }
   get totalParticipantes() {
     return this.resumenRedes.reduce((s, r) => s + r.participantes, 0);
   }
   get totalPresupuesto() {
-    return this.resumenRedes.reduce((s, r) => s + r.presupuesto, 0);
+    return this.resumenRedes.reduce((s, r) => s + Number(r.presupuesto), 0);
   }
 
   formatMoneda(v: number): string {

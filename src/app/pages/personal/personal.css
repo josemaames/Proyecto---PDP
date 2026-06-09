@@ -244,6 +244,7 @@
 }
 
 .campo-sedes { grid-column: 1 / -1; }
+.campo-full  { grid-column: 1 / -1; }
 
 .campo-hint {
   display: block;
@@ -251,6 +252,87 @@
   color: #6b7280;
   margin-top: 4px;
 }
+
+/* ── Checkboxes de redes (Sectorista) ─────── */
+.redes-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.check-red {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 20px;
+  font-size: 12.5px;
+  color: #374151;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.check-red:hover { border-color: #005baa; background: #eff6ff; color: #1a4fa8; }
+
+.check-red-activo {
+  border-color: #005baa;
+  background: #dbeafe;
+  color: #1a4fa8;
+  font-weight: 600;
+}
+
+.check-red input[type="checkbox"] { accent-color: #005baa; width: 14px; height: 14px; }
+
+.redes-resumen {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a4fa8;
+}
+
+.redes-cargando {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+/* ── Campo contraseña ────────────────────────── */
+.input-password {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.input-password input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  background: transparent;
+}
+
+.btn-toggle-pass {
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+}
+
+.btn-toggle-pass:hover { color: #1a4fa8; }
 
 .badge-estado {
   display: inline-block;

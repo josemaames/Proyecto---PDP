@@ -362,17 +362,17 @@
     </main>
   </div>
 
-  <!-- ===== MODAL BÚSQUEDA DE EXPEDIENTES ===== -->
+  <!-- ===== MODAL BÚSQUEDA DE CAPACITACIONES ===== -->
   @if (mostrarBusqueda) {
     <div class="modal-busqueda-overlay" (click)="cerrarBusqueda()">
-      <div class="modal-busqueda" (click)="$event.stopPropagation()">
+      <div class="modal-busqueda modal-busqueda-wide" (click)="$event.stopPropagation()">
 
         <div class="modal-busqueda-header">
           <div class="modal-busqueda-titulo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <h3>Búsqueda de Expedientes</h3>
+            <h3>Búsqueda de Capacitaciones</h3>
           </div>
           <button class="modal-cerrar" (click)="cerrarBusqueda()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -381,72 +381,89 @@
           </button>
         </div>
 
-        <div class="modal-busqueda-buscador">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Buscar por código, capacitación, responsable o estado..."
-            [(ngModel)]="textoBusqueda"
-            autofocus
-          />
+        <!-- BARRA DE BÚSQUEDA -->
+        <div class="modal-busqueda-filtros">
+          <div class="busq-campo">
+            <label>Código de Actividad</label>
+            <div class="busq-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M4 6h16M4 12h16M4 18h7"/>
+              </svg>
+              <input type="text" placeholder="Ej: CAP-2024-001" [(ngModel)]="codigoBusqueda"
+                (keyup.enter)="buscarActividades()" />
+            </div>
+          </div>
+          <div class="busq-campo">
+            <label>Nombre de la Actividad</label>
+            <div class="busq-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="textoBusqueda"
+                (keyup.enter)="buscarActividades()" />
+            </div>
+          </div>
+          <button class="btn-buscar-act" (click)="buscarActividades()">Buscar</button>
         </div>
 
         <div class="modal-busqueda-resultados">
-          @if (expedientesFiltrados.length === 0) {
+          @if (cargandoAct) {
+            <div class="modal-cargando">
+              <div class="spinner-sm"></div>
+              <span>Buscando capacitaciones...</span>
+            </div>
+          } @else if (actividades.length === 0) {
             <div class="modal-sin-resultados">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-              <p>No se encontraron expedientes</p>
+              <p>No se encontraron capacitaciones</p>
+              <small>Prueba con otro código o nombre</small>
             </div>
           } @else {
-            <table class="tabla-expedientes-modal">
-              <thead>
-                <tr>
-                  <th>Expediente</th>
-                  <th>Capacitación</th>
-                  <th>Estado</th>
-                  <th>Semáforo</th>
-                  <th>Responsable</th>
-                  <th>Beneficiarios</th>
-                  <th>Presupuesto (S/)</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (exp of expedientesFiltrados; track exp.expediente) {
-                  <tr (click)="verDetalleExpediente(exp)" [class.fila-seleccionada]="expedienteDetalle?.expediente === exp.expediente">
-                    <td class="cod-expediente">{{ exp.expediente }}</td>
-                    <td>{{ exp.capacitacion }}</td>
-                    <td>
-                      <span class="badge-estado-exp" [class]="'estado-' + exp.estado.toLowerCase().replace(' ', '-')">
-                        {{ exp.estado }}
-                      </span>
-                    </td>
-                    <td><span class="semaforo-dot" [class]="exp.semaforo"></span></td>
-                    <td>{{ exp.responsable }}</td>
-                    <td class="centrado">{{ exp.beneficiarios }}</td>
-                    <td class="centrado">{{ exp.presupuesto | number:'1.0-0' }}</td>
+            <div class="tabla-scroll-modal">
+              <table class="tabla-expedientes-modal">
+                <thead>
+                  <tr>
+                    <th>Código Act.</th>
+                    <th>Nombre de la Actividad</th>
+                    <th>Red Asistencial</th>
+                    <th>Modalidad</th>
+                    <th>Horas</th>
+                    <th>Participantes</th>
+                    <th>Presupuesto (S/)</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (act of actividades; track act.id) {
+                    <tr (click)="verDetalle(act)" [class.fila-seleccionada]="actividadDetalle?.id === act.id">
+                      <td class="cod-expediente">{{ act.codigo_act }}</td>
+                      <td>{{ act.nombre_actividad }}</td>
+                      <td>{{ act.red_asistencial || '—' }}</td>
+                      <td><span class="badge-modalidad">{{ act.modalidad || '—' }}</span></td>
+                      <td class="centrado">{{ act.total_horas || '—' }}</td>
+                      <td class="centrado">{{ act.total_participantes || '—' }}</td>
+                      <td class="centrado">{{ act.presupuesto_ejecutado ? (act.presupuesto_ejecutado | number:'1.0-0') : '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
 
-            @if (expedienteDetalle) {
+            @if (actividadDetalle) {
               <div class="detalle-exp-panel">
-                <h4>Detalle: {{ expedienteDetalle.expediente }}</h4>
+                <h4>{{ actividadDetalle.codigo_act }} — {{ actividadDetalle.nombre_actividad }}</h4>
                 <div class="detalle-exp-grid">
-                  <div class="detalle-exp-item"><span>Capacitación</span><strong>{{ expedienteDetalle.capacitacion }}</strong></div>
-                  <div class="detalle-exp-item"><span>Responsable</span><strong>{{ expedienteDetalle.responsable }}</strong></div>
-                  <div class="detalle-exp-item"><span>Estado</span><strong>{{ expedienteDetalle.estado }}</strong></div>
-                  <div class="detalle-exp-item"><span>Beneficiarios</span><strong>{{ expedienteDetalle.beneficiarios }}</strong></div>
-                  <div class="detalle-exp-item"><span>Presupuesto</span><strong>S/ {{ expedienteDetalle.presupuesto | number:'1.0-0' }}</strong></div>
-                  <div class="detalle-exp-item"><span>Horas lectivas</span><strong>{{ expedienteDetalle.horasLectivas }}h</strong></div>
-                  <div class="detalle-exp-item"><span>Horas cronológicas</span><strong>{{ expedienteDetalle.horasCronologicas }}h</strong></div>
-                  <div class="detalle-exp-item"><span>Semáforo</span>
-                    <strong><span class="semaforo-dot" [class]="expedienteDetalle.semaforo"></span> {{ expedienteDetalle.semaforo }}</strong>
-                  </div>
+                  <div class="detalle-exp-item"><span>Red Asistencial</span><strong>{{ actividadDetalle.red_asistencial || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Modalidad</span><strong>{{ actividadDetalle.modalidad || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Fecha Inicio</span><strong>{{ actividadDetalle.fecha_inicio || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Fecha Fin</span><strong>{{ actividadDetalle.fecha_fin || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Total Horas</span><strong>{{ actividadDetalle.total_horas || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Participantes</span><strong>{{ actividadDetalle.total_participantes || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Presupuesto</span><strong>S/ {{ actividadDetalle.presupuesto_ejecutado | number:'1.0-0' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Proveedor</span><strong>{{ actividadDetalle.nombre_proveedor || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Eje Temático</span><strong>{{ actividadDetalle.eje_tematico || '—' }}</strong></div>
+                  <div class="detalle-exp-item"><span>Nivel Evaluación</span><strong>{{ actividadDetalle.nivel_evaluacion || '—' }}</strong></div>
                 </div>
               </div>
             }
@@ -454,7 +471,9 @@
         </div>
 
         <div class="modal-busqueda-footer">
-          <span class="modal-total">{{ expedientesFiltrados.length }} expediente(s) encontrado(s)</span>
+          <span class="modal-total">{{ actividades.length }} capacitación(es) encontrada(s)
+            @if (totalActividades > actividades.length) { de {{ totalActividades }} totales }
+          </span>
           <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
         </div>
 

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ExpedienteService } from '../../services/expediente.service';
+import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-sectorista',
@@ -12,9 +13,10 @@ import { ExpedienteService } from '../../services/expediente.service';
   styleUrl: './sectorista.css',
 })
 export class Sectorista implements OnInit {
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  private http             = inject(HttpClient);
+  private router           = inject(Router);
   private expedienteService = inject(ExpedienteService);
+  private pdpData          = inject(PdpDataService);
 
   usuario: any = {};
   fechaHoy = '';
@@ -24,11 +26,15 @@ export class Sectorista implements OnInit {
   errorRuc = '';
   errorFormulario = '';
 
-  // BÚSQUEDA DE EXPEDIENTES
-  mostrarBusqueda = false;
-  textoBusqueda = '';
-  expedientes: any[] = [];
-  expedienteDetalle: any = null;
+  // BÚSQUEDA DE CAPACITACIONES
+  mostrarBusqueda     = false;
+  textoBusqueda       = '';
+  codigoBusqueda      = '';
+  actividades: any[]  = [];
+  actividadDetalle: any = null;
+  cargandoAct         = false;
+  redFiltro           = '';
+  totalActividades    = 0;
 
   matriz = {
     // DATOS GENERALES
@@ -101,7 +107,7 @@ export class Sectorista implements OnInit {
       year: 'numeric',
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
-    this.expedientes = this.expedienteService.getExpedientesPorRol();
+    this.redFiltro = this.pdpData.getRedFiltro();
   }
 
   irA(ruta: string) {
@@ -117,36 +123,35 @@ export class Sectorista implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  // BÚSQUEDA DE EXPEDIENTES
+  // BÚSQUEDA DE CAPACITACIONES
   abrirBusqueda() {
-    this.expedientes = this.expedienteService.getExpedientesPorRol();
-
-    console.log('EXPEDIENTES FILTRADOS:', this.expedientes);
-
-    this.textoBusqueda = '';
-    this.expedienteDetalle = null;
+    this.textoBusqueda   = '';
+    this.codigoBusqueda  = '';
+    this.actividadDetalle = null;
     this.mostrarBusqueda = true;
+    this.buscarActividades();
+  }
+
+  buscarActividades() {
+    this.cargandoAct = true;
+    const q = this.codigoBusqueda.trim() || this.textoBusqueda.trim();
+    this.pdpData.getActividades(q, this.redFiltro, '', 1, 100).subscribe({
+      next: (res) => {
+        this.actividades      = res.data;
+        this.totalActividades = res.total;
+        this.cargandoAct      = false;
+      },
+      error: () => { this.cargandoAct = false; },
+    });
   }
 
   cerrarBusqueda() {
-    this.mostrarBusqueda = false;
-    this.expedienteDetalle = null;
+    this.mostrarBusqueda  = false;
+    this.actividadDetalle = null;
   }
 
-  get expedientesFiltrados(): any[] {
-    const texto = this.textoBusqueda.toLowerCase().trim();
-    if (!texto) return this.expedientes;
-    return this.expedientes.filter(
-      (e) =>
-        e.expediente.toLowerCase().includes(texto) ||
-        e.capacitacion.toLowerCase().includes(texto) ||
-        e.responsable.toLowerCase().includes(texto) ||
-        e.estado.toLowerCase().includes(texto),
-    );
-  }
-
-  verDetalleExpediente(exp: any) {
-    this.expedienteDetalle = exp;
+  verDetalle(act: any) {
+    this.actividadDetalle = this.actividadDetalle?.id === act.id ? null : act;
   }
 
   onRucChange(ruc: string) {

@@ -179,22 +179,62 @@
                 <option value="Inactivo">Inactivo</option>
               </select>
             </div>
-            @if (nuevoUsuarioData.rol === 'Sectorista' || nuevoUsuarioData.rol === 'Ejecutor') {
-              <div class="campo campo-sedes">
-                <label>
-                  {{ nuevoUsuarioData.rol === 'Sectorista' ? 'Redes Asistenciales (separadas por coma)' : 'Red Asistencial' }}
-                </label>
-                <input type="text" [(ngModel)]="nuevoUsuarioData.sedes"
-                  [placeholder]="nuevoUsuarioData.rol === 'Sectorista'
-                    ? 'Ej: Red Asistencial Arequipa,Red Asistencial Cusco'
-                    : 'Ej: Red Asistencial Arequipa'" />
-                <small class="campo-hint">
-                  @if (nuevoUsuarioData.rol === 'Sectorista') {
-                    Este usuario verá las capacitaciones, participantes y personal de cada red asignada.
+            <div class="campo">
+              <label>Contraseña</label>
+              <div class="input-password">
+                <input
+                  [type]="mostrarPassword ? 'text' : 'password'"
+                  [(ngModel)]="nuevoUsuarioData.password"
+                  [placeholder]="modoEdicion ? 'Dejar en blanco para no cambiar' : 'Mínimo 6 caracteres'" />
+                <button type="button" class="btn-toggle-pass" (click)="mostrarPassword = !mostrarPassword">
+                  @if (mostrarPassword) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
                   } @else {
-                    Este usuario verá únicamente los datos de la red indicada.
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
                   }
-                </small>
+                </button>
+              </div>
+            </div>
+            @if (nuevoUsuarioData.rol === 'Sectorista') {
+              <div class="campo campo-sedes campo-full">
+                <label>Redes Asistenciales</label>
+                <small class="campo-hint">Marca todas las redes que este sectorista puede ver.</small>
+                @if (redesDisponibles.length === 0) {
+                  <p class="redes-cargando">Cargando redes desde la base de datos...</p>
+                } @else {
+                  <div class="redes-checkboxes">
+                    @for (red of redesDisponibles; track red) {
+                      <label class="check-red" [class.check-red-activo]="sedeSeleccionada(red)">
+                        <input type="checkbox"
+                          [checked]="sedeSeleccionada(red)"
+                          (change)="toggleSede(red)" />
+                        {{ red }}
+                      </label>
+                    }
+                  </div>
+                }
+                @if (sedesSeleccionadas.length > 0) {
+                  <p class="redes-resumen">Seleccionadas: {{ sedesSeleccionadas.length }} red(es)</p>
+                }
+              </div>
+            }
+            @if (nuevoUsuarioData.rol === 'Ejecutor') {
+              <div class="campo">
+                <label>Red Asistencial</label>
+                <select [(ngModel)]="nuevoUsuarioData.sedes">
+                  <option value="">— Seleccionar red —</option>
+                  @for (red of redesDisponibles; track red) {
+                    <option [value]="red">{{ red }}</option>
+                  }
+                </select>
+                <small class="campo-hint">Este usuario verá únicamente los datos de la red seleccionada.</small>
               </div>
             }
           </div>

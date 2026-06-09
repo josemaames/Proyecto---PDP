@@ -37,12 +37,13 @@
 
   <!-- TABLA -->
   <div class="tabla-wrap">
-    @if (cargando) {
+    @if (cargando && capacitaciones.length === 0) {
+      <!-- Primera carga: sin datos previos → spinner completo -->
       <div class="estado-cargando">
         <div class="spinner"></div>
         <span>Cargando capacitaciones...</span>
       </div>
-    } @else if (capacitaciones.length === 0) {
+    } @else if (!cargando && capacitaciones.length === 0) {
       <div class="estado-vacio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -50,57 +51,65 @@
         <p>No se encontraron capacitaciones.</p>
       </div>
     } @else {
-      <table class="tabla-cap">
-        <thead>
-          <tr>
-            <th>N°</th>
-            <th>Código ACT</th>
-            <th>Nombre de la Capacitación</th>
-            <th>Red Asistencial</th>
-            <th>Modalidad</th>
-            <th>Fecha Inicio</th>
-            <th>Fecha Fin</th>
-            <th>Horas</th>
-            <th>Participantes</th>
-            <th>Presupuesto</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (cap of capacitaciones; track cap.id) {
+      <!-- Tabla: visible incluso mientras carga la siguiente página -->
+      <div class="tabla-relativa">
+        @if (cargando) {
+          <div class="overlay-cargando"><div class="spinner-sm"></div></div>
+        }
+        <table class="tabla-cap">
+          <thead>
             <tr>
-              <td class="td-num">{{ cap.numero ?? '—' }}</td>
-              <td class="td-codigo"><span class="badge-codigo">{{ cap.codigo_act }}</span></td>
-              <td class="td-nombre">{{ cap.nombre_actividad || '—' }}</td>
-              <td class="td-red">{{ cap.red_asistencial || '—' }}</td>
-              <td>
-                @if (cap.modalidad) {
-                  <span class="badge-mod" [class.mod-presencial]="cap.modalidad === 'Presencial'"
-                    [class.mod-virtual]="cap.modalidad === 'Virtual'"
-                    [class.mod-semipres]="cap.modalidad === 'Semipresencial'">
-                    {{ cap.modalidad }}
-                  </span>
-                } @else { <span>—</span> }
-              </td>
-              <td>{{ cap.fecha_inicio ? (cap.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
-              <td>{{ cap.fecha_fin   ? (cap.fecha_fin   | date:'dd/MM/yyyy') : '—' }}</td>
-              <td class="td-num">{{ cap.total_horas ?? '—' }}</td>
-              <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
-              <td>{{ cap.presupuesto_ejecutado != null ? (cap.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</td>
-              <td>
-                <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
-              </td>
+              <th>N°</th>
+              <th>Código ACT</th>
+              <th>Nombre de la Capacitación</th>
+              <th>Red Asistencial</th>
+              <th>Modalidad</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Horas</th>
+              <th>Participantes</th>
+              <th>Presupuesto</th>
+              <th></th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (cap of capacitaciones; track cap.id) {
+              <tr>
+                <td class="td-num">{{ cap.numero ?? '—' }}</td>
+                <td class="td-codigo"><span class="badge-codigo">{{ cap.codigo_act }}</span></td>
+                <td class="td-nombre">{{ cap.nombre_actividad || '—' }}</td>
+                <td class="td-red">{{ cap.red_asistencial || '—' }}</td>
+                <td>
+                  @if (cap.modalidad) {
+                    <span class="badge-mod" [class.mod-presencial]="cap.modalidad === 'Presencial'"
+                      [class.mod-virtual]="cap.modalidad === 'Virtual'"
+                      [class.mod-semipres]="cap.modalidad === 'Semipresencial'">
+                      {{ cap.modalidad }}
+                    </span>
+                  } @else { <span>—</span> }
+                </td>
+                <td>{{ cap.fecha_inicio ? (cap.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ cap.fecha_fin   ? (cap.fecha_fin   | date:'dd/MM/yyyy') : '—' }}</td>
+                <td class="td-num">{{ cap.total_horas ?? '—' }}</td>
+                <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
+                <td>{{ cap.presupuesto_ejecutado != null ? (cap.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</td>
+                <td>
+                  <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-      <!-- PAGINACIÓN -->
+    <!-- PAGINACIÓN — siempre visible cuando hay más de una página -->
+    @if (totalPaginas > 1 || pagina > 1) {
       <div class="paginacion">
         <span class="pag-info">Página {{ pagina }} de {{ totalPaginas }}</span>
         <div class="pag-botones">
-          <button [disabled]="pagina === 1" (click)="anterior()">← Anterior</button>
-          <button [disabled]="pagina === totalPaginas" (click)="siguiente()">Siguiente →</button>
+          <button [disabled]="pagina === 1 || cargando" (click)="anterior()">← Anterior</button>
+          <button [disabled]="pagina === totalPaginas || cargando" (click)="siguiente()">Siguiente →</button>
         </div>
       </div>
     }

@@ -120,8 +120,35 @@ export class Login {
       },
     ];
 
-    const registrados = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
-    const todos = [...base, ...registrados];
+    const registrados  = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
+    const adminUsers   = JSON.parse(localStorage.getItem('usuarios') || '[]');
+
+    // Usuarios del admin panel sobreescriben contraseña y datos del base array
+    const mergedBase = base.map(b => {
+      const override = adminUsers.find((a: any) => a.dni === b.dni);
+      return override ? { ...b, ...override } : b;
+    });
+
+    // Usuarios nuevos creados por admin (no están en base) con contraseña asignada
+    const baseDnis    = base.map(b => b.dni);
+    const soloAdmins  = adminUsers
+      .filter((a: any) => !baseDnis.includes(a.dni) && a.password)
+      .map((a: any) => ({
+        id: a.dni,
+        dni: a.dni,
+        password: a.password,
+        nombre: a.nombre,
+        numeroPlantilla: a.dni,
+        tipo: a.cargo || a.rol,
+        rol: a.rol,
+        sedes: a.sedes
+          ? (typeof a.sedes === 'string'
+              ? a.sedes.split(',').map((s: string) => s.trim()).filter(Boolean)
+              : a.sedes)
+          : [],
+      }));
+
+    const todos = [...mergedBase, ...registrados, ...soloAdmins];
     const usuario = todos.find((u) => u.dni === this.dni && u.password === this.password);
 
     if (!usuario) {

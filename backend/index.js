@@ -64,6 +64,9 @@ async function crearIndices() {
     `CREATE INDEX IF NOT EXISTS idx_actividad_servicio ON datos_actividad(servicio_area)`,
     `CREATE INDEX IF NOT EXISTS idx_participantes_sexo ON lista_participantes(sexo)`,
 
+    // Ordenación eficiente de actividades (paginación sin filtro de red — admin)
+    `CREATE INDEX IF NOT EXISTS idx_actividad_numero ON datos_actividad(numero NULLS LAST)`,
+
     // Búsqueda por DNI en personal
     `CREATE INDEX IF NOT EXISTS idx_personal_dni ON personal(dni_ce)`,
 
@@ -188,6 +191,10 @@ app.get('/api/actividades', async (req, res) => {
     const { q = '', red = '', modalidad = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
+    const cacheKey = `actividades:${q}:${red}:${modalidad}:${page}:${limit}`;
+    const cached = getCache(cacheKey);
+    if (cached) return res.json(cached);
+
     let conditions = [],
       params = [],
       idx = 1;
@@ -212,12 +219,23 @@ app.get('/api/actividades', async (req, res) => {
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const { rows } = await pool.query(
-      `SELECT * FROM datos_actividad ${where} ORDER BY numero NULLS LAST LIMIT $${idx} OFFSET $${idx + 1}`,
-      [...params, parseInt(limit), offset],
-    );
-    const { rows: c } = await pool.query(`SELECT COUNT(*) FROM datos_actividad ${where}`, params);
-    res.json({ data: rows, total: parseInt(c[0].count) });
+    const [dataRes, countRes] = await Promise.all([
+      pool.query(
+        `SELECT id, numero, codigo_act, nombre_actividad, red_asistencial, modalidad,
+                fecha_inicio, fecha_fin, mes_termino, total_horas, horas_fuera_horario,
+                frecuencia, hora_inicio, hora_termino, publico, nivel_evaluacion,
+                objetivo_estrategico, total_participantes, ruc_proveedor,
+                nombre_proveedor, sector_proveedor, presupuesto_ejecutado,
+                eje_tematico, servicio_area
+         FROM datos_actividad ${where} ORDER BY numero NULLS LAST LIMIT $${idx} OFFSET $${idx + 1}`,
+        [...params, parseInt(limit), offset],
+      ),
+      pool.query(`SELECT COUNT(*) FROM datos_actividad ${where}`, params),
+    ]);
+
+    const result = { data: dataRes.rows, total: parseInt(countRes.rows[0].count) };
+    setCache(cacheKey, result);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -82,7 +82,6 @@ export interface Stats {
 
 @Injectable({ providedIn: 'root' })
 export class PdpDataService {
-
   private api = '/api';
 
   constructor(private http: HttpClient) {}
@@ -94,11 +93,17 @@ export class PdpDataService {
     if (!usuario.rol) return '';
     if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') return '';
     if (usuario.rol === 'Sectorista') {
-      const sedes: string[] = Array.isArray(usuario.sedes) ? usuario.sedes : (usuario.sedes ? [usuario.sedes] : []);
+      const sedes: string[] = Array.isArray(usuario.sedes)
+        ? usuario.sedes
+        : usuario.sedes
+          ? [usuario.sedes]
+          : [];
       return sedes.join(',');
     }
     if (usuario.rol === 'Ejecutor') {
-      const sede: string = Array.isArray(usuario.sedes) ? (usuario.sedes[0] || '') : (usuario.sedes || usuario.sede || '');
+      const sede: string = Array.isArray(usuario.sedes)
+        ? usuario.sedes[0] || ''
+        : usuario.sedes || usuario.sede || '';
       return sede;
     }
     return '';
@@ -116,7 +121,13 @@ export class PdpDataService {
   }
 
   // ── Participantes ─────────────────────────────
-  getParticipantes(q = '', codigo_act = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<Participante>> {
+  getParticipantes(
+    q = '',
+    codigo_act = '',
+    page = 1,
+    limit = 50,
+    red = '',
+  ): Observable<ApiResponse<Participante>> {
     const params = new HttpParams()
       .set('q', q)
       .set('codigo_act', codigo_act)
@@ -135,10 +146,19 @@ export class PdpDataService {
   }
 
   // ── Actividades ───────────────────────────────
-  getActividades(q = '', red = '', modalidad = '', page = 1, limit = 50): Observable<ApiResponse<Actividad>> {
+  getActividades(
+    q = '',
+    red = '',
+    modalidad = '',
+    page = 1,
+    limit = 50,
+  ): Observable<ApiResponse<Actividad>> {
     const params = new HttpParams()
-      .set('q', q).set('red', red).set('modalidad', modalidad)
-      .set('page', String(page)).set('limit', String(limit));
+      .set('q', q)
+      .set('red', red)
+      .set('modalidad', modalidad)
+      .set('page', String(page))
+      .set('limit', String(limit));
     return this.http.get<ApiResponse<Actividad>>(`${this.api}/actividades`, { params });
   }
 
@@ -155,14 +175,26 @@ export class PdpDataService {
   }
 
   // ── Personal ESSALUD ──────────────────────────
-  getPersonalEssalud(q = '', page = 1, limit = 50, red = ''): Observable<ApiResponse<PersonalEssalud>> {
+  getPersonalEssalud(
+    q = '',
+    page = 1,
+    limit = 50,
+    red = '',
+  ): Observable<ApiResponse<PersonalEssalud>> {
     const params = new HttpParams()
-      .set('q', q).set('page', String(page)).set('limit', String(limit)).set('red', red);
+      .set('q', q)
+      .set('page', String(page))
+      .set('limit', String(limit))
+      .set('red', red);
     return this.http.get<ApiResponse<PersonalEssalud>>(`${this.api}/personal-essalud`, { params });
   }
 
   // Buscar por DNI para autocompletar formulario
   getPersonalPorDni(dni: string): Observable<PersonalEssalud> {
     return this.http.get<PersonalEssalud>(`${this.api}/personal-essalud/dni/${dni}`);
+  }
+
+  getDashboard(): Observable<any> {
+    return this.http.get<any>(`${this.api}/dashboard`);
   }
 }
