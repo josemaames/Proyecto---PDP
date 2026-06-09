@@ -4,10 +4,18 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables } from 'chart.js';
-import { Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { ExpedienteService } from '../../services/expediente.service';
-import { PdpDataService, ResumenRed } from '../../services/pdp-data.service';
+import { forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+type ResumenRed = {
+  red: string;
+  capacitaciones: number;
+  horas: number;
+  participantes: number;
+  presupuesto: number;
+};
 
 Chart.register(...registerables);
 
@@ -32,23 +40,24 @@ export class Dashboard implements OnInit, OnDestroy {
   menuItems: string[] = [];
 
   // ── Perfil / Contraseña ───────────────────────
-  mostrarHistorial       = false;
-  mostrarEditarPerfil    = false;
+  mostrarHistorial = false;
+  mostrarEditarPerfil = false;
   mostrarCambiarPassword = false;
 
-  perfilEditado  = { nombre: '', correo: '', telefono: '' };
-  passwordData   = { actual: '', nueva: '', confirmar: '' };
+  perfilEditado = { nombre: '', correo: '', telefono: '' };
+  passwordData = { actual: '', nueva: '', confirmar: '' };
   historial: any[] = [];
   filtroHistorial = '';
 
   get historialFiltrado(): any[] {
     const t = this.filtroHistorial.toLowerCase().trim();
     if (!t) return this.historial;
-    return this.historial.filter(e =>
-      e.expediente?.toLowerCase().includes(t) ||
-      e.usuario?.toLowerCase().includes(t)    ||
-      e.accion?.toLowerCase().includes(t)     ||
-      e.detalle?.toLowerCase().includes(t),
+    return this.historial.filter(
+      (e) =>
+        e.expediente?.toLowerCase().includes(t) ||
+        e.usuario?.toLowerCase().includes(t) ||
+        e.accion?.toLowerCase().includes(t) ||
+        e.detalle?.toLowerCase().includes(t),
     );
   }
 
@@ -66,32 +75,41 @@ export class Dashboard implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private expedienteService: ExpedienteService,
-    private pdpData: PdpDataService,
   ) {}
 
   ngOnInit() {
     const raw = localStorage.getItem('usuario');
-    if (!raw) { this.router.navigate(['/login']); return; }
+
+    if (!raw) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
     const datos = JSON.parse(raw);
-    this.usuarioActual  = datos;
-    this.nombre         = datos.nombre;
-    this.rol            = datos.rol;
+
+    this.usuarioActual = datos;
+    this.nombre = datos.nombre;
+    this.rol = datos.rol;
+
     this.esAdministrador = ['Administrador', 'Administrativo'].includes(datos.rol);
-    this.esSectorista   = datos.rol === 'Sectorista';
-    this.esEjecutor     = datos.rol === 'Ejecutor';
+
+    this.esSectorista = datos.rol === 'Sectorista';
+    this.esEjecutor = datos.rol === 'Ejecutor';
+
     this.inicialUsuario = (datos.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
 
     const f = new Date().toLocaleDateString('es-PE', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     });
+
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
     this.cargarMenuPorRol();
 
-    if (this.esAdministrador) {
-      this.cargarDatosAdmin();
-    }
+    this.cargandoResumen = false;
   }
 
   ngOnDestroy() {
@@ -102,42 +120,49 @@ export class Dashboard implements OnInit, OnDestroy {
   private cargarDatosAdmin() {
     this.cargandoResumen = true;
 
-    forkJoin({
-      stats:   this.pdpData.getStats(),
-      resumen: this.pdpData.getResumenRedes(),
-    })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: ({ stats, resumen }) => {
-        this.statsGlobal  = stats;
-        this.resumenRedes = resumen;
-        this.construirGraficos(stats, resumen);
-        this.cargandoResumen = false;
-      },
-      error: () => { this.cargandoResumen = false; },
-    });
+    forkJoin({})
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ stats, resumen }: any) => {
+          this.statsGlobal = stats;
+          this.resumenRedes = resumen;
+          this.construirGraficos(stats, resumen);
+          this.cargandoResumen = false;
+        },
+        error: () => {
+          this.cargandoResumen = false;
+        },
+      });
   }
 
   private construirGraficos(stats: any, resumen: ResumenRed[]) {
     // Gráfico 1 — Capacitaciones por Modalidad (viene ya agrupado del servidor)
-    const modLabels = (stats.por_modalidad as { modalidad: string; total: number }[])
-      .map(m => m.modalidad || 'Sin modalidad');
-    const modData = (stats.por_modalidad as { modalidad: string; total: number }[])
-      .map(m => Number(m.total));
+    const modLabels = (stats.por_modalidad as { modalidad: string; total: number }[]).map(
+      (m) => m.modalidad || 'Sin modalidad',
+    );
+    const modData = (stats.por_modalidad as { modalidad: string; total: number }[]).map((m) =>
+      Number(m.total),
+    );
 
     this.chartConfigModalidad = {
       type: 'pie',
       data: {
         labels: modLabels,
-        datasets: [{
-          data: modData,
-          backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
-          borderWidth: 1,
-        }],
+        datasets: [
+          {
+            data: modData,
+            backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
+            borderWidth: 1,
+          },
+        ],
       },
       options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Capacitaciones por Modalidad' } },
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Capacitaciones por Modalidad' },
+        },
       },
     };
 
@@ -146,16 +171,19 @@ export class Dashboard implements OnInit, OnDestroy {
     this.chartConfigRedes = {
       type: 'bar',
       data: {
-        labels: topRedes.map(r => r.red.replace('Red Asistencial ', '')),
-        datasets: [{
-          label: 'Capacitaciones',
-          data: topRedes.map(r => r.capacitaciones),
-          backgroundColor: '#005baa',
-          borderRadius: 6,
-        }],
+        labels: topRedes.map((r) => r.red.replace('Red Asistencial ', '')),
+        datasets: [
+          {
+            label: 'Capacitaciones',
+            data: topRedes.map((r) => r.capacitaciones),
+            backgroundColor: '#005baa',
+            borderRadius: 6,
+          },
+        ],
       },
       options: {
-        responsive: true, maintainAspectRatio: true,
+        responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: { display: false },
           title: { display: true, text: 'Capacitaciones por Red Asistencial (Top 8)' },
@@ -168,11 +196,22 @@ export class Dashboard implements OnInit, OnDestroy {
   cargarMenuPorRol() {
     switch (this.rol) {
       case 'Administrador':
-        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Personal', 'Reportes', 'Administración']; break;
+        this.menuItems = [
+          'Inicio',
+          'Expedientes',
+          'Hoja de Ruta',
+          'Personal',
+          'Participantes',
+          'Reportes',
+          'Administración',
+        ];
+        break;
       case 'Sectorista':
-        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes']; break;
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta', 'Reportes'];
+        break;
       case 'Ejecutor':
-        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta']; break;
+        this.menuItems = ['Inicio', 'Expedientes', 'Hoja de Ruta'];
+        break;
       default:
         this.menuItems = ['Dashboard'];
     }
@@ -180,14 +219,32 @@ export class Dashboard implements OnInit, OnDestroy {
 
   irModulo(modulo: string) {
     switch (modulo) {
-      case 'Inicio':          this.router.navigate(['/dashboard']); break;
-      case 'Expedientes':     this.router.navigate(['/expedientes']); break;
-      case 'Hoja de Ruta':   this.router.navigate(['/hoja-ruta']); break;
-      case 'Personal':        this.router.navigate(['/personal']); break;
-      case 'Historial':       this.abrirHistorial(); break;
-      case 'Reportes':        alert('🚧 Módulo Reportes en desarrollo'); break;
-      case 'Administración': alert('🚧 Módulo Administración en desarrollo'); break;
-      default: alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
+      case 'Inicio':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'Expedientes':
+        this.router.navigate(['/expedientes']);
+        break;
+      case 'Hoja de Ruta':
+        this.router.navigate(['/hoja-ruta']);
+        break;
+      case 'Personal':
+        this.router.navigate(['/personal-pdp']);
+        break;
+      case 'Participantes':
+        this.router.navigate(['/lista-participantes']);
+        break;
+      case 'Historial':
+        this.abrirHistorial();
+        break;
+      case 'Reportes':
+        alert('🚧 Módulo Reportes en desarrollo');
+        break;
+      case 'Administración':
+        this.router.navigate(['/personal']);
+        break;
+      default:
+        alert(`🚧 El módulo "${modulo}" aún está en desarrollo`);
     }
   }
 
@@ -196,23 +253,29 @@ export class Dashboard implements OnInit, OnDestroy {
     this.filtroHistorial = '';
     this.mostrarHistorial = true;
   }
-  cerrarHistorial()      { this.mostrarHistorial = false; }
+  cerrarHistorial() {
+    this.mostrarHistorial = false;
+  }
 
   abrirEditarPerfil() {
     this.perfilEditado = {
-      nombre:   this.usuarioActual?.nombre  || '',
-      correo:   this.usuarioActual?.correo  || '',
+      nombre: this.usuarioActual?.nombre || '',
+      correo: this.usuarioActual?.correo || '',
       telefono: this.usuarioActual?.telefono || '',
     };
     this.mostrarEditarPerfil = true;
   }
-  cerrarEditarPerfil()   { this.mostrarEditarPerfil = false; }
+  cerrarEditarPerfil() {
+    this.mostrarEditarPerfil = false;
+  }
 
   abrirCambiarPassword() {
     this.passwordData = { actual: '', nueva: '', confirmar: '' };
     this.mostrarCambiarPassword = true;
   }
-  cerrarCambiarPassword() { this.mostrarCambiarPassword = false; }
+  cerrarCambiarPassword() {
+    this.mostrarCambiarPassword = false;
+  }
 
   guardarPerfil() {
     alert('Perfil actualizado correctamente');
@@ -221,7 +284,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   guardarPassword() {
     if (this.passwordData.nueva !== this.passwordData.confirmar) {
-      alert('Las contraseñas no coinciden'); return;
+      alert('Las contraseñas no coinciden');
+      return;
     }
     alert('Contraseña actualizada correctamente');
     this.cerrarCambiarPassword();
@@ -232,10 +296,18 @@ export class Dashboard implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  get totalCapacitaciones() { return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0); }
-  get totalHoras()          { return this.resumenRedes.reduce((s, r) => s + r.horas,          0); }
-  get totalParticipantes()  { return this.resumenRedes.reduce((s, r) => s + r.participantes,  0); }
-  get totalPresupuesto()    { return this.resumenRedes.reduce((s, r) => s + r.presupuesto,    0); }
+  get totalCapacitaciones() {
+    return this.resumenRedes.reduce((s, r) => s + r.capacitaciones, 0);
+  }
+  get totalHoras() {
+    return this.resumenRedes.reduce((s, r) => s + r.horas, 0);
+  }
+  get totalParticipantes() {
+    return this.resumenRedes.reduce((s, r) => s + r.participantes, 0);
+  }
+  get totalPresupuesto() {
+    return this.resumenRedes.reduce((s, r) => s + r.presupuesto, 0);
+  }
 
   formatMoneda(v: number): string {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(v);
