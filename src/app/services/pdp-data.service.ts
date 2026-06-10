@@ -173,13 +173,15 @@ export class PdpDataService {
     page = 1,
     limit = 50,
     red = '',
+    regimen_laboral = '',
   ): Observable<ApiResponse<Participante>> {
     const params = new HttpParams()
       .set('q', q)
       .set('codigo_act', codigo_act)
       .set('page', String(page))
       .set('limit', String(limit))
-      .set('red', red);
+      .set('red', red)
+      .set('regimen_laboral', regimen_laboral);
     return this.http.get<ApiResponse<Participante>>(`${this.api}/participantes`, { params });
   }
 
@@ -226,12 +228,14 @@ export class PdpDataService {
     page = 1,
     limit = 50,
     red = '',
+    regimen_laboral = '',
   ): Observable<ApiResponse<PersonalEssalud>> {
     const params = new HttpParams()
       .set('q', q)
       .set('page', String(page))
       .set('limit', String(limit))
-      .set('red', red);
+      .set('red', red)
+      .set('regimen_laboral', regimen_laboral);
     return this.http.get<ApiResponse<PersonalEssalud>>(`${this.api}/personal-essalud`, { params });
   }
 

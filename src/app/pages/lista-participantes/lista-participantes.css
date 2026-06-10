@@ -49,6 +49,24 @@
   flex-wrap: wrap;
 }
 
+.select-filtro {
+  padding: 10px 13px;
+  border: 1.5px solid #dde3ef;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #1a1a2e;
+  background: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+.select-filtro:focus {
+  outline: none;
+  border-color: #1a4fa8;
+  box-shadow: 0 0 0 3px rgba(26, 79, 168, 0.1);
+}
+
 .campo-busqueda {
   flex: 1;
   min-width: 220px;

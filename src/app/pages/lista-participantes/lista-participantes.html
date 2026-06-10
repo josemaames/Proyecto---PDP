@@ -138,6 +138,12 @@
               (input)="buscar()"
             />
           </div>
+          <select class="select-filtro" [(ngModel)]="regimenFiltro" (change)="buscar()">
+            <option value="">Todos los regímenes</option>
+            <option value="276">276</option>
+            <option value="728">728</option>
+            <option value="CAS">CAS</option>
+          </select>
           <button class="btn-toggle-form" (click)="toggleFormulario()">
             @if (mostrarFormulario) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

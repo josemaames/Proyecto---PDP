@@ -68,8 +68,13 @@ export class Dashboard implements OnInit, OnDestroy {
   cargandoResumen = false;
   busquedaRed = '';
 
-  // ── Filtro de red seleccionado ───────────────
-  redSeleccionada = '';
+  // ── Lista de redes para el selector ─────────
+  redesDisponibles: string[] = [];
+
+  filtrarPorRed(red: string) {
+    this.busquedaRed = red;
+    this.actualizarGraficos();
+  }
 
   actualizarGraficos() {
     const total = this.totalParticipantesFiltrado;
@@ -158,12 +163,55 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (!this.busquedaRed) {
       this.construirGraficos(this.statsGlobal, this.resumenRedes);
-      return;
+    } else {
+      this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
+        this.construirGraficos(stats, this.resumenRedesFiltrado);
+      });
     }
 
-    this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
-      this.construirGraficos(stats, this.resumenRedesFiltrado);
+    this.pdpData.getDashboard(this.busquedaRed).subscribe((dashboard) => {
+      this.actualizarChartsDesdesDashboard(dashboard);
     });
+  }
+
+  private actualizarChartsDesdesDashboard(dashboard: any) {
+    const sexoAgrupado: any = {};
+    dashboard.participantesSexo.forEach((x: any) => {
+      const sexo = (x.sexo || 'Sin dato').toUpperCase();
+      sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
+    });
+    this.chartConfigSexo = {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(sexoAgrupado),
+        datasets: [{ data: Object.values(sexoAgrupado), backgroundColor: ['#ec4899', '#3b82f6'] }],
+      },
+      options: { responsive: true, maintainAspectRatio: true },
+    };
+
+    const ordenMeses = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+    ];
+    const mesesOrdenados = [...dashboard.actividadesMes].sort(
+      (a: any, b: any) =>
+        ordenMeses.indexOf((a.mes_termino || '').toUpperCase()) -
+        ordenMeses.indexOf((b.mes_termino || '').toUpperCase()),
+    );
+    this.chartConfigMeses = {
+      type: 'line',
+      data: {
+        labels: mesesOrdenados.map((x: any) => x.mes_termino),
+        datasets: [{
+          label: 'Actividades',
+          data: mesesOrdenados.map((x: any) => Number(x.total)),
+          borderColor: '#005baa',
+          backgroundColor: '#005baa',
+          tension: 0.3,
+        }],
+      },
+      options: { responsive: true, maintainAspectRatio: true },
+    };
   }
 
   get resumenRedesFiltrado(): ResumenRed[] {
@@ -256,7 +304,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
           this.statsGlobal = stats;
           this.resumenRedes = resumen;
-          this.dashboardData = dashboard;
+          this.redesDisponibles = [...new Set(resumen.map((r) => r.red))].sort();
           // Participantes por sexo
           // Agrupar sexo (FEMENINO/Femenino)
           const sexoAgrupado: any = {};

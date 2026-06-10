@@ -20,6 +20,7 @@ export class ListaParticipantes implements OnInit {
 
   busqueda = '';
   codigoFiltro = '';
+  regimenFiltro = '';
   pagina = 1;
   limit = 50;
   totalRegistros = 0;
@@ -55,7 +56,7 @@ export class ListaParticipantes implements OnInit {
   cargarParticipantes() {
     this.cargando = true;
     this.pdpData
-      .getParticipantes(this.busqueda, this.codigoFiltro, this.pagina, this.limit, this.redFiltro)
+      .getParticipantes(this.busqueda, this.codigoFiltro, this.pagina, this.limit, this.redFiltro, this.regimenFiltro)
       .subscribe({
         next: (res) => {
           this.participantes = res.data;

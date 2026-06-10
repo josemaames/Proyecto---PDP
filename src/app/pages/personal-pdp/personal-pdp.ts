@@ -18,12 +18,13 @@ export class PersonalPdp implements OnInit {
   fechaHoy = '';
   inicialUsuario = 'U';
 
-  busqueda    = '';
-  pagina      = 1;
-  limit       = 50;
+  busqueda       = '';
+  regimenFiltro  = '';
+  pagina         = 1;
+  limit          = 50;
   totalRegistros = 0;
-  cargando    = false;
-  redFiltro   = '';
+  cargando       = false;
+  redFiltro      = '';
 
   personal: PersonalEssalud[] = [];
 
@@ -45,7 +46,7 @@ export class PersonalPdp implements OnInit {
 
   cargarPersonal() {
     this.cargando = true;
-    this.pdpData.getPersonalEssalud(this.busqueda, this.pagina, this.limit, this.redFiltro)
+    this.pdpData.getPersonalEssalud(this.busqueda, this.pagina, this.limit, this.redFiltro, this.regimenFiltro)
       .subscribe({
         next: (res) => {
           this.personal       = res.data;

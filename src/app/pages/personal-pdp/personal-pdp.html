@@ -128,6 +128,12 @@
               (input)="buscar()"
             />
           </div>
+          <select class="select-filtro" [(ngModel)]="regimenFiltro" (change)="buscar()">
+            <option value="">Todos los regímenes</option>
+            <option value="276">276</option>
+            <option value="728">728</option>
+            <option value="CAS">CAS</option>
+          </select>
         </div>
       </div>
 

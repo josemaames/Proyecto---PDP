@@ -99,7 +99,7 @@ async function crearIndices() {
 // ══════════════════════════════════════════════
 app.get('/api/participantes', async (req, res) => {
   try {
-    const { q = '', codigo_act = '', red = '', page = 1, limit = 50 } = req.query;
+    const { q = '', codigo_act = '', red = '', regimen_laboral = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let conditions = [],
@@ -119,6 +119,13 @@ app.get('/api/participantes', async (req, res) => {
       idx++;
     }
     if (red) {
+      const expandirRed = (r) => {
+        const u = r.trim().toUpperCase();
+        if (u.startsWith('RA ')) return 'RED ASISTENCIAL ' + u.slice(3);
+        if (u.startsWith('RP ')) return 'RED PRESTACIONAL ' + u.slice(3);
+        return u;
+      };
+      const redes = red.split(',').map((r) => expandirRed(r)).filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red ILIKE $${idx}`);
         params.push(`%${redes[0]}%`);
@@ -131,6 +138,11 @@ app.get('/api/participantes', async (req, res) => {
         idx += redes.length;
         conditions.push(`(${redConds.join(' OR ')})`);
       }
+    }
+    if (regimen_laboral) {
+      conditions.push(`regimen_laboral ILIKE $${idx}`);
+      params.push(`%${regimen_laboral}%`);
+      idx++;
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -355,7 +367,7 @@ app.delete('/api/actividades/:id', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/personal-essalud', async (req, res) => {
   try {
-    const { q = '', red = '', page = 1, limit = 50 } = req.query;
+    const { q = '', red = '', regimen_laboral = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let conditions = [],
@@ -393,6 +405,11 @@ app.get('/api/personal-essalud', async (req, res) => {
         idx += redes.length;
         conditions.push(`(${redConds.join(' OR ')})`);
       }
+    }
+    if (regimen_laboral) {
+      conditions.push(`regimen_laboral ILIKE $${idx}`);
+      params.push(`%${regimen_laboral}%`);
+      idx++;
     }
 
     const where = `WHERE ${conditions.join(' AND ')}`;
@@ -532,6 +549,7 @@ app.get('/api/dashboard', async (req, res) => {
     const redParticipante = red.replace(/^RA\s+/i, '');
 
     const whereParticipante = red ? `WHERE red ILIKE '%${red.replace(/^RA\s+/i, '')}%'` : '';
+
     const [
       personal,
       actividades,

@@ -1,3 +1,121 @@
+/* ── BARRA FILTRO RED ASISTENCIAL ──────────────── */
+
+.filtro-red-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
+  border: 1.5px solid #e8edf8;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filtro-red-bar.filtro-red-activo {
+  border-color: #1a4fa8;
+  box-shadow: 0 2px 14px rgba(26, 79, 168, 0.12);
+}
+
+.filtro-red-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filtro-red-label svg {
+  width: 15px;
+  height: 15px;
+  stroke: #1a4fa8;
+}
+
+.filtro-red-selector {
+  flex: 1;
+}
+
+.filtro-red-selector select {
+  width: 100%;
+  padding: 9px 36px 9px 14px;
+  border: 1.5px solid #dde3ef;
+  border-radius: 9px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #f8fafd;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a4fa8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+.filtro-red-selector select:focus,
+.filtro-red-selector select:hover {
+  border-color: #1a4fa8;
+  box-shadow: 0 0 0 3px rgba(26, 79, 168, 0.1);
+  background-color: #fff;
+}
+
+.filtro-red-cargando {
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #9ca3af;
+  background: #f3f4f6;
+  border-radius: 9px;
+  border: 1.5px solid #e5e7eb;
+}
+
+.filtro-red-badge {
+  display: flex;
+  align-items: center;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filtro-red-limpiar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.filtro-red-limpiar svg {
+  width: 12px;
+  height: 12px;
+}
+
+.filtro-red-limpiar:hover {
+  background: #fecaca;
+}
+
 /* BUSCADOR */
 
 .buscador-principal {
