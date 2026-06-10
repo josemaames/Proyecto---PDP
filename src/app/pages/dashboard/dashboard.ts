@@ -134,6 +134,9 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       };
 
+      // 🎯 KPI Cumplimiento de Meta
+      this.porcentajeMeta = Math.round((13697 / this.metaParticipantes) * 100);
+
       const mesesOrdenados = [...dashboard.actividadesMes].sort(
         (a: any, b: any) =>
           ordenMeses.indexOf((a.mes_termino || '').toUpperCase()) -
@@ -239,6 +242,12 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigSexo: any;
   chartConfigMeses: any;
 
+  metaParticipantes = Number(localStorage.getItem('metaParticipantes')) || 15000;
+  porcentajeMeta = 0;
+
+  mostrarModalMeta = false;
+  nuevaMeta = 0;
+
   constructor(
     private router: Router,
     private expedienteService: ExpedienteService,
@@ -305,6 +314,11 @@ export class Dashboard implements OnInit, OnDestroy {
           this.statsGlobal = stats;
           this.resumenRedes = resumen;
           this.redesDisponibles = [...new Set(resumen.map((r) => r.red))].sort();
+          this.dashboardData = dashboard;
+
+          this.porcentajeMeta = Math.round(
+            (this.totalParticipantesFiltrado / this.metaParticipantes) * 100,
+          );
           // Participantes por sexo
           // Agrupar sexo (FEMENINO/Femenino)
           const sexoAgrupado: any = {};
@@ -561,6 +575,30 @@ export class Dashboard implements OnInit, OnDestroy {
 
   get porcentajeMasculino() {
     return 27;
+  }
+
+  cambiarMeta() {
+    this.nuevaMeta = this.metaParticipantes;
+    this.mostrarModalMeta = true;
+  }
+
+  guardarMeta() {
+    if (!this.nuevaMeta || this.nuevaMeta <= 0) {
+      alert('Ingrese una meta válida');
+      return;
+    }
+
+    this.metaParticipantes = this.nuevaMeta;
+
+    localStorage.setItem('metaParticipantes', this.metaParticipantes.toString());
+
+    this.porcentajeMeta = Math.round((this.totalParticipantes / this.metaParticipantes) * 100);
+
+    this.mostrarModalMeta = false;
+  }
+
+  cerrarModalMeta() {
+    this.mostrarModalMeta = false;
   }
 
   formatMoneda(v: number): string {
