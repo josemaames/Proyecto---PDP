@@ -526,12 +526,13 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
   try {
     const red = req.query.red || '';
+
     console.log('RED RECIBIDA >>>', red);
     const whereActividad = red ? `WHERE red_asistencial = '${red}'` : '';
 
-    const redParticipante = red.replace(/^RA\s+/i, '');
+    const redBusqueda = red.replace(/^RA\s+/i, '').trim();
 
-    const whereParticipante = red ? `WHERE red ILIKE '%${red.replace(/^RA\s+/i, '')}%'` : '';
+    const whereParticipante = red ? `WHERE red ILIKE '%${redBusqueda}%'` : '';
     const [
       personal,
       actividades,
@@ -565,8 +566,8 @@ app.get('/api/dashboard', async (req, res) => {
       pool.query(`
   SELECT red, sexo, COUNT(*) total
   FROM lista_participantes
+  WHERE red ILIKE '%${redBusqueda}%'
   GROUP BY red, sexo
-  LIMIT 20
 `),
 
       pool.query(`

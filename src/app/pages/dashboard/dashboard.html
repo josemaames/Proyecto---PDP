@@ -332,6 +332,35 @@
             }
           </div>
 
+          <div class="card meta-card">
+            <div class="meta-header">
+              <h2>Cumplimiento de Meta</h2>
+
+              <button class="btn-meta" (click)="cambiarMeta()" title="Cambiar meta">⚙️</button>
+            </div>
+
+            <div class="meta-valor">
+              {{ ((totalParticipantes / metaParticipantes) * 100).toFixed(0) }}%
+            </div>
+
+            <div class="meta-total">
+              {{ totalParticipantes | number }}
+              de
+              {{ metaParticipantes | number }}
+            </div>
+
+            <div class="barra-meta">
+              <div
+                class="barra-meta-fill"
+                [style.width.%]="porcentajeMeta > 100 ? 100 : porcentajeMeta"
+              ></div>
+            </div>
+
+            <div class="estado-meta">🚀 Avance excelente</div>
+
+            <div class="meta-actual">Meta actual: {{ metaParticipantes | number }}</div>
+          </div>
+
           <!-- Meses -->
           <div class="dash-card grafico-box">
             <h3>Actividades por Mes</h3>
@@ -626,6 +655,27 @@
       <div class="modal-footer">
         <button class="btn-cancelar" (click)="cerrarEditarPerfil()">✖ Cancelar</button>
         <button class="btn-guardar" (click)="guardarPerfil()">💾 Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (mostrarModalMeta) {
+  <div class="modal-overlay">
+    <div class="modal-meta">
+      <h3>🎯 Actualizar Meta</h3>
+
+      <p>
+        Meta actual:
+        <strong>{{ metaParticipantes | number }}</strong>
+      </p>
+
+      <input type="number" [(ngModel)]="nuevaMeta" placeholder="Ingrese nueva meta" />
+
+      <div class="acciones-modal">
+        <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
+
+        <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
       </div>
     </div>
   </div>

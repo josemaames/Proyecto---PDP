@@ -581,3 +581,19 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(26, 79, 168, 0.12);
 }
+
+.meta-centro {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.meta-centro h3 {
+  margin: 0;
+  font-size: 28px;
+  color: #16a34a;
+}
+
+.meta-centro p {
+  margin: 4px 0;
+  color: #6b7280;
+}
