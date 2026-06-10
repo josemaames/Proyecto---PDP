@@ -343,6 +343,21 @@ export class Sectorista implements OnInit {
       this.camposError['sectorProveedor'] = true;
     }
 
+    // Financiamiento
+    if (!this.matriz.financiamiento) {
+      errores.push('Financiamiento');
+      this.camposError['financiamiento'] = true;
+    }
+
+    if (
+      this.matriz.montoCofinanciado === null ||
+      this.matriz.montoCofinanciado === undefined ||
+      this.matriz.montoCofinanciado <= 0
+    ) {
+      errores.push('Monto Cofinanciado');
+      this.camposError['montoCofinanciado'] = true;
+    }
+
     // Beneficiarios
     this.beneficiarios.forEach((b, i) => {
       if (

@@ -85,12 +85,6 @@
         </div>
       </div>
 
-      <!-- MENSAJE DE VALIDACIÓN -->
-      <div *ngIf="errorFormulario" class="error-validacion">
-        <h4>⚠️ Validación del formulario</h4>
-        <pre>{{ errorFormulario }}</pre>
-      </div>
-
       <!-- DATOS GENERALES -->
       <div class="card">
         <div class="card-header">
@@ -173,11 +167,29 @@
           </div>
           <div class="campo">
             <label>Costo Total (S/)</label>
-            <input type="number" [(ngModel)]="matriz.costoTotal" />
+
+            <input
+              type="number"
+              [(ngModel)]="matriz.costoTotal"
+              [class.input-error]="camposError['costoTotal']"
+              (input)="camposError['costoTotal'] = false"
+            />
+
+            <small *ngIf="camposError['costoTotal']" class="texto-error"> Campo obligatorio </small>
           </div>
           <div class="campo">
             <label>Cantidad de Beneficiarios</label>
-            <input type="number" [(ngModel)]="matriz.cantidadBeneficiarios" />
+
+            <input
+              type="number"
+              [(ngModel)]="matriz.cantidadBeneficiarios"
+              [class.input-error]="camposError['cantidadBeneficiarios']"
+              (input)="camposError['cantidadBeneficiarios'] = false"
+            />
+
+            <small *ngIf="camposError['cantidadBeneficiarios']" class="texto-error">
+              Campo obligatorio
+            </small>
           </div>
         </div>
       </div>
@@ -316,92 +328,110 @@
         <div class="datos-grid">
           <div class="campo">
             <label>RUC Proveedor</label>
+
             <input
               type="text"
               placeholder="Ingrese RUC (11 dígitos)"
               [(ngModel)]="matriz.rucProveedor"
               (ngModelChange)="onRucChange($event)"
               maxlength="11"
+              [class.input-error]="camposError['rucProveedor']"
+              (input)="camposError['rucProveedor'] = false"
             />
+
+            <small *ngIf="camposError['rucProveedor']" class="texto-error">
+              Debe ingresar un RUC válido de 11 dígitos
+            </small>
           </div>
+
+          @if (cargandoRuc) {
+            <div class="ruc-loading">
+              <span class="spinner"></span> Buscando información del RUC...
+            </div>
+          }
+
+          @if (errorRuc && !cargandoRuc) {
+            <div class="ruc-error">{{ errorRuc }}</div>
+          }
+
+          @if (matriz.proveedor && !cargandoRuc) {
+            <div class="datos-grid proveedor-autocompletar">
+              <div class="campo campo-full">
+                <label>Nombre del Proveedor</label>
+                <input
+                  type="text"
+                  [(ngModel)]="matriz.proveedor"
+                  readonly
+                  class="campo-autocompletado"
+                />
+              </div>
+              <div class="campo">
+                <label>Estado del Contribuyente</label>
+                <input
+                  type="text"
+                  [(ngModel)]="matriz.estadoContribuyente"
+                  readonly
+                  class="campo-autocompletado"
+                  [class.estado-activo]="matriz.estadoContribuyente === 'ACTIVO'"
+                  [class.estado-baja]="
+                    matriz.estadoContribuyente !== 'ACTIVO' && matriz.estadoContribuyente !== ''
+                  "
+                />
+              </div>
+              <div class="campo">
+                <label>Condición del Contribuyente</label>
+                <input
+                  type="text"
+                  [(ngModel)]="matriz.condicionContribuyente"
+                  readonly
+                  class="campo-autocompletado"
+                  [class.condicion-habido]="matriz.condicionContribuyente === 'HABIDO'"
+                  [class.condicion-nohabido]="
+                    matriz.condicionContribuyente !== 'HABIDO' &&
+                    matriz.condicionContribuyente !== ''
+                  "
+                />
+              </div>
+              <div class="campo campo-full">
+                <label>Domicilio Fiscal</label>
+                <input
+                  type="text"
+                  [(ngModel)]="matriz.domicilioFiscal"
+                  readonly
+                  class="campo-autocompletado"
+                />
+              </div>
+              <div class="campo campo-full">
+                <label>Actividades Económicas</label>
+                <textarea
+                  rows="3"
+                  [(ngModel)]="matriz.actividadesEconomicas"
+                  readonly
+                  class="campo-autocompletado"
+                ></textarea>
+              </div>
+            </div>
+          }
         </div>
+      </div>
+      <!-- cierre de datos-grid -->
 
-        @if (cargandoRuc) {
-          <div class="ruc-loading">
-            <span class="spinner"></span> Buscando información del RUC...
-          </div>
-        }
+      <div class="campo" style="margin-top: 16px">
+        <label>Sector del Proveedor</label>
 
-        @if (errorRuc && !cargandoRuc) {
-          <div class="ruc-error">{{ errorRuc }}</div>
-        }
+        <select
+          [(ngModel)]="matriz.sectorProveedor"
+          [class.input-error]="camposError['sectorProveedor']"
+          (change)="camposError['sectorProveedor'] = false"
+        >
+          <option value="">Seleccione</option>
+          <option>Público</option>
+          <option>Privado</option>
+        </select>
 
-        @if (matriz.proveedor && !cargandoRuc) {
-          <div class="datos-grid proveedor-autocompletar">
-            <div class="campo campo-full">
-              <label>Nombre del Proveedor</label>
-              <input
-                type="text"
-                [(ngModel)]="matriz.proveedor"
-                readonly
-                class="campo-autocompletado"
-              />
-            </div>
-            <div class="campo">
-              <label>Estado del Contribuyente</label>
-              <input
-                type="text"
-                [(ngModel)]="matriz.estadoContribuyente"
-                readonly
-                class="campo-autocompletado"
-                [class.estado-activo]="matriz.estadoContribuyente === 'ACTIVO'"
-                [class.estado-baja]="
-                  matriz.estadoContribuyente !== 'ACTIVO' && matriz.estadoContribuyente !== ''
-                "
-              />
-            </div>
-            <div class="campo">
-              <label>Condición del Contribuyente</label>
-              <input
-                type="text"
-                [(ngModel)]="matriz.condicionContribuyente"
-                readonly
-                class="campo-autocompletado"
-                [class.condicion-habido]="matriz.condicionContribuyente === 'HABIDO'"
-                [class.condicion-nohabido]="
-                  matriz.condicionContribuyente !== 'HABIDO' && matriz.condicionContribuyente !== ''
-                "
-              />
-            </div>
-            <div class="campo campo-full">
-              <label>Domicilio Fiscal</label>
-              <input
-                type="text"
-                [(ngModel)]="matriz.domicilioFiscal"
-                readonly
-                class="campo-autocompletado"
-              />
-            </div>
-            <div class="campo campo-full">
-              <label>Actividades Económicas</label>
-              <textarea
-                rows="3"
-                [(ngModel)]="matriz.actividadesEconomicas"
-                readonly
-                class="campo-autocompletado"
-              ></textarea>
-            </div>
-          </div>
-        }
-
-        <div class="campo" style="margin-top: 16px">
-          <label>Sector del Proveedor</label>
-          <select [(ngModel)]="matriz.sectorProveedor">
-            <option value="">Seleccione</option>
-            <option>Público</option>
-            <option>Privado</option>
-          </select>
-        </div>
+        <small *ngIf="camposError['sectorProveedor']" class="texto-error">
+          Campo obligatorio
+        </small>
       </div>
 
       <!-- FINANCIAMIENTO -->
@@ -486,20 +516,6 @@
 
       @if (errorFormulario) {
         <div class="error-validacion">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="18"
-            height="18"
-            style="flex-shrink: 0"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-
           <div>
             <strong>⚠️ Validación del formulario</strong>
             <pre>{{ errorFormulario }}</pre>
