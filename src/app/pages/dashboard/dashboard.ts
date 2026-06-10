@@ -35,6 +35,7 @@ export class Dashboard implements OnInit, OnDestroy {
   fechaHoy = '';
   inicialUsuario = 'U';
   menuItems: string[] = [];
+  dashboardData: any;
 
   // ── Perfil / Contraseña ───────────────────────
   mostrarHistorial = false;
@@ -81,6 +82,14 @@ export class Dashboard implements OnInit, OnDestroy {
     });
 
     this.pdpData.getDashboard(this.busquedaRed).subscribe((dashboard) => {
+      const redEncontrada = this.resumenRedes.find((r) =>
+        r.red.toLowerCase().includes(this.busquedaRed.toLowerCase()),
+      );
+
+      const redExacta = redEncontrada?.red || '';
+
+      this.pdpData.getDashboard(redExacta);
+
       const ordenMeses = [
         'ENERO',
         'FEBRERO',
@@ -95,6 +104,30 @@ export class Dashboard implements OnInit, OnDestroy {
         'NOVIEMBRE',
         'DICIEMBRE',
       ];
+
+      const sexoAgrupado: any = {};
+
+      dashboard.participantesSexo.forEach((x: any) => {
+        const sexo = (x.sexo || 'Sin dato').toUpperCase();
+        sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
+      });
+
+      this.chartConfigSexo = {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(sexoAgrupado),
+          datasets: [
+            {
+              data: Object.values(sexoAgrupado),
+              backgroundColor: ['#ec4899', '#3b82f6'],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+        },
+      };
 
       const mesesOrdenados = [...dashboard.actividadesMes].sort(
         (a: any, b: any) =>
@@ -218,8 +251,12 @@ export class Dashboard implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ stats, resumen, dashboard }) => {
+          console.log('SEXO', dashboard.participantesSexo);
+          console.log('MESES', dashboard.actividadesMes);
+
           this.statsGlobal = stats;
           this.resumenRedes = resumen;
+          this.dashboardData = dashboard;
           // Participantes por sexo
           // Agrupar sexo (FEMENINO/Femenino)
           const sexoAgrupado: any = {};

@@ -512,6 +512,8 @@ app.get('/api/stats', async (req, res) => {
       por_modalidad: queries[4].rows,
     };
     setCache(cacheKey, result);
+    console.log('SEXO >>>', participantesSexo.rows);
+    console.log('MESES >>>', actividadesMes.rows);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -524,9 +526,12 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
   try {
     const red = req.query.red || '';
+    console.log('RED RECIBIDA >>>', red);
     const whereActividad = red ? `WHERE red_asistencial = '${red}'` : '';
 
-    const whereParticipante = red ? `WHERE red = '${red}'` : '';
+    const redParticipante = red.replace(/^RA\s+/i, '');
+
+    const whereParticipante = red ? `WHERE red ILIKE '%${red.replace(/^RA\s+/i, '')}%'` : '';
     const [
       personal,
       actividades,
@@ -558,10 +563,10 @@ app.get('/api/dashboard', async (req, res) => {
 `),
 
       pool.query(`
-  SELECT sexo, COUNT(*) total
+  SELECT red, sexo, COUNT(*) total
   FROM lista_participantes
-  ${whereParticipante}
-  GROUP BY sexo
+  GROUP BY red, sexo
+  LIMIT 20
 `),
 
       pool.query(`
@@ -624,10 +629,9 @@ app.get('/api/sunat/ruc', async (req, res) => {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const response = await fetch(
-      `https://api.decolecta.com/v1/sunat/ruc?numero=${numero}`,
-      { headers }
-    );
+    const response = await fetch(`https://api.decolecta.com/v1/sunat/ruc?numero=${numero}`, {
+      headers,
+    });
 
     if (!response.ok) throw new Error(`Status ${response.status}`);
 
