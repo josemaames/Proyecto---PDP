@@ -1,10 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DecimalPipe } from '@angular/common';
-import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
@@ -16,7 +16,7 @@ import { PdpDataService } from '../../services/pdp-data.service';
 export class Sectorista implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private expedienteService = inject(ExpedienteService);
+  private cdr = inject(ChangeDetectorRef);
   private pdpData = inject(PdpDataService);
 
   usuario: any = {};
@@ -174,14 +174,25 @@ export class Sectorista implements OnInit {
 
   cargarSolicitudes() {
     this.cargandoSolicitudes = true;
-    const sedes: string[] = this.usuario?.sedes || [];
+    this.cdr.detectChanges();
+
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const sedes: string[] = Array.isArray(usuario?.sedes) ? usuario.sedes : [];
     const red = sedes.join(',');
     const url = red
       ? `http://localhost:3001/api/solicitudes?estado=pendiente&red=${encodeURIComponent(red)}`
       : `http://localhost:3001/api/solicitudes?estado=pendiente`;
+
     this.http.get<any[]>(url).subscribe({
-      next: (data) => { this.solicitudes = data; this.cargandoSolicitudes = false; },
-      error: () => { this.cargandoSolicitudes = false; },
+      next: (data) => {
+        this.solicitudes = Array.isArray(data) ? data : [];
+        this.cargandoSolicitudes = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cargandoSolicitudes = false;
+        this.cdr.detectChanges();
+      },
     });
   }
 
