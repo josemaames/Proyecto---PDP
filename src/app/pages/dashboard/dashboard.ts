@@ -175,13 +175,50 @@ export class Dashboard implements OnInit, OnDestroy {
     this.chartConfigParticipantesRed = {
       type: 'bar',
       data: {
-        labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
+        labels: this.resumenRedes
+          .sort((a: any, b: any) => b.participantes - a.participantes)
+          .slice(0, 10)
+          .map((r: any) => r.red),
 
         datasets: [
           {
             label: 'Participantes',
-            data: this.resumenRedes.slice(0, 8).map((r: any) => Number(r.participantes)),
+            data: this.resumenRedes
+              .sort((a: any, b: any) => b.participantes - a.participantes)
+              .slice(0, 10)
+              .map((r: any) => Number(r.participantes)),
+
             backgroundColor: '#16a34a',
+            borderRadius: 8,
+          },
+        ],
+      },
+
+      options: {
+        indexAxis: 'y',
+
+        responsive: true,
+        maintainAspectRatio: true,
+
+        plugins: {
+          legend: {
+            display: false,
+          },
+        },
+      },
+    };
+
+    this.chartConfigPresupuestoRed = {
+      type: 'bar',
+      data: {
+        labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
+
+        datasets: [
+          {
+            label: 'Presupuesto (S/.)',
+            data: this.resumenRedes.slice(0, 8).map((r: any) => Number(r.presupuesto)),
+
+            backgroundColor: '#f59e0b',
             borderRadius: 8,
           },
         ],
@@ -189,6 +226,93 @@ export class Dashboard implements OnInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+      },
+    };
+
+    this.chartConfigEficienciaRed = {
+      type: 'scatter',
+
+      data: {
+        datasets: [
+          {
+            label: 'Redes Asistenciales',
+
+            data: this.resumenRedes.map((r: any) => ({
+              x: Number(r.participantes),
+              y: Number(r.presupuesto),
+            })),
+
+            backgroundColor: '#2563eb',
+            pointRadius: 8,
+          },
+        ],
+      },
+
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx: any) => `Participantes: ${ctx.raw.x} | Presupuesto: S/ ${ctx.raw.y}`,
+            },
+          },
+        },
+
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Participantes',
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Presupuesto (S/)',
+            },
+          },
+        },
+      },
+    };
+
+    this.chartConfigCostoParticipante = {
+      type: 'bar',
+      data: {
+        labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
+
+        datasets: [
+          {
+            label: 'Costo por Participante (S/.)',
+
+            data: this.resumenRedes
+              .slice(0, 8)
+              .map((r: any) =>
+                r.participantes > 0 ? Number(r.presupuesto) / Number(r.participantes) : 0,
+              ),
+
+            backgroundColor: '#8b5cf6',
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
       },
     };
 
@@ -257,6 +381,10 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigSexo: any;
   chartConfigMeses: any;
   chartConfigParticipantesRed: any;
+  chartConfigPresupuestoRed: any;
+  chartConfigCostoParticipante: any;
+  chartConfigEficienciaRed: any;
+  modalidadesResumen: any[] = [];
 
   metaParticipantes = Number(localStorage.getItem('metaParticipantes')) || 15000;
   porcentajeMeta = 0;
@@ -414,9 +542,23 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private construirGraficos(stats: any, resumen: ResumenRed[]) {
+    console.log('POR MODALIDAD', stats.por_modalidad);
     const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
     const modLabels = porModalidad.map((m) => m.modalidad || 'Sin modalidad');
     const modData = porModalidad.map((m) => Number(m.total));
+    const modalidades = (stats.por_modalidad || []).map((x: any) => ({
+      ...x,
+      modalidad: (x.modalidad || '').toUpperCase().replace('SEMI PRESENCIAL', 'SEMIPRESENCIAL'),
+    }));
+
+    const total = modalidades.reduce((s: number, x: any) => s + Number(x.total), 0);
+
+    this.modalidadesResumen = modalidades.map((x: any) => ({
+      nombre: x.modalidad,
+      porcentaje: Math.round((Number(x.total) / total) * 100),
+    }));
+
+    console.log('MODALIDADES', this.modalidadesResumen);
 
     this.chartConfigModalidad = {
       type: 'pie',
@@ -445,26 +587,39 @@ export class Dashboard implements OnInit, OnDestroy {
     const topRedes = this.busquedaRed ? this.resumenRedesFiltrado : resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
+
       data: {
-        labels: topRedes.map((r) => r.red.replace('Red Asistencial ', '')),
+        labels: resumen
+          .sort((a: any, b: any) => b.capacitaciones - a.capacitaciones)
+          .slice(0, 10)
+          .map((r: any) => r.red),
+
         datasets: [
           {
             label: 'Capacitaciones',
-            data: topRedes.map((r) => r.capacitaciones),
-            backgroundColor: '#005baa',
-            borderRadius: 6,
+
+            data: resumen
+              .sort((a: any, b: any) => b.capacitaciones - a.capacitaciones)
+              .slice(0, 10)
+              .map((r: any) => Number(r.capacitaciones)),
+
+            backgroundColor: '#2563eb',
+            borderRadius: 8,
           },
         ],
       },
 
       options: {
+        indexAxis: 'y',
+
         responsive: true,
         maintainAspectRatio: true,
+
         plugins: {
-          legend: { display: false },
-          title: { display: true, text: 'Capacitaciones por Red Asistencial (Top 8)' },
+          legend: {
+            display: false,
+          },
         },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
       },
     };
   }
@@ -570,6 +725,10 @@ export class Dashboard implements OnInit, OnDestroy {
   cerrarSesion() {
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
+  }
+
+  get resumenRedesOrdenado() {
+    return [...this.resumenRedes].sort((a: any, b: any) => b.participantes - a.participantes);
   }
 
   get totalCapacitaciones() {

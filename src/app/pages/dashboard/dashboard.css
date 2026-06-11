@@ -1350,3 +1350,206 @@ tr:hover td {
 .grafico-wide {
   grid-column: 1 / -1;
 }
+
+.top-redes {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.top-redes-header {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a4fa8;
+  margin-bottom: 20px;
+}
+
+.top-red-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.top-red-card h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.top-red-card span {
+  color: #6b7280;
+}
+
+.medalla {
+  font-size: 28px;
+}
+
+.oro {
+  background: #fef3c7;
+}
+
+.plata {
+  background: #e5e7eb;
+}
+
+.bronce {
+  background: #fed7aa;
+}
+
+.resumen-ejecutivo {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.resumen-ejecutivo {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.meta-ejecutiva {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.meta-header-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.meta-numero {
+  font-size: 54px;
+  font-weight: 700;
+  color: #16a34a;
+  line-height: 1;
+}
+
+.meta-barra {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.meta-fill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 999px;
+}
+
+.meta-detalle {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.meta-ejecutiva {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.meta-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meta-header-card h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.meta-header-card small {
+  color: #64748b;
+}
+
+.meta-numero {
+  text-align: center;
+  font-size: 64px;
+  font-weight: 700;
+  color: #16a34a;
+  margin: 20px 0 10px;
+}
+
+.meta-total {
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.meta-barra {
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.meta-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  border-radius: 999px;
+}
+
+.meta-estado {
+  text-align: center;
+  margin-top: 18px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.btn-meta {
+  border: none;
+  background: #f1f5f9;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.modalidad-card {
+  padding: 24px;
+}
+
+.modalidad-item {
+  margin-bottom: 18px;
+}
+
+.modalidad-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.modalidad-barra {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.modalidad-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  border-radius: 999px;
+}
+
+.graficos-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}

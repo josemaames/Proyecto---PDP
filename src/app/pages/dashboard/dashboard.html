@@ -322,39 +322,69 @@
         </div>
       }
 
-      <!-- GRÁFICOS ADMINISTRADOR -->
+      <div class="resumen-ejecutivo">
+        <!-- META -->
+        <div class="meta-ejecutiva">
+          <div class="meta-header-card">
+            <div class="kpi-icono">🎯</div>
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <!-- Modalidad -->
-          <div class="dash-card grafico-box">
-            <h3>Capacitaciones por Modalidad</h3>
+            <div>
+              <div class="kpi-titulo">Meta Cumplida</div>
 
-            @if (chartConfigModalidad) {
-              <canvas
-                baseChart
-                [type]="chartConfigModalidad.type"
-                [data]="chartConfigModalidad.data"
-                [options]="chartConfigModalidad.options"
-              ></canvas>
-            }
+              <div class="meta-numero">{{ porcentajeMeta }}%</div>
+            </div>
           </div>
 
-          <!-- Red -->
-          <div class="dash-card grafico-box grafico-wide">
-            <h3>Capacitaciones por Red Asistencial</h3>
+          <div class="meta-barra">
+            <div class="meta-fill" [style.width.%]="porcentajeMeta"></div>
+          </div>
 
-            @if (chartConfigRedes) {
-              <canvas
-                baseChart
-                [type]="chartConfigRedes.type"
-                [data]="chartConfigRedes.data"
-                [options]="chartConfigRedes.options"
-              ></canvas>
-            }
+          <div class="meta-detalle">
+            {{ totalParticipantes | number }}
+            de
+            {{ metaParticipantes | number }}
+            participantes
           </div>
         </div>
-      }
+
+        <!-- TOP REDES -->
+        <div class="top-redes">
+          <div class="top-redes-header">🏆 Top Redes Asistenciales</div>
+
+          <div class="top-red-card oro">
+            <div class="medalla">🥇</div>
+            <div>
+              <h4>{{ resumenRedesOrdenado[0]?.red }}</h4>
+              <span>
+                {{ resumenRedesOrdenado[0]?.participantes | number }}
+                participantes
+              </span>
+            </div>
+          </div>
+
+          <div class="top-red-card plata">
+            <div class="medalla">🥈</div>
+            <div>
+              <h4>{{ resumenRedesOrdenado[1]?.red }}</h4>
+              <span>
+                {{ resumenRedesOrdenado[1]?.participantes | number }}
+                participantes
+              </span>
+            </div>
+          </div>
+
+          <div class="top-red-card bronce">
+            <div class="medalla">🥉</div>
+            <div>
+              <h4>{{ resumenRedesOrdenado[2]?.red }}</h4>
+              <span>
+                {{ resumenRedesOrdenado[2]?.participantes | number }}
+                participantes
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       @if (esAdministrador) {
         <div class="graficos-container">
@@ -372,35 +402,6 @@
             }
           </div>
 
-          <div class="card meta-card">
-            <div class="meta-header">
-              <h2>Cumplimiento de Meta</h2>
-
-              <button class="btn-meta" (click)="cambiarMeta()" title="Cambiar meta">⚙️</button>
-            </div>
-
-            <div class="meta-valor">
-              {{ ((totalParticipantes / metaParticipantes) * 100).toFixed(0) }}%
-            </div>
-
-            <div class="meta-total">
-              {{ totalParticipantes | number }}
-              de
-              {{ metaParticipantes | number }}
-            </div>
-
-            <div class="barra-meta">
-              <div
-                class="barra-meta-fill"
-                [style.width.%]="porcentajeMeta > 100 ? 100 : porcentajeMeta"
-              ></div>
-            </div>
-
-            <div class="estado-meta">🚀 Avance excelente</div>
-
-            <div class="meta-actual">Meta actual: {{ metaParticipantes | number }}</div>
-          </div>
-
           <!-- Meses -->
           <div class="dash-card grafico-box">
             <h3>Actividades por Mes</h3>
@@ -414,13 +415,31 @@
               ></canvas>
             }
           </div>
+
+          <!-- Modalidad -->
+          <div class="dash-card modalidad-card">
+            <h3>Distribución por Modalidad</h3>
+
+            @for (item of modalidadesResumen; track item.nombre) {
+              <div class="modalidad-item">
+                <div class="modalidad-header">
+                  <span>{{ item.nombre }}</span>
+                  <strong>{{ item.porcentaje }}%</strong>
+                </div>
+
+                <div class="modalidad-barra">
+                  <div class="modalidad-fill" [style.width.%]="item.porcentaje"></div>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       }
 
       @if (esAdministrador) {
         <div class="graficos-container">
           <div class="dash-card grafico-box grafico-wide">
-            <h3>Participantes por Red Asistencial</h3>
+            <h3>🏆 Top Redes por Participantes</h3>
 
             @if (true) {
               <canvas
@@ -428,6 +447,57 @@
                 [type]="chartConfigParticipantesRed.type"
                 [data]="chartConfigParticipantesRed.data"
                 [options]="chartConfigParticipantesRed.options"
+              ></canvas>
+            }
+          </div>
+        </div>
+      }
+
+      @if (esAdministrador) {
+        <div class="graficos-container">
+          <div class="dash-card grafico-box grafico-wide">
+            <h3>Presupuesto Ejecutado por Red Asistencial</h3>
+
+            @if (chartConfigPresupuestoRed) {
+              <canvas
+                baseChart
+                [type]="chartConfigPresupuestoRed.type"
+                [data]="chartConfigPresupuestoRed.data"
+                [options]="chartConfigPresupuestoRed.options"
+              ></canvas>
+            }
+          </div>
+        </div>
+      }
+
+      @if (esAdministrador) {
+        <div class="graficos-container">
+          <div class="dash-card grafico-box grafico-wide">
+            <h3>📈 Participantes vs Presupuesto</h3>
+
+            @if (chartConfigEficienciaRed) {
+              <canvas
+                baseChart
+                [type]="chartConfigEficienciaRed.type"
+                [data]="chartConfigEficienciaRed.data"
+                [options]="chartConfigEficienciaRed.options"
+              ></canvas>
+            }
+          </div>
+        </div>
+      }
+
+      @if (esAdministrador) {
+        <div class="graficos-container">
+          <div class="dash-card grafico-box grafico-wide">
+            <h3>Costo por Participante por Red</h3>
+
+            @if (chartConfigCostoParticipante) {
+              <canvas
+                baseChart
+                [type]="chartConfigCostoParticipante.type"
+                [data]="chartConfigCostoParticipante.data"
+                [options]="chartConfigCostoParticipante.options"
               ></canvas>
             }
           </div>
