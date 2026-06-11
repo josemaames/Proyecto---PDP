@@ -142,26 +142,6 @@ export class Dashboard implements OnInit, OnDestroy {
           ordenMeses.indexOf((a.mes_termino || '').toUpperCase()) -
           ordenMeses.indexOf((b.mes_termino || '').toUpperCase()),
       );
-
-      this.chartConfigMeses = {
-        type: 'line',
-        data: {
-          labels: mesesOrdenados.map((x: any) => x.mes_termino),
-          datasets: [
-            {
-              label: 'Actividades',
-              data: mesesOrdenados.map((x: any) => Number(x.total)),
-              borderColor: '#005baa',
-              backgroundColor: '#005baa',
-              tension: 0.3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-        },
-      };
     });
 
     if (!this.busquedaRed) {
@@ -192,9 +172,42 @@ export class Dashboard implements OnInit, OnDestroy {
       options: { responsive: true, maintainAspectRatio: true },
     };
 
+    this.chartConfigParticipantesRed = {
+      type: 'bar',
+      data: {
+        labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
+
+        datasets: [
+          {
+            label: 'Participantes',
+            data: this.resumenRedes.slice(0, 8).map((r: any) => Number(r.participantes)),
+            backgroundColor: '#16a34a',
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+      },
+    };
+
+    console.log('CREANDO PARTICIPANTES RED');
+    console.log(this.chartConfigParticipantesRed);
+
     const ordenMeses = [
-      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-      'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+      'ENERO',
+      'FEBRERO',
+      'MARZO',
+      'ABRIL',
+      'MAYO',
+      'JUNIO',
+      'JULIO',
+      'AGOSTO',
+      'SETIEMBRE',
+      'OCTUBRE',
+      'NOVIEMBRE',
+      'DICIEMBRE',
     ];
     const mesesOrdenados = [...dashboard.actividadesMes].sort(
       (a: any, b: any) =>
@@ -205,13 +218,15 @@ export class Dashboard implements OnInit, OnDestroy {
       type: 'line',
       data: {
         labels: mesesOrdenados.map((x: any) => x.mes_termino),
-        datasets: [{
-          label: 'Actividades',
-          data: mesesOrdenados.map((x: any) => Number(x.total)),
-          borderColor: '#005baa',
-          backgroundColor: '#005baa',
-          tension: 0.3,
-        }],
+        datasets: [
+          {
+            label: 'Actividades',
+            data: mesesOrdenados.map((x: any) => Number(x.total)),
+            borderColor: '#005baa',
+            backgroundColor: '#005baa',
+            tension: 0.3,
+          },
+        ],
       },
       options: { responsive: true, maintainAspectRatio: true },
     };
@@ -241,6 +256,7 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigRedes: any;
   chartConfigSexo: any;
   chartConfigMeses: any;
+  chartConfigParticipantesRed: any;
 
   metaParticipantes = Number(localStorage.getItem('metaParticipantes')) || 15000;
   porcentajeMeta = 0;

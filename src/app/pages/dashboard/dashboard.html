@@ -272,7 +272,9 @@
                 </svg>
               </div>
               <div class="kpi-info">
-                <span class="kpi-valor">{{ (busquedaRed ? resumenRedesFiltrado.length : statsGlobal.redes) | number }}</span>
+                <span class="kpi-valor">{{
+                  (busquedaRed ? resumenRedesFiltrado.length : statsGlobal.redes) | number
+                }}</span>
                 <span class="kpi-label">Redes Asistenciales</span>
               </div>
             </div>
@@ -415,6 +417,23 @@
         </div>
       }
 
+      @if (esAdministrador) {
+        <div class="graficos-container">
+          <div class="dash-card grafico-box grafico-wide">
+            <h3>Participantes por Red Asistencial</h3>
+
+            @if (true) {
+              <canvas
+                baseChart
+                [type]="chartConfigParticipantesRed.type"
+                [data]="chartConfigParticipantesRed.data"
+                [options]="chartConfigParticipantesRed.options"
+              ></canvas>
+            }
+          </div>
+        </div>
+      }
+
       <!-- RESUMEN POR RED ASISTENCIAL -->
       @if (esAdministrador) {
         <div class="dash-card estadisticas-responsable-box">
@@ -428,7 +447,6 @@
               >
             }
           </div>
-
 
           @if (cargandoResumen) {
             <div class="tabla-cargando">
