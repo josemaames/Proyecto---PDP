@@ -189,11 +189,23 @@
           </div>
           <div class="campo">
             <label>Red asistencial / Unidad orgánica solicitante</label>
-            <input
-              type="text"
-              placeholder="Ej: Red Asistencial Almenara"
-              [(ngModel)]="formulario.redAsistencial"
-            />
+            <select [(ngModel)]="formulario.redAsistencial">
+              <option value="">Seleccione...</option>
+              <option value="RA ALMENARA">RA ALMENARA</option>
+              <option value="RA AREQUIPA">RA AREQUIPA</option>
+              <option value="RA CAJAMARCA">RA CAJAMARCA</option>
+              <option value="RA CUSCO">RA CUSCO</option>
+              <option value="RA ICA">RA ICA</option>
+              <option value="RA JUNIN">RA JUNIN</option>
+              <option value="RA LA LIBERTAD">RA LA LIBERTAD</option>
+              <option value="RA LAMBAYEQUE">RA LAMBAYEQUE</option>
+              <option value="RA PIURA">RA PIURA</option>
+              <option value="RA REBAGLIATI">RA REBAGLIATI</option>
+              <option value="RA SABOGAL">RA SABOGAL</option>
+              <option value="RA TACNA">RA TACNA</option>
+              <option value="RP REBAGLIATI">RP REBAGLIATI</option>
+              <option value="SEDE CENTRAL">SEDE CENTRAL</option>
+            </select>
           </div>
           <div class="campo">
             <label>Servicio / Área solicitante</label>
@@ -370,7 +382,52 @@
         </div>
       }
 
-      <button class="btn-guardar" (click)="guardarFormulario()">📤 Enviar Formulario</button>
+      <button class="btn-guardar" (click)="guardarFormulario()" [disabled]="enviando">
+        {{ enviando ? '⏳ Enviando...' : '📤 Enviar Formulario' }}
+      </button>
+
+      <!-- MIS ENVÍOS -->
+      <div class="mis-envios-section card" style="margin-top: 28px">
+        <div class="card-section-title-row">
+          <span class="card-section-title">📬 Mis Envíos</span>
+          <button class="btn-refrescar" (click)="cargarMisEnvios()" title="Actualizar">↻</button>
+        </div>
+
+        @if (cargandoEnvios) {
+          <div class="sin-resultados"><p>Cargando...</p></div>
+        } @else if (misEnvios.length === 0) {
+          <div class="sin-resultados"><p>Aún no has enviado ningún formulario.</p></div>
+        } @else {
+          <div class="tabla-scroll">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Actividad</th>
+                  <th>Red asistencial</th>
+                  <th>Estado</th>
+                  <th>Motivo rechazo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of misEnvios; track e.id) {
+                  <tr>
+                    <td>{{ e.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ e.datos?.nombreActividad || '—' }}</td>
+                    <td>{{ e.datos?.redAsistencial || '—' }}</td>
+                    <td>
+                      <span class="badge-envio" [class]="'envio-' + e.estado">
+                        {{ e.estado === 'pendiente' ? '⏳ Pendiente' : e.estado === 'aprobado' ? '✅ Aprobado' : '❌ Denegado' }}
+                      </span>
+                    </td>
+                    <td>{{ e.motivo_rechazo || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
     </main>
   </div>
 </div>

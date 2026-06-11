@@ -743,3 +743,27 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ===== MIS ENVÍOS ===== */
+.badge-envio {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.envio-pendiente { background: #fff7ed; color: #b45309; }
+.envio-aprobado  { background: #f0fdf4; color: #15803d; }
+.envio-denegado  { background: #fef2f2; color: #dc2626; }
+
+.btn-refrescar {
+  background: none;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #1a4fa8;
+  transition: background 0.15s;
+}
+.btn-refrescar:hover { background: #e8edf8; }

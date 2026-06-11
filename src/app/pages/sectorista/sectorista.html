@@ -62,6 +62,99 @@
 
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
+
+      <!-- SOLICITUDES PENDIENTES -->
+      <div class="card">
+        <div class="card-section-title-row">
+          <span class="card-section-title">
+            📬 Solicitudes de Revisión
+            @if (solicitudes.length > 0) {
+              <span class="badge-pendiente">{{ solicitudes.length }}</span>
+            }
+          </span>
+          <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">↻</button>
+        </div>
+
+        @if (cargandoSolicitudes) {
+          <div class="sin-resultados"><p>Cargando solicitudes...</p></div>
+        } @else if (solicitudes.length === 0) {
+          <div class="sin-resultados">
+            <p>No hay solicitudes pendientes de revisión.</p>
+          </div>
+        } @else {
+          <div class="tabla-scroll">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Ejecutor</th>
+                  <th>Actividad</th>
+                  <th>Red asistencial</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of solicitudes; track s.id) {
+                  <tr [class.fila-seleccionada]="solicitudDetalle?.id === s.id">
+                    <td>{{ s.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ s.ejecutor_nombre || '—' }}</td>
+                    <td>{{ s.datos?.nombreActividad || '—' }}</td>
+                    <td>{{ s.red_asistencial || '—' }}</td>
+                    <td class="acciones-celda">
+                      <button class="btn-ver-detalle" (click)="verSolicitud(s)">
+                        {{ solicitudDetalle?.id === s.id ? 'Ocultar' : 'Ver detalle' }}
+                      </button>
+                      <button class="btn-aprobar" (click)="aprobarSolicitud(s)" [disabled]="procesandoRevision">✅ Aprobar</button>
+                      <button class="btn-denegar" (click)="abrirModalRechazo(s)" [disabled]="procesandoRevision">❌ Denegar</button>
+                    </td>
+                  </tr>
+                  @if (solicitudDetalle?.id === s.id) {
+                    <tr class="fila-detalle">
+                      <td colspan="5">
+                        <div class="detalle-solicitud-grid">
+                          <div><span>Código act.</span><strong>{{ s.datos?.codigoAct || '—' }}</strong></div>
+                          <div><span>Fecha inicio</span><strong>{{ s.datos?.fechaInicio || '—' }}</strong></div>
+                          <div><span>Fecha fin</span><strong>{{ s.datos?.fechaFin || '—' }}</strong></div>
+                          <div><span>Modalidad</span><strong>{{ s.datos?.modalidad || '—' }}</strong></div>
+                          <div><span>Total horas</span><strong>{{ s.datos?.totalHoras ?? '—' }}</strong></div>
+                          <div><span>Participantes</span><strong>{{ s.datos?.totalParticipantes ?? '—' }}</strong></div>
+                          <div><span>Eje temático</span><strong>{{ s.datos?.ejeTematico || '—' }}</strong></div>
+                          <div><span>Presupuesto (S/)</span><strong>{{ s.datos?.presupuestoEjecutado ?? '—' }}</strong></div>
+                          <div><span>Proveedor</span><strong>{{ s.datos?.nombreProveedor || '—' }}</strong></div>
+                          <div><span>Nivel evaluación</span><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong></div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
     </main>
   </div>
+
+  <!-- MODAL DE RECHAZO -->
+  @if (mostrarModalRechazo) {
+    <div class="modal-busqueda-overlay" (click)="cerrarModalRechazo()">
+      <div class="modal-rechazo" (click)="$event.stopPropagation()">
+        <h3>❌ Denegar solicitud</h3>
+        <p class="modal-rechazo-actividad">{{ solicitudADenegar?.datos?.nombreActividad }}</p>
+        <label>Motivo del rechazo (opcional)</label>
+        <textarea
+          rows="4"
+          [(ngModel)]="motivoRechazo"
+          placeholder="Indique el motivo para que el ejecutor pueda corregirlo..."
+        ></textarea>
+        <div class="modal-rechazo-acciones">
+          <button class="btn-cancelar-modal" (click)="cerrarModalRechazo()">Cancelar</button>
+          <button class="btn-confirmar-rechazo" (click)="confirmarRechazo()" [disabled]="procesandoRevision">
+            {{ procesandoRevision ? 'Procesando...' : 'Confirmar rechazo' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -1,21 +1,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { MatrizDncService } from '../../services/matriz-dnc.service';
 import { ExpedienteService } from '../../services/expediente.service';
 
 @Component({
   selector: 'app-ejecutor',
   standalone: true,
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, DatePipe],
   templateUrl: './ejecutor.html',
   styleUrl: './ejecutor.css',
 })
 export class Ejecutor implements OnInit {
   private router = inject(Router);
-  private matrizDncService = inject(MatrizDncService);
   private http = inject(HttpClient);
   private expedienteService = inject(ExpedienteService);
 
@@ -40,6 +38,11 @@ export class Ejecutor implements OnInit {
   limitAct = 50;
   totalAct = 0;
   cargandoAct = false;
+
+  // MIS ENVÍOS
+  misEnvios: any[] = [];
+  cargandoEnvios = false;
+  enviando = false;
 
   get totalPaginasAct(): number {
     return Math.max(1, Math.ceil(this.totalAct / this.limitAct));
@@ -71,8 +74,8 @@ export class Ejecutor implements OnInit {
 
   ngOnInit() {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-
     this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
+    this.cargarMisEnvios();
 
     const f = new Date().toLocaleDateString('es-PE', {
       weekday: 'long',
@@ -125,6 +128,16 @@ export class Ejecutor implements OnInit {
     this.actividades = [];
     this.totalAct = 0;
     this.cargandoAct = false;
+  }
+
+  cargarMisEnvios() {
+    const dni = this.usuario?.dni;
+    if (!dni) return;
+    this.cargandoEnvios = true;
+    this.http.get<any[]>(`http://localhost:3001/api/solicitudes/mis-envios?dni=${dni}`).subscribe({
+      next: (data) => { this.misEnvios = data; this.cargandoEnvios = false; },
+      error: () => { this.cargandoEnvios = false; },
+    });
   }
 
   buscarAct() {
@@ -208,6 +221,36 @@ export class Ejecutor implements OnInit {
       return;
     }
 
-    alert('✅ Formulario guardado correctamente');
+    this.enviando = true;
+    const payload = {
+      datos: { ...this.formulario },
+      ejecutor_nombre: this.usuario?.nombre || '',
+      ejecutor_dni: this.usuario?.dni || '',
+    };
+
+    this.http.post('http://localhost:3001/api/solicitudes', payload).subscribe({
+      next: () => {
+        this.enviando = false;
+        this.errorFormulario = '';
+        this.camposInvalidos = [];
+        this.formulario = {
+          codigoAct: '', fechaInicio: '', fechaFin: '', mesTermino: '',
+          redAsistencial: '', servicioArea: '', nombreActividad: '',
+          totalHoras: 0, horasFueraHorario: 0, frecuencia: '',
+          horaInicio: '', horaTermino: '', modalidad: '', publico: '',
+          nivelEvaluacion: '', totalParticipantes: 0, ejeTematico: '',
+          rucProveedor: '', nombreProveedor: '', sectorProveedor: '',
+          presupuestoEjecutado: 0,
+        };
+        this.cargarMisEnvios();
+        setTimeout(() => {
+          document.querySelector('.mis-envios-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      },
+      error: () => {
+        this.enviando = false;
+        this.errorFormulario = 'Error al enviar el formulario. Intente nuevamente.';
+      },
+    });
   }
 }

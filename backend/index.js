@@ -45,9 +45,32 @@ pool
   .connect()
   .then(() => {
     console.log('✓ Conectado a PostgreSQL');
-    crearIndices();
+    crearTablas().then(crearIndices);
   })
   .catch((err) => console.error('✗ Error de conexión:', err.message));
+
+async function crearTablas() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS solicitudes_revision (
+      id            SERIAL PRIMARY KEY,
+      datos         JSONB        NOT NULL,
+      red_asistencial TEXT,
+      ejecutor_nombre TEXT,
+      ejecutor_dni    TEXT,
+      estado          TEXT        NOT NULL DEFAULT 'pendiente',
+      motivo_rechazo  TEXT,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reviewed_at     TIMESTAMPTZ
+    )
+  `);
+  // Reparar registros con red_asistencial NULL extrayendo del campo JSONB
+  await pool.query(`
+    UPDATE solicitudes_revision
+    SET red_asistencial = datos->>'redAsistencial'
+    WHERE red_asistencial IS NULL AND datos->>'redAsistencial' IS NOT NULL
+  `);
+  console.log('✓ Tabla solicitudes_revision verificada');
+}
 
 async function crearIndices() {
   const indices = [
@@ -630,6 +653,125 @@ app.get('/api/dashboard', async (req, res) => {
     res.status(500).json({
       error: error.message,
     });
+  }
+});
+
+// ══════════════════════════════════════════════
+// SOLICITUDES DE REVISIÓN
+// POST /api/solicitudes           — ejecutor envía formulario
+// GET  /api/solicitudes?red=xxx   — sectorista consulta pendientes de su red
+// GET  /api/solicitudes/mis-envios?dni=xxx — ejecutor consulta sus envíos
+// PUT  /api/solicitudes/:id/revisar — sectorista aprueba o deniega
+// ══════════════════════════════════════════════
+
+app.post('/api/solicitudes', async (req, res) => {
+  try {
+    const { datos, ejecutor_nombre, ejecutor_dni } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO solicitudes_revision (datos, red_asistencial, ejecutor_nombre, ejecutor_dni)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [JSON.stringify(datos), datos.redAsistencial || datos.red_asistencial || null, ejecutor_nombre || null, ejecutor_dni || null]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/solicitudes/mis-envios', async (req, res) => {
+  try {
+    const { dni } = req.query;
+    if (!dni) return res.status(400).json({ error: 'dni requerido' });
+    const { rows } = await pool.query(
+      `SELECT id, datos, red_asistencial, estado, motivo_rechazo, created_at, reviewed_at
+       FROM solicitudes_revision WHERE ejecutor_dni = $1 ORDER BY created_at DESC LIMIT 50`,
+      [dni]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/solicitudes', async (req, res) => {
+  try {
+    const { red, estado = 'pendiente' } = req.query;
+    let conditions = [`estado = $1`];
+    let params = [estado];
+    let idx = 2;
+    if (red) {
+      const redes = String(red).split(',').map(r => r.trim()).filter(Boolean);
+      if (redes.length === 1) {
+        conditions.push(`red_asistencial ILIKE $${idx}`);
+        params.push(`%${redes[0]}%`);
+      } else {
+        const orClauses = redes.map((_, i) => `red_asistencial ILIKE $${idx + i}`).join(' OR ');
+        conditions.push(`(${orClauses})`);
+        params.push(...redes.map(r => `%${r}%`));
+      }
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await pool.query(
+      `SELECT id, datos, red_asistencial, ejecutor_nombre, ejecutor_dni, estado, motivo_rechazo, created_at
+       FROM solicitudes_revision ${where} ORDER BY created_at DESC`,
+      params
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/solicitudes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM solicitudes_revision WHERE id=$1', [parseInt(req.params.id)]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/solicitudes/:id/revisar', async (req, res) => {
+  try {
+    const { estado, motivo_rechazo } = req.body;
+    if (!['aprobado', 'denegado'].includes(estado)) {
+      return res.status(400).json({ error: 'estado debe ser aprobado o denegado' });
+    }
+    const { rows } = await pool.query(
+      `UPDATE solicitudes_revision
+       SET estado=$1, motivo_rechazo=$2, reviewed_at=NOW()
+       WHERE id=$3 RETURNING *`,
+      [estado, motivo_rechazo || null, parseInt(req.params.id)]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrada' });
+
+    if (estado === 'aprobado') {
+      const f = rows[0].datos;
+      await pool.query(
+        `INSERT INTO datos_actividad
+           (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
+            servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
+            frecuencia, hora_inicio, hora_termino, modalidad, publico,
+            nivel_evaluacion, total_participantes,
+            ruc_proveedor, nombre_proveedor, sector_proveedor,
+            presupuesto_ejecutado, eje_tematico)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+        [
+          f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino,
+          f.redAsistencial, f.servicioArea, f.nombreActividad,
+          f.totalHoras || null, f.horasFueraHorario || null, f.frecuencia,
+          f.horaInicio || null, f.horaTermino || null, f.modalidad, f.publico,
+          f.nivelEvaluacion, f.totalParticipantes || null,
+          f.rucProveedor, f.nombreProveedor, f.sectorProveedor,
+          f.presupuestoEjecutado || null, f.ejeTematico,
+        ]
+      );
+      invalidarCache();
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

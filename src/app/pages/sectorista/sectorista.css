@@ -785,3 +785,184 @@
   font-size: 12px;
   font-weight: 500;
 }
+
+/* ===== SOLICITUDES DE REVISIÓN ===== */
+.card-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e8edf8;
+}
+
+.card-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a4fa8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-pendiente {
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 2px 8px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.btn-refrescar {
+  background: none;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #1a4fa8;
+  margin-left: auto;
+  transition: background 0.15s;
+}
+.btn-refrescar:hover { background: #e8edf8; }
+
+.tabla-scroll { overflow-x: auto; }
+
+.tabla-part {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabla-part th, .tabla-part td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e8edf8;
+  text-align: left;
+}
+.tabla-part th { background: #f1f5fb; font-weight: 700; color: #1a4fa8; }
+.tabla-part tr:hover td { background: #f8faff; }
+.fila-seleccionada td { background: #eff6ff !important; }
+
+.acciones-celda { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.btn-ver-detalle {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #1a4fa8;
+  background: #fff;
+  color: #1a4fa8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-ver-detalle:hover { background: #e8edf8; }
+
+.btn-aprobar {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #15803d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-aprobar:hover:not(:disabled) { background: #166534; }
+.btn-aprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-denegar {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-denegar:hover:not(:disabled) { background: #b91c1c; }
+.btn-denegar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fila-detalle td { background: #f8faff; padding: 16px 20px; }
+
+.detalle-solicitud-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.detalle-solicitud-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.detalle-solicitud-grid span {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.detalle-solicitud-grid strong { font-size: 13px; color: #1e293b; }
+
+.sin-resultados {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* MODAL RECHAZO */
+.modal-rechazo {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 480px;
+  max-width: 94vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.modal-rechazo h3 { margin: 0 0 8px; color: #dc2626; font-size: 18px; }
+.modal-rechazo-actividad { color: #475569; font-size: 14px; margin: 0 0 20px; font-style: italic; }
+.modal-rechazo label { font-size: 13px; font-weight: 600; color: #1e293b; }
+.modal-rechazo textarea {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.modal-rechazo-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-cancelar-modal {
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-cancelar-modal:hover { background: #f1f5f9; }
+.btn-confirmar-rechazo {
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-confirmar-rechazo:hover:not(:disabled) { background: #b91c1c; }
+.btn-confirmar-rechazo:disabled { opacity: 0.5; cursor: not-allowed; }

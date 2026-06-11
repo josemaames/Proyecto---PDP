@@ -78,6 +78,15 @@ export class Sectorista implements OnInit {
     return Math.round((completados / totalCampos) * 100);
   }
 
+  // SOLICITUDES DE REVISIÓN
+  solicitudes: any[] = [];
+  cargandoSolicitudes = false;
+  solicitudDetalle: any = null;
+  mostrarModalRechazo = false;
+  motivoRechazo = '';
+  solicitudADenegar: any = null;
+  procesandoRevision = false;
+
   // BÚSQUEDA DE CAPACITACIONES
   mostrarBusqueda = false;
   textoBusqueda = '';
@@ -160,6 +169,65 @@ export class Sectorista implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.redFiltro = this.pdpData.getRedFiltro();
+    this.cargarSolicitudes();
+  }
+
+  cargarSolicitudes() {
+    this.cargandoSolicitudes = true;
+    const sedes: string[] = this.usuario?.sedes || [];
+    const red = sedes.join(',');
+    const url = red
+      ? `http://localhost:3001/api/solicitudes?estado=pendiente&red=${encodeURIComponent(red)}`
+      : `http://localhost:3001/api/solicitudes?estado=pendiente`;
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => { this.solicitudes = data; this.cargandoSolicitudes = false; },
+      error: () => { this.cargandoSolicitudes = false; },
+    });
+  }
+
+  verSolicitud(s: any) {
+    this.solicitudDetalle = this.solicitudDetalle?.id === s.id ? null : s;
+  }
+
+  aprobarSolicitud(s: any) {
+    this.procesandoRevision = true;
+    this.http.put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, { estado: 'aprobado' }).subscribe({
+      next: () => {
+        this.procesandoRevision = false;
+        this.solicitudDetalle = null;
+        this.cargarSolicitudes();
+      },
+      error: () => { this.procesandoRevision = false; },
+    });
+  }
+
+  abrirModalRechazo(s: any) {
+    this.solicitudADenegar = s;
+    this.motivoRechazo = '';
+    this.mostrarModalRechazo = true;
+  }
+
+  cerrarModalRechazo() {
+    this.mostrarModalRechazo = false;
+    this.solicitudADenegar = null;
+    this.motivoRechazo = '';
+  }
+
+  confirmarRechazo() {
+    if (!this.solicitudADenegar) return;
+    this.procesandoRevision = true;
+    this.http.put(`http://localhost:3001/api/solicitudes/${this.solicitudADenegar.id}/revisar`, {
+      estado: 'denegado',
+      motivo_rechazo: this.motivoRechazo.trim() || 'Sin motivo especificado',
+    }).subscribe({
+      next: () => {
+        this.procesandoRevision = false;
+        this.cerrarModalRechazo();
+        this.solicitudDetalle = null;
+        this.cargarSolicitudes();
+      },
+      error: () => { this.procesandoRevision = false; },
+    });
   }
 
   irA(ruta: string) {
