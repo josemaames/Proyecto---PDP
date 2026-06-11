@@ -210,7 +210,7 @@
       <div class="card">
         <div class="card-section-title">🎓 Datos de la Actividad</div>
         <div class="campo" style="margin-bottom: 18px">
-          <label>Nombre de la actividad de capacitación</label>
+          <label>Nombre de la acción de formación laboral</label>
           <input
             type="text"
             placeholder="Ej: Gestión Documental Electrónica"
@@ -285,11 +285,15 @@
         </div>
         <div class="campo" style="margin-top: 18px">
           <label>Eje temático</label>
-          <input
-            type="text"
-            placeholder="Ej: Gestión Pública, Salud, Tecnología"
-            [(ngModel)]="formulario.ejeTematico"
-          />
+          <select [(ngModel)]="formulario.ejeTematico">
+            <option value="" disabled>Seleccione un eje temático</option>
+            <option value="Atención Especializada">Atención Especializada</option>
+            <option value="Atención primaria">Atención primaria</option>
+            <option value="Control interno o auditoría">Control interno o auditoría</option>
+            <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
+            <option value="Gestión institucional">Gestión institucional</option>
+            <option value="Otros">Otros</option>
+          </select>
         </div>
       </div>
 
