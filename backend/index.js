@@ -8,6 +8,17 @@ app.use(cors());
 app.use(express.json());
 
 // ──────────────────────────────────────────────
+// Normaliza nombre corto de red al formato largo
+// ──────────────────────────────────────────────
+function expandirRed(r) {
+  if (!r) return r;
+  const u = r.trim().toUpperCase();
+  if (u.startsWith('RA ')) return 'RED ASISTENCIAL ' + u.slice(3);
+  if (u.startsWith('RP ')) return 'RED PRESTACIONAL ' + u.slice(3);
+  return u;
+}
+
+// ──────────────────────────────────────────────
 // Caché en memoria (evita queries repetidas)
 // ──────────────────────────────────────────────
 const CACHE_TTL = 3 * 60 * 1000; // 3 minutos
@@ -63,13 +74,54 @@ async function crearTablas() {
       reviewed_at     TIMESTAMPTZ
     )
   `);
-  // Reparar registros con red_asistencial NULL extrayendo del campo JSONB
   await pool.query(`
     UPDATE solicitudes_revision
     SET red_asistencial = datos->>'redAsistencial'
     WHERE red_asistencial IS NULL AND datos->>'redAsistencial' IS NOT NULL
   `);
-  console.log('✓ Tabla solicitudes_revision verificada');
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS usuarios_sistema (
+      id               SERIAL PRIMARY KEY,
+      dni              TEXT UNIQUE NOT NULL,
+      nombre           TEXT NOT NULL,
+      password         TEXT NOT NULL,
+      rol              TEXT NOT NULL,
+      cargo            TEXT DEFAULT '',
+      estado           TEXT NOT NULL DEFAULT 'Activo',
+      sedes            TEXT DEFAULT '',
+      numero_plantilla TEXT DEFAULT '',
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  const { rows: cnt } = await pool.query('SELECT COUNT(*) FROM usuarios_sistema');
+  if (parseInt(cnt[0].count) === 0) {
+    const seed = [
+      ['90642735', 'José Manuel Ames Anapán',       'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0001'],
+      ['70435255', 'Víctor Gabriel Acero Garay',     'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0002'],
+      ['73456264', 'Fernando David Campos Quiroz',   'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0003'],
+      ['45611148', 'Sthywen Javier Muñoz Ruiz',      'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0004'],
+      ['11111111', 'María Torres Quispe',             'sector123',   'Sectorista',    'Sectorista Red Arequipa',    'Activo',   'RA AREQUIPA',                   'PL-0005'],
+      ['33333333', 'Ana Sofía Paredes Quispe',        'sector123',   'Sectorista',    'Sectorista Redes Sur-Centro','Activo',   'RA CUSCO,RA AREQUIPA,RA PIURA', 'PL-0007'],
+      ['48562134', 'María Elena Torres Salazar',      'sector123',   'Sectorista',    'Sectorista Red Rebagliati',  'Activo',   'RP REBAGLIATI',                 ''],
+      ['71234589', 'Luis Alberto Sánchez Rojas',      'sector123',   'Sectorista',    'Sectorista Red Almenara',    'Activo',   'RP ALMENARA',                   ''],
+      ['22222222', 'Ricardo Mendoza García',          'ejecutor123', 'Ejecutor',      'Ejecutor Red Rebagliati',    'Activo',   'RP REBAGLIATI',                 'PL-0006'],
+      ['44444444', 'Carlos Alberto Huanca Torres',    'ejecutor123', 'Ejecutor',      'Ejecutor Red Arequipa',      'Activo',   'RA AREQUIPA',                   'PL-0008'],
+      ['59874123', 'Ana Lucía Rodríguez Vargas',      'ejecutor123', 'Ejecutor',      'Ejecutor de Capacitación',   'Activo',   '',                              ''],
+      ['74125896', 'Carmen Rosa Delgado Silva',       'ejecutor123', 'Ejecutor',      'Ejecutor Administrativo',    'Inactivo', '',                              ''],
+    ];
+    for (const u of seed) {
+      await pool.query(
+        `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (dni) DO NOTHING`,
+        u
+      );
+    }
+    console.log('✓ Usuarios iniciales creados');
+  }
+
+  console.log('✓ Tablas verificadas');
 }
 
 async function crearIndices() {
@@ -97,8 +149,9 @@ async function crearIndices() {
     // Búsqueda por DNI en personal
     `CREATE INDEX IF NOT EXISTS idx_personal_dni ON personal(dni_ce)`,
 
-    // Trigramas para búsquedas ILIKE eficientes
+    // Extensiones de texto
     `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
+    `CREATE EXTENSION IF NOT EXISTS unaccent`,
     `CREATE INDEX IF NOT EXISTS idx_actividad_nombre_trgm ON datos_actividad USING gin(nombre_actividad gin_trgm_ops)`,
     `CREATE INDEX IF NOT EXISTS idx_personal_apellidos_trgm ON personal USING gin(apellidos gin_trgm_ops)`,
     `CREATE INDEX IF NOT EXISTS idx_participantes_apellidos_trgm ON lista_participantes USING gin(apellidos gin_trgm_ops)`,
@@ -131,7 +184,7 @@ app.get('/api/participantes', async (req, res) => {
 
     if (q) {
       conditions.push(
-        `(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx})`,
+        `(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx} OR codigo_act ILIKE $${idx})`,
       );
       params.push(`%${q}%`);
       idx++;
@@ -142,25 +195,20 @@ app.get('/api/participantes', async (req, res) => {
       idx++;
     }
     if (red) {
-      const expandirRed = (r) => {
-        const u = r.trim().toUpperCase();
-        if (u.startsWith('RA ')) return 'RED ASISTENCIAL ' + u.slice(3);
-        if (u.startsWith('RP ')) return 'RED PRESTACIONAL ' + u.slice(3);
-        return u;
-      };
-      const redes = red.split(',').map((r) => expandirRed(r)).filter(Boolean);
-      if (redes.length === 1) {
-        conditions.push(`red ILIKE $${idx}`);
-        params.push(`%${redes[0]}%`);
-        idx++;
-      } else if (redes.length > 1) {
-        const redConds = redes.map((r, i) => {
-          params.push(`%${r}%`);
-          return `red ILIKE $${idx + i}`;
-        });
-        idx += redes.length;
-        conditions.push(`(${redConds.join(' OR ')})`);
-      }
+      // Para cada red buscamos tanto el formato largo ("RED PRESTACIONAL REBAGLIATI")
+      // como el formato corto ("RP REBAGLIATI") para cubrir ambas variantes en la tabla
+      const variants = red.split(',').flatMap((r) => {
+        const largo = expandirRed(r.trim());
+        const corto = r.trim().toUpperCase();
+        return largo !== corto ? [largo, corto] : [largo];
+      }).filter(Boolean);
+
+      const redConds = variants.map((_, i) => {
+        params.push(`%${variants[i]}%`);
+        return `red ILIKE $${idx + i}`;
+      });
+      idx += variants.length;
+      conditions.push(`(${redConds.join(' OR ')})`);
     }
     if (regimen_laboral) {
       conditions.push(`regimen_laboral ILIKE $${idx}`);
@@ -199,7 +247,7 @@ app.post('/api/participantes', async (req, res) => {
         f.apellidos,
         f.nombres || f.nombre,
         f.sexo,
-        f.redAsist || f.red,
+        expandirRed(f.redAsist || f.red || ''),
         f.subPrograma || f.sub_programa,
         f.servicioArea || f.servicio_area,
         f.cargo,
@@ -230,10 +278,10 @@ app.delete('/api/participantes/:id', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/actividades', async (req, res) => {
   try {
-    const { q = '', red = '', modalidad = '', page = 1, limit = 50 } = req.query;
+    const { q = '', red = '', modalidad = '', eje_tematico = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const cacheKey = `actividades:${q}:${red}:${modalidad}:${page}:${limit}`;
+    const cacheKey = `actividades:${q}:${red}:${modalidad}:${eje_tematico}:${page}:${limit}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
@@ -267,6 +315,11 @@ app.get('/api/actividades', async (req, res) => {
     if (modalidad) {
       conditions.push(`modalidad ILIKE $${idx}`);
       params.push(`%${modalidad}%`);
+      idx++;
+    }
+    if (eje_tematico) {
+      conditions.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${idx}))`);
+      params.push(`%${eje_tematico}%`);
       idx++;
     }
 
@@ -467,30 +520,30 @@ app.get('/api/personal-essalud/dni/:dni', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/resumen-redes', async (req, res) => {
   try {
-    const { redes = '' } = req.query;
-    const cacheKey = `resumen-redes:${redes}`;
+    const { redes = '', eje_tematico = '' } = req.query;
+    const cacheKey = `resumen-redes:${redes}:${eje_tematico}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
-    let where = '';
-    const params = [];
+    let conditions = [], params = [], idx = 1;
 
     if (redes) {
-      const lista = redes
-        .split(',')
-        .map((r) => r.trim())
-        .filter(Boolean);
+      const lista = redes.split(',').map((r) => r.trim()).filter(Boolean);
       if (lista.length === 1) {
-        where = `WHERE red_asistencial ILIKE $1`;
+        conditions.push(`red_asistencial ILIKE $${idx}`);
         params.push(`%${lista[0]}%`);
+        idx++;
       } else if (lista.length > 1) {
-        const conds = lista.map((r, i) => {
-          params.push(`%${r}%`);
-          return `red_asistencial ILIKE $${i + 1}`;
-        });
-        where = `WHERE (${conds.join(' OR ')})`;
+        const conds = lista.map((r) => { params.push(`%${r}%`); return `red_asistencial ILIKE $${idx++}`; });
+        conditions.push(`(${conds.join(' OR ')})`);
       }
     }
+    if (eje_tematico) {
+      conditions.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${idx}))`);
+      params.push(`%${eje_tematico}%`);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const { rows } = await pool.query(
       `SELECT
@@ -517,31 +570,36 @@ app.get('/api/resumen-redes', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/stats', async (req, res) => {
   try {
-    const { red = '' } = req.query;
-    const cacheKey = `stats:${red}`;
+    const { red = '', eje_tematico = '' } = req.query;
+    const cacheKey = `stats:${red}:${eje_tematico}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
-    const actWhere = red ? `WHERE red_asistencial ILIKE $1` : '';
-    const partWhere = red ? `WHERE red ILIKE $1` : '';
-    const p = red ? [`%${red}%`] : [];
+    let actConds = [], actParams = [], idx = 1;
+    let partConds = [], partParams = [];
+
+    if (red) {
+      actConds.push(`red_asistencial ILIKE $${idx}`);
+      actParams.push(`%${red}%`);
+      partConds.push(`red ILIKE $1`);
+      partParams.push(`%${red}%`);
+      idx++;
+    }
+    if (eje_tematico) {
+      actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${idx}))`);
+      actParams.push(`%${eje_tematico}%`);
+      idx++;
+    }
+
+    const actWhere = actConds.length ? `WHERE ${actConds.join(' AND ')}` : '';
+    const partWhere = partConds.length ? `WHERE ${partConds.join(' AND ')}` : '';
 
     const queries = await Promise.all([
-      pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`, p),
-      pool.query(`SELECT COUNT(*) FROM lista_participantes ${partWhere}`, p),
-      pool.query(
-        `SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`,
-        p,
-      ),
-      pool.query(`SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`, p),
-      pool.query(
-        `
-        SELECT modalidad, COUNT(*) as total
-        FROM datos_actividad ${actWhere}
-        GROUP BY modalidad ORDER BY total DESC
-      `,
-        p,
-      ),
+      pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`, actParams),
+      pool.query(`SELECT COUNT(*) FROM lista_participantes ${partWhere}`, partParams),
+      pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`, actParams),
+      pool.query(`SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`, actParams),
+      pool.query(`SELECT modalidad, COUNT(*) as total FROM datos_actividad ${actWhere} GROUP BY modalidad ORDER BY total DESC`, actParams),
     ]);
 
     const result = {
@@ -552,8 +610,6 @@ app.get('/api/stats', async (req, res) => {
       por_modalidad: queries[4].rows,
     };
     setCache(cacheKey, result);
-    console.log('SEXO >>>', participantesSexo.rows);
-    console.log('MESES >>>', actividadesMes.rows);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -566,13 +622,15 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
   try {
     const red = req.query.red || '';
+    const ejeTematico = req.query.eje_tematico || '';
 
-    console.log('RED RECIBIDA >>>', red);
-    const whereActividad = red ? `WHERE red_asistencial = '${red}'` : '';
+    const actConds = [], actParams = [];
+    if (red) { actConds.push(`red_asistencial ILIKE $${actParams.length + 1}`); actParams.push(`%${red}%`); }
+    if (ejeTematico) { actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${actParams.length + 1}))`); actParams.push(`%${ejeTematico}%`); }
+    const whereActividad = actConds.length ? `WHERE ${actConds.join(' AND ')}` : '';
 
     const redBusqueda = red.replace(/^RA\s+/i, '').trim();
-
-    const whereParticipante = red ? `WHERE red ILIKE '%${redBusqueda}%'` : '';
+    const whereParticipante = redBusqueda ? `WHERE red ILIKE '%${redBusqueda}%'` : '';
 
     const [
       personal,
@@ -586,53 +644,14 @@ app.get('/api/dashboard', async (req, res) => {
       topServicios,
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) total FROM personal'),
-
       pool.query('SELECT COUNT(*) total FROM datos_actividad'),
-
       pool.query('SELECT COUNT(*) total FROM lista_participantes'),
-
-      pool.query(`
-        SELECT COALESCE(SUM(presupuesto_ejecutado),0) total
-        FROM datos_actividad
-      `),
-
-      pool.query(`
-  SELECT mes_termino, COUNT(*) total
-  FROM datos_actividad
-  ${whereActividad}
-  GROUP BY mes_termino
-  ORDER BY total DESC
-`),
-
-      pool.query(`
-  SELECT red, sexo, COUNT(*) total
-  FROM lista_participantes
-  WHERE red ILIKE '%${redBusqueda}%'
-  GROUP BY red, sexo
-`),
-
-      pool.query(`
-        SELECT red, COUNT(*) total
-        FROM lista_participantes
-        GROUP BY red
-        ORDER BY total DESC
-        LIMIT 10
-      `),
-
-      pool.query(`
-  SELECT modalidad, COUNT(*) total
-  FROM datos_actividad
-  ${whereActividad}
-  GROUP BY modalidad
-`),
-
-      pool.query(`
-        SELECT servicio_area, COUNT(*) total
-        FROM datos_actividad
-        GROUP BY servicio_area
-        ORDER BY total DESC
-        LIMIT 10
-      `),
+      pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) total FROM datos_actividad`),
+      pool.query(`SELECT mes_termino, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY mes_termino ORDER BY total DESC`, actParams),
+      pool.query(`SELECT red, sexo, COUNT(*) total FROM lista_participantes ${whereParticipante} GROUP BY red, sexo`),
+      pool.query(`SELECT red, COUNT(*) total FROM lista_participantes GROUP BY red ORDER BY total DESC LIMIT 10`),
+      pool.query(`SELECT modalidad, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY modalidad`, actParams),
+      pool.query(`SELECT servicio_area, COUNT(*) total FROM datos_actividad GROUP BY servicio_area ORDER BY total DESC LIMIT 10`),
     ]);
 
     res.json({
@@ -752,20 +771,45 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
            (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
             servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
             frecuencia, hora_inicio, hora_termino, modalidad, publico,
-            nivel_evaluacion, total_participantes,
+            nivel_evaluacion, objetivo_estrategico, total_participantes,
             ruc_proveedor, nombre_proveedor, sector_proveedor,
             presupuesto_ejecutado, eje_tematico)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
         [
           f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino,
           f.redAsistencial, f.servicioArea, f.nombreActividad,
           f.totalHoras || null, f.horasFueraHorario || null, f.frecuencia,
           f.horaInicio || null, f.horaTermino || null, f.modalidad, f.publico,
-          f.nivelEvaluacion, f.totalParticipantes || null,
+          f.nivelEvaluacion, f.objetivoEstrategico || null, f.totalParticipantes || null,
           f.rucProveedor, f.nombreProveedor, f.sectorProveedor,
           f.presupuestoEjecutado || null, f.ejeTematico,
         ]
       );
+      // Insertar participantes en lista_participantes
+      const participantes = Array.isArray(f.participantesDetalle) ? f.participantesDetalle : [];
+      for (const p of participantes) {
+        const redNorm = expandirRed(p.red || f.redAsistencial || '');
+        await pool.query(
+          `INSERT INTO lista_participantes
+             (codigo_act, dni_ce, cod_planilla, apellidos, nombre,
+              sexo, red, sub_programa, servicio_area, cargo, regimen_laboral)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+          [
+            p.codigo_act || f.codigoAct || null,
+            p.dni_ce || null,
+            p.cod_planilla || null,
+            p.apellidos || null,
+            p.nombre || null,
+            p.sexo || null,
+            redNorm || null,
+            p.sub_programa || null,
+            p.servicio_area || null,
+            p.cargo || null,
+            p.regimen_laboral || null,
+          ]
+        );
+      }
+
       invalidarCache();
     }
 
@@ -775,7 +819,90 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
   }
 });
 
-// ──────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// USUARIOS DEL SISTEMA
+// POST /api/auth/login
+// GET  /api/usuarios
+// POST /api/usuarios
+// PUT  /api/usuarios/:dni
+// ══════════════════════════════════════════════
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { dni, password } = req.body;
+    const { rows } = await pool.query(
+      'SELECT * FROM usuarios_sistema WHERE dni=$1 AND password=$2',
+      [dni, password]
+    );
+    if (!rows.length) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    const u = rows[0];
+    if (u.estado === 'Inactivo') return res.status(403).json({ error: 'Cuenta desactivada. Contacte al administrador.' });
+    res.json({
+      id: u.id,
+      dni: u.dni,
+      nombre: u.nombre,
+      rol: u.rol,
+      cargo: u.cargo,
+      estado: u.estado,
+      sedes: u.sedes ? u.sedes.split(',').filter(Boolean) : [],
+      numeroPlantilla: u.numero_plantilla,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla FROM usuarios_sistema ORDER BY rol,nombre'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/usuarios', async (req, res) => {
+  try {
+    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla } = req.body;
+    if (!dni || !nombre || !password || !rol) return res.status(400).json({ error: 'dni, nombre, password y rol son requeridos' });
+    const { rows } = await pool.query(
+      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla`,
+      [dni, nombre, password, rol, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '']
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Ya existe un usuario con ese DNI.' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/usuarios/:dni', async (req, res) => {
+  try {
+    const campos = ['nombre','password','rol','cargo','estado','sedes','numero_plantilla'];
+    const sets = [], params = [];
+    let idx = 1;
+    for (const campo of campos) {
+      if (req.body[campo] !== undefined && !(campo === 'password' && !req.body[campo])) {
+        sets.push(`${campo}=$${idx++}`);
+        params.push(req.body[campo]);
+      }
+    }
+    if (!sets.length) return res.status(400).json({ error: 'Sin campos a actualizar' });
+    params.push(req.params.dni);
+    const { rows } = await pool.query(
+      `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla`,
+      params
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ──────────────────────────────────────────────
 // SUNAT — consulta por RUC
 // ──────────────────────────────────────────────

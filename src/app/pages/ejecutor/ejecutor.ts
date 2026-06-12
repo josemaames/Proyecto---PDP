@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ExpedienteService } from '../../services/expediente.service';
+import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-ejecutor',
@@ -16,6 +17,7 @@ export class Ejecutor implements OnInit {
   private router = inject(Router);
   private http = inject(HttpClient);
   private expedienteService = inject(ExpedienteService);
+  private pdpData = inject(PdpDataService);
 
   usuario: any = {};
   fechaHoy = '';
@@ -38,6 +40,30 @@ export class Ejecutor implements OnInit {
   limitAct = 50;
   totalAct = 0;
   cargandoAct = false;
+
+  redEjecutor = '';
+
+  // MODAL PARTICIPANTES
+  mostrarModalParticipantes = false;
+  participantesSeleccionados: any[] = [];
+  nuevoPartic = this.particVacio();
+  errorPartic = '';
+
+  particVacio() {
+    return {
+      codigo_act: '',
+      red: '',
+      dni_ce: '',
+      cod_planilla: '',
+      apellidos: '',
+      nombre: '',
+      sexo: '',
+      sub_programa: '',
+      servicio_area: '',
+      cargo: '',
+      regimen_laboral: '',
+    };
+  }
 
   // MIS ENVÍOS
   misEnvios: any[] = [];
@@ -66,6 +92,7 @@ export class Ejecutor implements OnInit {
     nivelEvaluacion: '',
     totalParticipantes: 0,
     ejeTematico: '',
+    objetivoEstrategico: '',
     rucProveedor: '',
     nombreProveedor: '',
     sectorProveedor: '',
@@ -75,6 +102,14 @@ export class Ejecutor implements OnInit {
   ngOnInit() {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
+
+    // Pre-cargar red asistencial del ejecutor (sedes puede ser string o array)
+    const sedes = this.usuario?.sedes;
+    this.redEjecutor = Array.isArray(sedes)
+      ? sedes[0] || ''
+      : (typeof sedes === 'string' ? sedes.split(',')[0].trim() : '');
+    this.formulario.redAsistencial = this.redEjecutor;
+
     this.cargarMisEnvios();
 
     const f = new Date().toLocaleDateString('es-PE', {
@@ -170,6 +205,14 @@ export class Ejecutor implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  actualizarMesTermino() {
+    if (!this.formulario.fechaFin) return;
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const mes = new Date(this.formulario.fechaFin + 'T00:00:00').getMonth();
+    this.formulario.mesTermino = meses[mes];
+  }
+
   buscarRuc() {
     const ruc = this.formulario.rucProveedor.trim();
 
@@ -193,7 +236,7 @@ export class Ejecutor implements OnInit {
     });
   }
 
-  guardarFormulario() {
+  abrirSeleccionParticipantes() {
     this.errorFormulario = '';
     this.camposInvalidos = [];
 
@@ -221,9 +264,48 @@ export class Ejecutor implements OnInit {
       return;
     }
 
+    this.participantesSeleccionados = [];
+    this.errorPartic = '';
+    this.nuevoPartic = {
+      ...this.particVacio(),
+      codigo_act: this.formulario.codigoAct,
+      red: this.redEjecutor,
+    };
+    this.mostrarModalParticipantes = true;
+  }
+
+  agregarParticipante() {
+    const p = this.nuevoPartic;
+    if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
+      this.errorPartic = 'DNI/CE, Apellidos y Nombre son obligatorios.';
+      return;
+    }
+    if (this.participantesSeleccionados.length >= this.formulario.totalParticipantes) {
+      this.errorPartic = `Ya alcanzó el límite de ${this.formulario.totalParticipantes} participante(s).`;
+      return;
+    }
+    this.errorPartic = '';
+    this.participantesSeleccionados.push({ ...p });
+    // Mantener código y red fijos para el siguiente participante
+    this.nuevoPartic = {
+      ...this.particVacio(),
+      codigo_act: this.formulario.codigoAct,
+      red: this.redEjecutor,
+    };
+  }
+
+  quitarParticipante(idx: number) {
+    this.participantesSeleccionados.splice(idx, 1);
+  }
+
+  cerrarModalParticipantes() {
+    this.mostrarModalParticipantes = false;
+  }
+
+  enviarFormulario() {
     this.enviando = true;
     const payload = {
-      datos: { ...this.formulario },
+      datos: { ...this.formulario, participantesDetalle: this.participantesSeleccionados },
       ejecutor_nombre: this.usuario?.nombre || '',
       ejecutor_dni: this.usuario?.dni || '',
     };
@@ -231,14 +313,16 @@ export class Ejecutor implements OnInit {
     this.http.post('http://localhost:3001/api/solicitudes', payload).subscribe({
       next: () => {
         this.enviando = false;
+        this.mostrarModalParticipantes = false;
         this.errorFormulario = '';
         this.camposInvalidos = [];
+        this.participantesSeleccionados = [];
         this.formulario = {
           codigoAct: '', fechaInicio: '', fechaFin: '', mesTermino: '',
-          redAsistencial: '', servicioArea: '', nombreActividad: '',
+          redAsistencial: this.redEjecutor, servicioArea: '', nombreActividad: '',
           totalHoras: 0, horasFueraHorario: 0, frecuencia: '',
           horaInicio: '', horaTermino: '', modalidad: '', publico: '',
-          nivelEvaluacion: '', totalParticipantes: 0, ejeTematico: '',
+          nivelEvaluacion: '', totalParticipantes: 0, ejeTematico: '', objetivoEstrategico: '',
           rucProveedor: '', nombreProveedor: '', sectorProveedor: '',
           presupuestoEjecutado: 0,
         };

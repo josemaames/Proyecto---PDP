@@ -46,6 +46,15 @@
         </svg>
         <span>Personal</span>
       </div>
+      <div class="menu-item" (click)="irA('/lista-participantes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>Participantes</span>
+      </div>
       <div class="menu-item cerrar" (click)="cerrarSesion()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -123,6 +132,46 @@
                           <div><span>Proveedor</span><strong>{{ s.datos?.nombreProveedor || '—' }}</strong></div>
                           <div><span>Nivel evaluación</span><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong></div>
                         </div>
+
+                        @if (s.datos?.participantesDetalle?.length > 0) {
+                          <div class="detalle-participantes">
+                            <p class="detalle-partic-titulo">Participantes registrados ({{ s.datos.participantesDetalle.length }})</p>
+                            <table class="tabla-partic-detalle">
+                              <thead>
+                                <tr>
+                                  <th>#</th>
+                                  <th>Cód. Act.</th>
+                                  <th>Red</th>
+                                  <th>DNI / CE</th>
+                                  <th>Cód. Planilla</th>
+                                  <th>Apellidos y Nombre</th>
+                                  <th>Sexo</th>
+                                  <th>Sub-Programa</th>
+                                  <th>Servicio / Área</th>
+                                  <th>Cargo</th>
+                                  <th>Régimen</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (p of s.datos.participantesDetalle; track $index) {
+                                  <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ p.codigo_act || '—' }}</td>
+                                    <td>{{ p.red || '—' }}</td>
+                                    <td>{{ p.dni_ce || '—' }}</td>
+                                    <td>{{ p.cod_planilla || '—' }}</td>
+                                    <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                                    <td>{{ p.sexo || '—' }}</td>
+                                    <td>{{ p.sub_programa || '—' }}</td>
+                                    <td>{{ p.servicio_area || '—' }}</td>
+                                    <td>{{ p.cargo || '—' }}</td>
+                                    <td>{{ p.regimen_laboral || '—' }}</td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                        }
                       </td>
                     </tr>
                   }

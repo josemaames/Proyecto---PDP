@@ -47,8 +47,19 @@
       <input type="text" placeholder="Buscar por nombre o código..." [(ngModel)]="busqueda" (keyup.enter)="buscar()" />
     </div>
     @if (!redFiltro) {
-      <input class="filtro-input" type="text" placeholder="Filtrar por red asistencial..." [(ngModel)]="filtrored" (keyup.enter)="buscar()" />
+      <select class="filtro-select" [(ngModel)]="filtrored" (change)="buscar()">
+        <option value="">Todas las redes</option>
+        @for (red of redesDisponibles; track red) {
+          <option [value]="red">{{ red }}</option>
+        }
+      </select>
     }
+    <select class="filtro-select" [(ngModel)]="filtroEje" (change)="buscar()">
+      <option value="">Todos los ejes temáticos</option>
+      @for (eje of ejesTematicos; track eje) {
+        <option [value]="eje">{{ eje }}</option>
+      }
+    </select>
     <select class="filtro-select" [(ngModel)]="filtroMod" (change)="buscar()">
       <option value="">Todas las modalidades</option>
       <option value="Presencial">Presencial</option>

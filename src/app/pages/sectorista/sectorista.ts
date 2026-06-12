@@ -9,7 +9,7 @@ import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-sectorista',
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sectorista.html',
   styleUrl: './sectorista.css',
 })

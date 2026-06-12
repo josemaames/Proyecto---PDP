@@ -71,88 +71,36 @@ export class Dashboard implements OnInit, OnDestroy {
   // ── Lista de redes para el selector ─────────
   redesDisponibles: string[] = [];
 
+  // ── Filtro temático ───────────────────────────
+  filtroTematico = '';
+  readonly ejesTematicos = [
+    'Atención Especializada',
+    'Atención primaria',
+    'Control interno o auditoría',
+    'Ética, integridad, lucha contra la corrupción',
+    'Gestión institucional',
+    'Salud Mental',
+    'Otros',
+  ];
+
   filtrarPorRed(red: string) {
     this.busquedaRed = red;
     this.actualizarGraficos();
   }
 
+  filtrarPorTema(tema: string) {
+    this.filtroTematico = tema;
+    this.actualizarGraficos();
+  }
+
   actualizarGraficos() {
-    const total = this.totalParticipantesFiltrado;
-
-    const mujeres = Math.round(total * 0.73);
-    const hombres = total - mujeres;
-
-    this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
+    forkJoin({
+      stats: this.pdpData.getStats(this.busquedaRed, this.filtroTematico),
+      resumen: this.pdpData.getResumenRedes('', this.filtroTematico),
+      dashboard: this.pdpData.getDashboard(this.busquedaRed, this.filtroTematico),
+    }).subscribe(({ stats, resumen, dashboard }) => {
+      this.resumenRedes = resumen;
       this.construirGraficos(stats, this.resumenRedesFiltrado);
-    });
-
-    this.pdpData.getDashboard(this.busquedaRed).subscribe((dashboard) => {
-      const redEncontrada = this.resumenRedes.find((r) =>
-        r.red.toLowerCase().includes(this.busquedaRed.toLowerCase()),
-      );
-
-      const redExacta = redEncontrada?.red || '';
-
-      this.pdpData.getDashboard(redExacta);
-
-      const ordenMeses = [
-        'ENERO',
-        'FEBRERO',
-        'MARZO',
-        'ABRIL',
-        'MAYO',
-        'JUNIO',
-        'JULIO',
-        'AGOSTO',
-        'SETIEMBRE',
-        'OCTUBRE',
-        'NOVIEMBRE',
-        'DICIEMBRE',
-      ];
-
-      const sexoAgrupado: any = {};
-
-      dashboard.participantesSexo.forEach((x: any) => {
-        const sexo = (x.sexo || 'Sin dato').toUpperCase();
-        sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
-      });
-
-      this.chartConfigSexo = {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(sexoAgrupado),
-          datasets: [
-            {
-              data: Object.values(sexoAgrupado),
-              backgroundColor: ['#ec4899', '#3b82f6'],
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-        },
-      };
-
-      // 🎯 KPI Cumplimiento de Meta
-      this.porcentajeMeta = Math.round((13697 / this.metaParticipantes) * 100);
-
-      const mesesOrdenados = [...dashboard.actividadesMes].sort(
-        (a: any, b: any) =>
-          ordenMeses.indexOf((a.mes_termino || '').toUpperCase()) -
-          ordenMeses.indexOf((b.mes_termino || '').toUpperCase()),
-      );
-    });
-
-    if (!this.busquedaRed) {
-      this.construirGraficos(this.statsGlobal, this.resumenRedes);
-    } else {
-      this.pdpData.getStats(this.busquedaRed).subscribe((stats) => {
-        this.construirGraficos(stats, this.resumenRedesFiltrado);
-      });
-    }
-
-    this.pdpData.getDashboard(this.busquedaRed).subscribe((dashboard) => {
       this.actualizarChartsDesdesDashboard(dashboard);
     });
   }
@@ -533,6 +481,7 @@ export class Dashboard implements OnInit, OnDestroy {
           this.cargandoKpis = false;
           this.cargandoResumen = false;
           this.construirGraficos(stats, resumen);
+          this.actualizarChartsDesdesDashboard(dashboard);
         },
         error: () => {
           this.cargandoKpis = false;
@@ -542,31 +491,31 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private construirGraficos(stats: any, resumen: ResumenRed[]) {
-    console.log('POR MODALIDAD', stats.por_modalidad);
-    const porModalidad: { modalidad: string; total: number }[] = stats?.por_modalidad ?? [];
-    const modLabels = porModalidad.map((m) => m.modalidad || 'Sin modalidad');
-    const modData = porModalidad.map((m) => Number(m.total));
-    const modalidades = (stats.por_modalidad || []).map((x: any) => ({
-      ...x,
-      modalidad: (x.modalidad || '').toUpperCase().replace('SEMI PRESENCIAL', 'SEMIPRESENCIAL'),
-    }));
+    // Normalizar y fusionar duplicados de modalidad
+    const modalidadMap: Record<string, number> = {};
+    for (const x of (stats.por_modalidad || [])) {
+      const key = (x.modalidad || 'Sin modalidad')
+        .toUpperCase()
+        .replace(/SEMI\s+PRESENCIAL/g, 'SEMIPRESENCIAL');
+      modalidadMap[key] = (modalidadMap[key] || 0) + Number(x.total);
+    }
 
-    const total = modalidades.reduce((s: number, x: any) => s + Number(x.total), 0);
+    const totalMod = Object.values(modalidadMap).reduce((s, v) => s + v, 0);
 
-    this.modalidadesResumen = modalidades.map((x: any) => ({
-      nombre: x.modalidad,
-      porcentaje: Math.round((Number(x.total) / total) * 100),
-    }));
-
-    console.log('MODALIDADES', this.modalidadesResumen);
+    this.modalidadesResumen = Object.entries(modalidadMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([nombre, count]) => ({
+        nombre,
+        porcentaje: Math.round((count / totalMod) * 100),
+      }));
 
     this.chartConfigModalidad = {
       type: 'pie',
       data: {
-        labels: modLabels,
+        labels: Object.keys(modalidadMap),
         datasets: [
           {
-            data: modData,
+            data: Object.values(modalidadMap),
             backgroundColor: ['#36A2EB', '#4BC0C0', '#FFCE56', '#FF6384', '#9966FF', '#FF9F40'],
             borderWidth: 1,
           },
@@ -583,8 +532,6 @@ export class Dashboard implements OnInit, OnDestroy {
     };
 
     // Gráfico 2 — Top 8 redes por capacitaciones (barras)
-
-    const topRedes = this.busquedaRed ? this.resumenRedesFiltrado : resumen.slice(0, 8);
     this.chartConfigRedes = {
       type: 'bar',
 
