@@ -7,6 +7,9 @@ import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
+import * as echarts from 'echarts';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import { HttpClient } from '@angular/common/http';
 
 type ResumenRed = {
   red: string;
@@ -19,16 +22,18 @@ type ResumenRed = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, BaseChartDirective],
+  imports: [FormsModule, DecimalPipe, BaseChartDirective, NgxEchartsDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  echarts = echarts;
 
   nombre = '';
   rol = '';
   usuarioActual: any;
+
   esAdministrador = false;
   esSectorista = false;
   esEjecutor = false;
@@ -242,10 +247,11 @@ export class Dashboard implements OnInit, OnDestroy {
           {
             label: 'Redes Asistenciales',
 
-            data: this.resumenRedes.map((r: any) => ({
-              x: Number(r.participantes),
-              y: Number(r.presupuesto),
-            })),
+            data: [
+              { name: 'LIMA', value: 5000 },
+              { name: 'AREQUIPA', value: 3000 },
+              { name: 'PIURA', value: 2000 },
+            ],
 
             backgroundColor: '#2563eb',
             pointRadius: 8,
@@ -354,6 +360,33 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       options: { responsive: true, maintainAspectRatio: true },
     };
+    // 🏆 Mejor Red
+    const mejorRed = [...this.resumenRedes].sort((a, b) => b.participantes - a.participantes)[0];
+
+    this.mejorRed = mejorRed?.red || '';
+    this.mejorRedParticipantes = mejorRed?.participantes || 0;
+
+    // 📅 Mejor Mes
+    const mejorMes = [...dashboard.actividadesMes].sort(
+      (a: any, b: any) => Number(b.total) - Number(a.total),
+    )[0];
+
+    this.mejorMes = mejorMes?.mes_termino || '';
+    this.mejorMesActividades = Number(mejorMes?.total || 0);
+
+    // 🎯 Modalidad dominante
+    const modalidadTop = [...this.modalidadesResumen].sort(
+      (a, b) => b.porcentaje - a.porcentaje,
+    )[0];
+
+    this.modalidadDominante = modalidadTop?.nombre || '';
+    this.modalidadDominantePorcentaje = modalidadTop?.porcentaje || 0;
+
+    // 👥 Promedio participantes por actividad
+    this.promedioParticipantesActividad =
+      this.totalCapacitaciones > 0
+        ? Math.round(this.totalParticipantes / this.totalCapacitaciones)
+        : 0;
   }
 
   get resumenRedesFiltrado(): ResumenRed[] {
@@ -385,6 +418,18 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigCostoParticipante: any;
   chartConfigEficienciaRed: any;
   modalidadesResumen: any[] = [];
+  chartConfigMapaPeru: any;
+
+  mejorRed = '';
+  mejorRedParticipantes = 0;
+
+  mejorMes = '';
+  mejorMesActividades = 0;
+
+  modalidadDominante = '';
+  modalidadDominantePorcentaje = 0;
+
+  promedioParticipantesActividad = 0;
 
   metaParticipantes = Number(localStorage.getItem('metaParticipantes')) || 15000;
   porcentajeMeta = 0;
@@ -393,10 +438,173 @@ export class Dashboard implements OnInit, OnDestroy {
   nuevaMeta = 0;
 
   constructor(
+    private http: HttpClient,
     private router: Router,
     private expedienteService: ExpedienteService,
     private pdpData: PdpDataService,
   ) {}
+
+  private cargarMapaPeru() {
+    console.log('ENTRO A CARGAR MAPA');
+
+    this.http.get('/maps/peru.geojson').subscribe((geoJson: any) => {
+      console.log('GEOJSON CARGADO', geoJson);
+      console.log('FEATURES', geoJson.features?.length);
+
+      console.log(
+        'DEPARTAMENTOS GEOJSON',
+        geoJson.features.forEach((f: any) => (f.properties.name = f.properties.NOMBDEP)),
+      );
+
+      geoJson.features.forEach((f: any) => {
+        if (f.properties.NOMBDEP.includes('CALLAO')) {
+          console.log('CALLAO FEATURE', f.properties);
+        }
+      });
+
+      echarts.registerMap('peru', geoJson);
+
+      console.table(
+        this.resumenRedes.map((r: any) => ({
+          red: r.red,
+          departamento: this.obtenerDepartamento(r.red),
+          participantes: r.participantes,
+        })),
+      );
+
+      console.table(
+        this.resumenRedes
+          .map((r: any) => ({
+            red: r.red,
+            departamento: this.obtenerDepartamento(r.red),
+          }))
+          .filter((x: any) => !x.departamento),
+      );
+
+      const departamentosAgrupados: Record<string, number> = {};
+      console.log(
+        'SABOGAL',
+        this.resumenRedes.filter((r: any) => r.red?.includes('SABOGAL')),
+      );
+
+      console.log('CALLAO AGRUPADO', departamentosAgrupados['CALLAO']);
+
+      console.table(
+        this.resumenRedes.map((r: any) => ({
+          red: r.red,
+          participantes: r.participantes,
+        })),
+      );
+
+      this.resumenRedes.forEach((r: any) => {
+        const dep = this.obtenerDepartamento(r.red);
+
+        console.log('CALLAO AGRUPADO', departamentosAgrupados['CALLAO']);
+        console.log('LIMA AGRUPADO', departamentosAgrupados['LIMA']);
+
+        console.table(departamentosAgrupados);
+
+        console.table(this.resumenRedes.filter((r: any) => r.red?.includes('SABOGAL')));
+
+        if (!dep) return;
+
+        departamentosAgrupados[dep] = (departamentosAgrupados[dep] || 0) + Number(r.participantes);
+      });
+
+      const dataMapa = Object.entries(departamentosAgrupados).map(([name, value]) => ({
+        name,
+        value,
+      }));
+
+      console.table(dataMapa);
+
+      this.chartConfigMapaPeru = {
+        tooltip: {
+          trigger: 'item',
+
+          formatter: (params: any) => `
+<div style="padding:8px">
+  <strong>${params.name}</strong><br/>
+  👥 Participantes: <b>${params.value || 0}</b>
+</div>
+  `,
+        },
+
+        visualMap: {
+          min: 0,
+          max: 2000,
+          zoom: 1.5,
+          left: 'left',
+          bottom: '20px',
+          text: ['Alto', 'Bajo'],
+          calculable: true,
+          itemStyle: {
+            borderColor: '#ffffff',
+            borderWidth: 1.5,
+          },
+          emphasis: {
+            itemStyle: {
+              areaColor: '#f59e0b',
+            },
+          },
+
+          inRange: {
+            color: ['#dbeafe', '#93c5fd', '#3b82f6', '#1d4ed8'],
+          },
+        },
+
+        series: [
+          {
+            type: 'map',
+            map: 'peru',
+
+            roam: true,
+
+            label: {
+              show: false,
+              formatter: '{b}',
+              color: '#000',
+              fontSize: 9,
+            },
+
+            data: dataMapa,
+          },
+        ],
+      };
+
+      console.log('MAPA CONFIG', this.chartConfigMapaPeru);
+    });
+  }
+
+  private obtenerDepartamento(red: string): string {
+    const mapa: Record<string, string> = {
+      'RA ANCASH': 'ANCASH',
+      'RA AREQUIPA': 'AREQUIPA',
+      'RA AYACUCHO': 'AYACUCHO',
+      'RA CAJAMARCA': 'CAJAMARCA',
+      'RA CUSCO': 'CUSCO',
+      'RA HUANCAVELICA': 'HUANCAVELICA',
+      'RA HUANUCO': 'HUANUCO',
+      'RA ICA': 'ICA',
+      'RA JUNIN': 'JUNIN',
+      'RA LA LIBERTAD': 'LA LIBERTAD',
+      'RA LAMBAYEQUE': 'LAMBAYEQUE',
+      'RA LORETO': 'LORETO',
+      'RA MOQUEGUA': 'MOQUEGUA',
+      'RA PASCO': 'PASCO',
+      'RA PIURA': 'PIURA',
+      'RA PUNO': 'PUNO',
+      'RA TACNA': 'TACNA',
+      'RA TUMBES': 'TUMBES',
+      'RA UCAYALI': 'UCAYALI',
+
+      'RP ALMENARA': 'LIMA',
+      'RP REBAGLIATI': 'LIMA',
+      'RP SABOGAL': 'CALLAO',
+    };
+
+    return mapa[red] || '';
+  }
 
   ngOnInit() {
     const raw = localStorage.getItem('usuario');
@@ -411,7 +619,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.usuarioActual = datos;
     this.nombre = datos.nombre;
     this.rol = datos.rol;
-
     this.esAdministrador = ['Administrador', 'Administrativo'].includes(datos.rol);
 
     this.esSectorista = datos.rol === 'Sectorista';
@@ -533,6 +740,7 @@ export class Dashboard implements OnInit, OnDestroy {
           this.cargandoKpis = false;
           this.cargandoResumen = false;
           this.construirGraficos(stats, resumen);
+          this.cargarMapaPeru();
         },
         error: () => {
           this.cargandoKpis = false;

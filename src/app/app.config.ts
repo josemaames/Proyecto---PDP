@@ -4,6 +4,9 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
+import { provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts';
+
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -13,5 +16,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
 
     provideCharts(withDefaultRegisterables()),
+
+    provideEchartsCore({
+      echarts,
+    }),
   ],
 };

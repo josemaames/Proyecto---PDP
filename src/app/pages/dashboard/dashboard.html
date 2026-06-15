@@ -282,6 +282,51 @@
         </div>
       }
 
+      <div class="insights-grid">
+        <div class="insight-card">
+          <div class="insight-icon">🏆</div>
+          <div class="insight-info">
+            <div class="insight-valor">{{ mejorRed }}</div>
+            <div class="insight-label">Mejor Red</div>
+            <div class="insight-extra">{{ mejorRedParticipantes | number }} participantes</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon">📅</div>
+          <div class="insight-info">
+            <div class="insight-valor">{{ mejorMes }}</div>
+            <div class="insight-label">Mejor Mes</div>
+            <div class="insight-extra">{{ mejorMesActividades }} actividades</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon">🎯</div>
+          <div class="insight-info">
+            <div class="insight-valor">{{ modalidadDominante }}</div>
+            <div class="insight-label">Modalidad Líder</div>
+            <div class="insight-extra">{{ modalidadDominantePorcentaje }}%</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon">👥</div>
+          <div class="insight-info">
+            <div class="insight-valor">{{ promedioParticipantesActividad }}</div>
+            <div class="insight-label">Promedio</div>
+            <div class="insight-extra">participantes por actividad</div>
+          </div>
+        </div>
+
+        <div class="dash-card mapa-peru-card" style="border: 5px solid red">
+          <h1>MAPA AQUÍ</h1>
+          <h3>🗺️ Distribución Nacional PDP</h3>
+
+          <div echarts [options]="chartConfigMapaPeru" class="mapa-peru"></div>
+        </div>
+      </div>
+
       <!-- KPIs OTROS ROLES -->
       @if (!esAdministrador) {
         <div class="kpi-grid">
@@ -441,7 +486,7 @@
           <div class="dash-card grafico-box grafico-wide">
             <h3>🏆 Top Redes por Participantes</h3>
 
-            @if (true) {
+            @if (chartConfigParticipantesRed) {
               <canvas
                 baseChart
                 [type]="chartConfigParticipantesRed.type"
