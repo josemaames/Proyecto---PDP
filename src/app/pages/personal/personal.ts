@@ -36,6 +36,7 @@ export class Personal implements OnInit {
     estado: 'Activo',
     sedes: '',
     password: '',
+    email: '',
   };
 
   usuarios: any[] = [];
@@ -87,7 +88,7 @@ export class Personal implements OnInit {
   }
 
   nuevoUsuario() {
-    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
+    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
     this.sedesSeleccionadas = [];
     this.mostrarPassword = false;
     this.modoEdicion = false;
@@ -110,6 +111,7 @@ export class Personal implements OnInit {
       estado:   usuario.estado,
       sedes:    usuario.rol === 'Ejecutor' ? sedesStr : '',
       password: usuario.password || '',
+      email:    usuario.email || '',
     };
 
     this.sedesSeleccionadas = usuario.rol === 'Sectorista'
@@ -172,6 +174,7 @@ export class Personal implements OnInit {
       estado:           this.nuevoUsuarioData.estado,
       sedes:            this.nuevoUsuarioData.sedes,
       numero_plantilla: this.nuevoUsuarioData.dni,
+      email:            this.nuevoUsuarioData.email,
     };
 
     const req$ = this.modoEdicion
@@ -182,7 +185,7 @@ export class Personal implements OnInit {
       next: () => {
         this.guardando = false;
         this.cargarUsuarios();
-        this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
+        this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
         this.sedesSeleccionadas = [];
         this.mostrarPassword = false;
         this.mostrarFormulario = false;

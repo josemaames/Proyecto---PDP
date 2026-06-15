@@ -3,8 +3,9 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { DecimalPipe } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
@@ -86,6 +87,13 @@ export class Sectorista implements OnInit {
   motivoRechazo = '';
   solicitudADenegar: any = null;
   procesandoRevision = false;
+
+  // HISTORIAL
+  historial: any[] = [];
+  cargandoHistorial = false;
+
+  // PRESUPUESTO
+  presupuestoMiRed: any[] = [];
 
   // BÚSQUEDA DE CAPACITACIONES
   mostrarBusqueda = false;
@@ -170,6 +178,56 @@ export class Sectorista implements OnInit {
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.redFiltro = this.pdpData.getRedFiltro();
     this.cargarSolicitudes();
+    this.cargarHistorial();
+    this.cargarPresupuestoRed();
+  }
+
+  cargarHistorial() {
+    this.cargandoHistorial = true;
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const sedes: string[] = Array.isArray(usuario?.sedes) ? usuario.sedes : [];
+    const red = sedes.join(',');
+    const params = red ? `&red=${encodeURIComponent(red)}` : '';
+
+    forkJoin([
+      this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=aprobado${params}`),
+      this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=denegado${params}`),
+    ]).subscribe({
+      next: ([aprobadas, denegadas]) => {
+        this.historial = [...aprobadas, ...denegadas].sort(
+          (a, b) => new Date(b.reviewed_at).getTime() - new Date(a.reviewed_at).getTime()
+        );
+        this.cargandoHistorial = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.cargandoHistorial = false; },
+    });
+  }
+
+  private normalizarRedKey(s: string): string {
+    return (s || '').toLowerCase()
+      .replace(/^red (asistencial|prestacional)\s+/i, '')
+      .replace(/^(ra|rp)\s+/i, '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .trim();
+  }
+
+  cargarPresupuestoRed() {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const sedesRaw = usuario?.sedes;
+    const sedes: string[] = Array.isArray(sedesRaw)
+      ? sedesRaw
+      : typeof sedesRaw === 'string' && sedesRaw
+        ? sedesRaw.split(',').map((s: string) => s.trim())
+        : [];
+
+    this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes').subscribe({
+      next: (data) => {
+        this.presupuestoMiRed = sedes.length
+          ? data.filter(p => sedes.some(s => this.normalizarRedKey(s) === this.normalizarRedKey(p.red)))
+          : [];
+      },
+    });
   }
 
   cargarSolicitudes() {
@@ -207,6 +265,7 @@ export class Sectorista implements OnInit {
         this.procesandoRevision = false;
         this.solicitudDetalle = null;
         this.cargarSolicitudes();
+        this.cargarHistorial();
       },
       error: () => { this.procesandoRevision = false; },
     });
@@ -236,6 +295,7 @@ export class Sectorista implements OnInit {
         this.cerrarModalRechazo();
         this.solicitudDetalle = null;
         this.cargarSolicitudes();
+        this.cargarHistorial();
       },
       error: () => { this.procesandoRevision = false; },
     });

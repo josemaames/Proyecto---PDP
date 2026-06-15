@@ -182,6 +182,82 @@
         }
       </div>
 
+      <!-- HISTORIAL DE REVISIONES -->
+      <div class="card" style="margin-top: 24px">
+        <div class="card-section-title-row">
+          <span class="card-section-title">
+            📋 Historial de Revisiones
+            @if (historial.length > 0) {
+              <span class="badge-pendiente" style="background:#6b7280">{{ historial.length }}</span>
+            }
+          </span>
+          <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
+        </div>
+
+        @if (cargandoHistorial) {
+          <div class="sin-resultados"><p>Cargando historial...</p></div>
+        } @else if (historial.length === 0) {
+          <div class="sin-resultados">
+            <p>Aún no has aprobado ni denegado ninguna solicitud.</p>
+          </div>
+        } @else {
+          <div class="tabla-scroll">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>Fecha revisión</th>
+                  <th>Ejecutor</th>
+                  <th>Actividad</th>
+                  <th>Red asistencial</th>
+                  <th>Estado</th>
+                  <th>Motivo rechazo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of historial; track s.id) {
+                  <tr>
+                    <td>{{ s.reviewed_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ s.ejecutor_nombre || '—' }}</td>
+                    <td>{{ s.datos?.nombreActividad || '—' }}</td>
+                    <td>{{ s.red_asistencial || '—' }}</td>
+                    <td>
+                      @if (s.estado === 'aprobado') {
+                        <span class="badge-aprobado">✅ Aprobado</span>
+                      } @else {
+                        <span class="badge-denegado">❌ Denegado</span>
+                      }
+                    </td>
+                    <td style="color:#dc2626; font-size:0.85rem">
+                      {{ s.motivo_rechazo || '—' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- ASIGNACIÓN PRESUPUESTAL -->
+      @if (presupuestoMiRed.length > 0) {
+        <div class="card presupuesto-card">
+          <div class="card-section-title-row">
+            <span class="card-section-title">💰 Asignación Presupuestal</span>
+          </div>
+          <div class="presupuesto-grid">
+            @for (p of presupuestoMiRed; track p.red) {
+              <div class="presupuesto-red-item">
+                <div class="presupuesto-red-nombre">{{ p.red }}</div>
+                <div class="presupuesto-techo-row">
+                  <span class="presupuesto-anio">Techo {{ p.anio }}</span>
+                  <span class="presupuesto-monto">S/ {{ p.techo | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
     </main>
   </div>
 

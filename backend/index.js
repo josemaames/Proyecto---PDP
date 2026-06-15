@@ -1,7 +1,10 @@
 require('dotenv').config();
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(cors());
@@ -50,7 +53,64 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'pdp_essalud',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASS || 'admin123',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 10000,
 });
+
+console.log('Config DB ->', {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  ssl: process.env.DB_SSL,
+});
+
+// ──────────────────────────────────────────────
+// Email — Servicio de Mensajería Wiracocha
+// ──────────────────────────────────────────────
+const smtpPort = parseInt(process.env.SMTP_PORT) || 25;
+const mailerTransport = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'wiracocha.essalud',
+  port: smtpPort,
+  secure: smtpPort === 465,
+  ...(process.env.SMTP_USER && {
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  }),
+  tls: { rejectUnauthorized: false },
+});
+
+async function enviarCorreo(destinatarios, asunto, html) {
+  const to = Array.isArray(destinatarios)
+    ? destinatarios.filter(Boolean).join(',')
+    : destinatarios;
+  if (!to) return;
+  try {
+    await mailerTransport.sendMail({
+      from: '"Sistema PDP EsSalud" <no-reply@essalud.gob.pe>',
+      to,
+      subject: asunto,
+      html,
+    });
+    console.log(`✓ Correo enviado a: ${to}`);
+  } catch (err) {
+    console.warn(`⚠ Error al enviar correo a ${to}:`, err.message);
+  }
+}
+
+function htmlBase(color, titulo, cuerpo) {
+  return `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+  <div style="background:${color};padding:20px;text-align:center">
+    <h2 style="color:#fff;margin:0">${titulo}</h2>
+  </div>
+  <div style="padding:24px;background:#f8fafc">
+    ${cuerpo}
+    <p style="color:#9ca3af;font-size:12px;margin-top:24px;border-top:1px solid #e5e7eb;padding-top:12px">
+      Mensaje automático del Sistema PDP — EsSalud. No responder a este correo.
+    </p>
+  </div>
+</div>`;
+}
 
 pool
   .connect()
@@ -58,7 +118,7 @@ pool
     console.log('✓ Conectado a PostgreSQL');
     crearTablas().then(crearIndices);
   })
-  .catch((err) => console.error('✗ Error de conexión:', err.message));
+  .catch((err) => console.error('✗ Error de conexión:', err));
 
 async function crearTablas() {
   await pool.query(`
@@ -94,32 +154,82 @@ async function crearTablas() {
       created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS email TEXT DEFAULT ''`);
 
-  const { rows: cnt } = await pool.query('SELECT COUNT(*) FROM usuarios_sistema');
-  if (parseInt(cnt[0].count) === 0) {
-    const seed = [
-      ['90642735', 'José Manuel Ames Anapán',       'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0001'],
-      ['70435255', 'Víctor Gabriel Acero Garay',     'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0002'],
-      ['73456264', 'Fernando David Campos Quiroz',   'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0003'],
-      ['45611148', 'Sthywen Javier Muñoz Ruiz',      'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0004'],
-      ['11111111', 'María Torres Quispe',             'sector123',   'Sectorista',    'Sectorista Red Arequipa',    'Activo',   'RA AREQUIPA',                   'PL-0005'],
-      ['33333333', 'Ana Sofía Paredes Quispe',        'sector123',   'Sectorista',    'Sectorista Redes Sur-Centro','Activo',   'RA CUSCO,RA AREQUIPA,RA PIURA', 'PL-0007'],
-      ['48562134', 'María Elena Torres Salazar',      'sector123',   'Sectorista',    'Sectorista Red Rebagliati',  'Activo',   'RP REBAGLIATI',                 ''],
-      ['71234589', 'Luis Alberto Sánchez Rojas',      'sector123',   'Sectorista',    'Sectorista Red Almenara',    'Activo',   'RP ALMENARA',                   ''],
-      ['22222222', 'Ricardo Mendoza García',          'ejecutor123', 'Ejecutor',      'Ejecutor Red Rebagliati',    'Activo',   'RP REBAGLIATI',                 'PL-0006'],
-      ['44444444', 'Carlos Alberto Huanca Torres',    'ejecutor123', 'Ejecutor',      'Ejecutor Red Arequipa',      'Activo',   'RA AREQUIPA',                   'PL-0008'],
-      ['59874123', 'Ana Lucía Rodríguez Vargas',      'ejecutor123', 'Ejecutor',      'Ejecutor de Capacitación',   'Activo',   '',                              ''],
-      ['74125896', 'Carmen Rosa Delgado Silva',       'ejecutor123', 'Ejecutor',      'Ejecutor Administrativo',    'Inactivo', '',                              ''],
-    ];
-    for (const u of seed) {
-      await pool.query(
-        `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (dni) DO NOTHING`,
-        u
-      );
-    }
-    console.log('✓ Usuarios iniciales creados');
+  const seed = [
+    ['90642735', 'José Manuel Ames Anapán',       'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0001', 'jose.ames@essalud.gob.pe'],
+    ['70435255', 'Víctor Gabriel Acero Garay',     'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0002', 'victor.acero@essalud.gob.pe'],
+    ['73456264', 'Fernando David Campos Quiroz',   'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0003', 'fernando.campos@essalud.gob.pe'],
+    ['45611148', 'Sthywen Javier Muñoz Ruiz',      'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0004', 'sthywen.munoz@essalud.gob.pe'],
+    ['11111111', 'María Torres Quispe',             'sector123',   'Sectorista',    'Sectorista Red Arequipa',    'Activo',   'RA AREQUIPA',                   'PL-0005', 'maria.torres@essalud.gob.pe'],
+    ['33333333', 'Ana Sofía Paredes Quispe',        'sector123',   'Sectorista',    'Sectorista Redes Sur-Centro','Activo',   'RA CUSCO,RA AREQUIPA,RA PIURA', 'PL-0007', 'ana.paredes@essalud.gob.pe'],
+    ['48562134', 'María Elena Torres Salazar',      'sector123',   'Sectorista',    'Sectorista Red Rebagliati',  'Activo',   'RP REBAGLIATI',                 '',        'maria.elena.torres@essalud.gob.pe'],
+    ['71234589', 'Luis Alberto Sánchez Rojas',      'sector123',   'Sectorista',    'Sectorista Red Almenara',    'Activo',   'RP ALMENARA',                   '',        'luis.sanchez@essalud.gob.pe'],
+    ['22222222', 'Ricardo Mendoza García',          'ejecutor123', 'Ejecutor',      'Ejecutor Red Rebagliati',    'Activo',   'RP REBAGLIATI',                 'PL-0006', 'ricardo.mendoza@essalud.gob.pe'],
+    ['44444444', 'Carlos Alberto Huanca Torres',    'ejecutor123', 'Ejecutor',      'Ejecutor Red Arequipa',      'Activo',   'RA AREQUIPA',                   'PL-0008', 'carlos.huanca@essalud.gob.pe'],
+    ['59874123', 'Ana Lucía Rodríguez Vargas',      'ejecutor123', 'Ejecutor',      'Ejecutor de Capacitación',   'Activo',   '',                              '',        'ana.rodriguez@essalud.gob.pe'],
+    ['74125896', 'Carmen Rosa Delgado Silva',       'ejecutor123', 'Ejecutor',      'Ejecutor Administrativo',    'Inactivo', '',                              '',        'carmen.delgado@essalud.gob.pe'],
+  ];
+  for (const u of seed) {
+    await pool.query(
+      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (dni) DO UPDATE SET email = EXCLUDED.email WHERE usuarios_sistema.email = ''`,
+      u
+    );
   }
+  console.log('✓ Usuarios verificados');
+
+  // ── Techo presupuestal por red ──────────────────────────────────────────
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS presupuesto_redes (
+      red    TEXT PRIMARY KEY,
+      techo  NUMERIC(14,2) NOT NULL,
+      anio   INT NOT NULL DEFAULT 2025
+    )
+  `);
+  const techos = [
+    ['Red Asistencial Amazonas',           30000.00],
+    ['Red Asistencial Ancash',            158640.00],
+    ['Red Asistencial Apurímac',           66000.00],
+    ['Red Asistencial Arequipa',          120000.00],
+    ['Red Asistencial Ayacucho',           65000.00],
+    ['Red Asistencial Cajamarca',          80000.00],
+    ['Red Asistencial Cusco',             160000.00],
+    ['Red Asistencial Huancavelica',       32000.00],
+    ['Red Asistencial Huánuco',            74000.00],
+    ['Red Asistencial Huaraz',             40000.00],
+    ['Red Asistencial Ica',               175000.00],
+    ['Red Asistencial Jaen',               32000.00],
+    ['Red Asistencial Juliaca',            65760.00],
+    ['Red Asistencial Junin',              54000.00],
+    ['Red Asistencial La Libertad',       114960.00],
+    ['Red Asistencial Loreto',             60000.00],
+    ['Red Asistencial Madre de Dios',      60000.00],
+    ['Red Asistencial Moquegua',           91020.00],
+    ['Red Asistencial Moyobamba',          62000.00],
+    ['Red Asistencial Pasco',              72000.00],
+    ['Red Asistencial Piura',              45000.00],
+    ['Red Asistencial Puno',             122524.00],
+    ['Red Asistencial Tacna',              90000.00],
+    ['Red Asistencial Tarapoto',           58000.00],
+    ['Red Asistencial Tumbes',             36130.00],
+    ['Red Asistencial Ucayali',            45000.00],
+    ['Red Prestacional Almenara',         240000.00],
+    ['Red Asistencial Lambayeque',        140000.00],
+    ['Red Prestacional Rebagliati',       240000.00],
+    ['Red Prestacional Sabogal',          195000.00],
+    ['Centro Nacional de Salud Renal',     72000.00],
+    ['Instituto Nacional Cardiovascular',  52000.00],
+  ];
+  for (const [red, techo] of techos) {
+    await pool.query(
+      `INSERT INTO presupuesto_redes (red, techo) VALUES ($1, $2)
+       ON CONFLICT (red) DO NOTHING`,
+      [red, techo]
+    );
+  }
+  console.log('✓ Presupuesto redes verificado');
 
   console.log('✓ Tablas verificadas');
 }
@@ -686,12 +796,36 @@ app.get('/api/dashboard', async (req, res) => {
 app.post('/api/solicitudes', async (req, res) => {
   try {
     const { datos, ejecutor_nombre, ejecutor_dni } = req.body;
+    const red = datos.redAsistencial || datos.red_asistencial || null;
     const { rows } = await pool.query(
       `INSERT INTO solicitudes_revision (datos, red_asistencial, ejecutor_nombre, ejecutor_dni)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [JSON.stringify(datos), datos.redAsistencial || datos.red_asistencial || null, ejecutor_nombre || null, ejecutor_dni || null]
+      [JSON.stringify(datos), red, ejecutor_nombre || null, ejecutor_dni || null]
     );
     res.status(201).json(rows[0]);
+
+    // Notificar a sectoristas de la red (sin bloquear la respuesta)
+    if (red) {
+      const { rows: sectoristas } = await pool.query(
+        `SELECT email FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
+        [`%${red}%`]
+      );
+      if (sectoristas.length) {
+        const emails = sectoristas.map((s) => s.email);
+        const html = htmlBase(
+          '#005baa',
+          '📋 Nueva solicitud de revisión',
+          `<p>El ejecutor <strong>${ejecutor_nombre || 'Sin nombre'}</strong> ha enviado una nueva solicitud de capacitación.</p>
+           <table style="width:100%;border-collapse:collapse;margin:16px 0">
+             <tr><td style="padding:8px;color:#6b7280">Red Asistencial:</td><td style="padding:8px;font-weight:bold">${red}</td></tr>
+             <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${datos.nombreActividad || datos.nombre_actividad || '-'}</td></tr>
+             <tr><td style="padding:8px;color:#6b7280">DNI Ejecutor:</td><td style="padding:8px">${ejecutor_dni || '-'}</td></tr>
+           </table>
+           <p>Ingrese al <strong>Sistema PDP</strong> para revisar esta solicitud.</p>`
+        );
+        enviarCorreo(emails, '📋 Nueva solicitud de revisión — Sistema PDP', html);
+      }
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -813,6 +947,72 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
       invalidarCache();
     }
 
+    // Notificar al ejecutor y a los administradores
+    const solicitud = rows[0];
+    const esAprobado = estado === 'aprobado';
+    const actividadNombre = solicitud.datos?.nombreActividad || solicitud.datos?.nombre_actividad || '-';
+    const red = solicitud.red_asistencial || '-';
+
+    const [{ rows: ejecutores }, { rows: admins }] = await Promise.all([
+      pool.query(
+        `SELECT email, nombre FROM usuarios_sistema WHERE dni=$1 AND email != ''`,
+        [solicitud.ejecutor_dni]
+      ),
+      pool.query(
+        `SELECT email FROM usuarios_sistema WHERE rol='Administrador' AND estado='Activo' AND email != ''`
+      ),
+    ]);
+
+    if (ejecutores.length) {
+      const htmlEjecutor = esAprobado
+        ? htmlBase(
+            '#16a34a',
+            '✅ Solicitud Aprobada',
+            `<p>Estimado/a <strong>${ejecutores[0].nombre}</strong>,</p>
+             <p>Su solicitud ha sido <strong style="color:#16a34a">APROBADA</strong> y registrada en el sistema.</p>
+             <table style="width:100%;border-collapse:collapse;margin:16px 0">
+               <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
+             </table>`
+          )
+        : htmlBase(
+            '#dc2626',
+            '❌ Solicitud Denegada',
+            `<p>Estimado/a <strong>${ejecutores[0].nombre}</strong>,</p>
+             <p>Su solicitud ha sido <strong style="color:#dc2626">DENEGADA</strong>.</p>
+             <table style="width:100%;border-collapse:collapse;margin:16px 0">
+               <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Motivo:</td><td style="padding:8px;color:#dc2626">${motivo_rechazo || 'No especificado'}</td></tr>
+             </table>`
+          );
+      enviarCorreo(
+        ejecutores[0].email,
+        esAprobado ? '✅ Solicitud aprobada — Sistema PDP' : '❌ Solicitud denegada — Sistema PDP',
+        htmlEjecutor
+      );
+    }
+
+    if (admins.length) {
+      const htmlAdmin = htmlBase(
+        '#005baa',
+        `${esAprobado ? '✅' : '❌'} Solicitud ${estado.toUpperCase()}`,
+        `<p>Un sectorista tomó una decisión sobre una solicitud de capacitación.</p>
+         <table style="width:100%;border-collapse:collapse;margin:16px 0">
+           <tr><td style="padding:8px;color:#6b7280">Estado:</td><td style="padding:8px;font-weight:bold;color:${esAprobado ? '#16a34a' : '#dc2626'}">${estado.toUpperCase()}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Ejecutor:</td><td style="padding:8px">${solicitud.ejecutor_nombre || '-'}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px">${actividadNombre}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
+           ${!esAprobado ? `<tr><td style="padding:8px;color:#6b7280">Motivo:</td><td style="padding:8px;color:#dc2626">${motivo_rechazo || '-'}</td></tr>` : ''}
+         </table>`
+      );
+      enviarCorreo(
+        admins.map((a) => a.email),
+        `${esAprobado ? '✅' : '❌'} Solicitud ${estado} — Sistema PDP`,
+        htmlAdmin
+      );
+    }
+
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -855,7 +1055,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/usuarios', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla FROM usuarios_sistema ORDER BY rol,nombre'
+      'SELECT id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email FROM usuarios_sistema ORDER BY rol,nombre'
     );
     res.json(rows);
   } catch (err) {
@@ -865,12 +1065,12 @@ app.get('/api/usuarios', async (req, res) => {
 
 app.post('/api/usuarios', async (req, res) => {
   try {
-    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla } = req.body;
+    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla, email } = req.body;
     if (!dni || !nombre || !password || !rol) return res.status(400).json({ error: 'dni, nombre, password y rol son requeridos' });
     const { rows } = await pool.query(
-      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla`,
-      [dni, nombre, password, rol, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '']
+      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
+      [dni, nombre, password, rol, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '', email || '']
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -881,7 +1081,7 @@ app.post('/api/usuarios', async (req, res) => {
 
 app.put('/api/usuarios/:dni', async (req, res) => {
   try {
-    const campos = ['nombre','password','rol','cargo','estado','sedes','numero_plantilla'];
+    const campos = ['nombre','password','rol','cargo','estado','sedes','numero_plantilla','email'];
     const sets = [], params = [];
     let idx = 1;
     for (const campo of campos) {
@@ -893,10 +1093,41 @@ app.put('/api/usuarios/:dni', async (req, res) => {
     if (!sets.length) return res.status(400).json({ error: 'Sin campos a actualizar' });
     params.push(req.params.dni);
     const { rows } = await pool.query(
-      `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla`,
+      `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
       params
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// Techo presupuestal por red
+// ──────────────────────────────────────────────
+app.get('/api/presupuesto-redes', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT red, techo, anio FROM presupuesto_redes ORDER BY red'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/presupuesto-redes/:red', async (req, res) => {
+  try {
+    const red = decodeURIComponent(req.params.red);
+    const { techo, anio } = req.body;
+    if (!techo) return res.status(400).json({ error: 'techo requerido' });
+    const { rows } = await pool.query(
+      `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, $2, $3)
+       ON CONFLICT (red) DO UPDATE SET techo = EXCLUDED.techo, anio = EXCLUDED.anio
+       RETURNING *`,
+      [red, techo, anio || 2025]
+    );
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

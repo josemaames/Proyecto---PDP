@@ -180,6 +180,10 @@
               </select>
             </div>
             <div class="campo">
+              <label>Correo Electrónico</label>
+              <input type="email" [(ngModel)]="nuevoUsuarioData.email" placeholder="usuario@essalud.gob.pe" />
+            </div>
+            <div class="campo">
               <label>Contraseña</label>
               <div class="input-password">
                 <input
@@ -350,6 +354,10 @@
             } @else if (usuarioSeleccionado?.rol === 'Sectorista' || usuarioSeleccionado?.rol === 'Ejecutor') {
               <div class="detalle-item"><strong>Sedes / Red Asistencial</strong><span>{{ sedesTexto(usuarioSeleccionado) }}</span></div>
             }
+            <div class="detalle-item">
+              <strong>Correo</strong>
+              <span>{{ usuarioSeleccionado?.email || '—' }}</span>
+            </div>
             <div class="detalle-item">
               <strong>Estado</strong>
               <span class="badge-estado" [class.badge-activo]="usuarioSeleccionado?.estado === 'Activo'" [class.badge-inactivo]="usuarioSeleccionado?.estado !== 'Activo'">

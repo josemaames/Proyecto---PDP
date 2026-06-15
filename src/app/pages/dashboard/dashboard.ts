@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
-import { Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, forkJoin, of } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService } from '../../services/pdp-data.service';
 import * as echarts from 'echarts';
@@ -357,6 +357,34 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   // ── Gráficos ──────────────────────────────────
+  // ── Techo presupuestal ───────────────────────────
+  presupuestoRedes: any[] = [];
+
+  get presupuestoConEjecutado() {
+    return this.presupuestoRedes.map(p => {
+      const keyP = this.normalizarRedKey(p.red);
+      const resumen = this.resumenRedes.find(r => this.normalizarRedKey(r.red) === keyP);
+      const ejecutado = resumen ? Number(resumen.presupuesto) : 0;
+      const techo = Number(p.techo);
+      const disponible = techo - ejecutado;
+      const porcentaje = techo > 0 ? Math.min(Math.round((ejecutado / techo) * 100), 100) : 0;
+      return { ...p, techo, ejecutado, disponible, porcentaje };
+    });
+  }
+
+  get totalTechoPresupuestal() {
+    return this.presupuestoRedes.reduce((s, p) => s + Number(p.techo), 0);
+  }
+
+  private normalizarRedKey(s: string): string {
+    return (s || '').toLowerCase()
+      .replace(/^red (asistencial|prestacional)\s+/i, '')
+      .replace(/^(ra|rp)\s+/i, '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .trim();
+  }
+
+  // ── Gráficos ──────────────────────────────────
   chartConfigModalidad: any;
   chartConfigRedes: any;
   chartConfigSexo: any;
@@ -603,10 +631,14 @@ export class Dashboard implements OnInit, OnDestroy {
       stats: this.pdpData.getStats(),
       resumen: this.pdpData.getResumenRedes(),
       dashboard: this.pdpData.getDashboard(),
+      presupuesto: this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes').pipe(
+        catchError(() => of([]))
+      ),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ stats, resumen, dashboard }) => {
+        next: ({ stats, resumen, dashboard, presupuesto }) => {
+          this.presupuestoRedes = presupuesto;
           console.log('SEXO', dashboard.participantesSexo);
           console.log('MESES', dashboard.actividadesMes);
 

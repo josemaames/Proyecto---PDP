@@ -679,6 +679,68 @@
           }
         </div>
       }
+
+      <!-- ASIGNACIÓN PRESUPUESTAL (ADMIN) -->
+      @if (esAdministrador && presupuestoConEjecutado.length > 0) {
+        <div class="dash-card estadisticas-responsable-box" style="margin-top: 24px">
+          <div class="box-header">
+            <h3>💰 Asignación Presupuestal 2025</h3>
+            <span class="total-badge">Techo total: {{ formatMoneda(totalTechoPresupuestal) }}</span>
+          </div>
+          <div class="tabla-scroll">
+            <table class="tabla-resumen tabla-presupuesto">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Dependencia</th>
+                  <th>Techo (S/.)</th>
+                  <th>Ejecutado (S/.)</th>
+                  <th>Disponible (S/.)</th>
+                  <th style="min-width:160px">% Ejecutado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of presupuestoConEjecutado; track p.red; let i = $index) {
+                  <tr>
+                    <td class="td-num">{{ i + 1 }}</td>
+                    <td class="td-red"><span class="red-nombre">{{ p.red }}</span></td>
+                    <td class="td-monto">{{ formatMoneda(p.techo) }}</td>
+                    <td class="td-monto">{{ formatMoneda(p.ejecutado) }}</td>
+                    <td class="td-monto"
+                        [style.color]="p.disponible < 0 ? '#dc2626' : '#16a34a'">
+                      {{ formatMoneda(p.disponible) }}
+                    </td>
+                    <td class="td-pct">
+                      <div class="pres-barra-wrap">
+                        <div class="pres-barra">
+                          <div class="pres-fill"
+                               [style.width.%]="p.porcentaje"
+                               [style.background]="p.porcentaje >= 90 ? '#dc2626' : p.porcentaje >= 70 ? '#f59e0b' : '#16a34a'">
+                          </div>
+                        </div>
+                        <span class="pres-pct-label">{{ p.porcentaje }}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="fila-total">
+                  <td colspan="2">TOTAL</td>
+                  <td class="td-monto">{{ formatMoneda(totalTechoPresupuestal) }}</td>
+                  <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
+                  <td class="td-monto"
+                      [style.color]="(totalTechoPresupuestal - totalPresupuesto) < 0 ? '#dc2626' : '#16a34a'">
+                    {{ formatMoneda(totalTechoPresupuestal - totalPresupuesto) }}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      }
+
     </main>
   </div>
 </div>

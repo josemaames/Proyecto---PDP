@@ -1,3 +1,37 @@
+/* ── ASIGNACIÓN PRESUPUESTAL ─────────────────────── */
+
+.tabla-presupuesto .td-pct {
+  min-width: 160px;
+}
+
+.pres-barra-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pres-barra {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pres-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.pres-pct-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  min-width: 36px;
+  text-align: right;
+}
+
 /* ── BARRA FILTRO RED ASISTENCIAL ──────────────── */
 
 .filtro-red-bar {
