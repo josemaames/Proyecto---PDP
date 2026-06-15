@@ -395,6 +395,7 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigEficienciaRed: any;
   modalidadesResumen: any[] = [];
   chartConfigMapaPeru: any;
+  topDepartamentos: any[] = [];
 
   mejorRed = '';
   mejorRedParticipantes = 0;
@@ -491,6 +492,14 @@ export class Dashboard implements OnInit, OnDestroy {
         name,
         value,
       }));
+
+      // TOP 5 DEPARTAMENTOS
+      this.topDepartamentos = [...dataMapa]
+        .sort((a: any, b: any) => Number(b.value) - Number(a.value))
+        .slice(0, 5);
+
+      console.table(dataMapa);
+      console.table(this.topDepartamentos);
 
       console.table(dataMapa);
 
@@ -724,7 +733,6 @@ export class Dashboard implements OnInit, OnDestroy {
           this.cargarMapaPeru();
 
           this.actualizarChartsDesdesDashboard(dashboard);
-
         },
         error: () => {
           this.cargandoKpis = false;
@@ -736,7 +744,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private construirGraficos(stats: any, resumen: ResumenRed[]) {
     // Normalizar y fusionar duplicados de modalidad
     const modalidadMap: Record<string, number> = {};
-    for (const x of (stats.por_modalidad || [])) {
+    for (const x of stats.por_modalidad || []) {
       const key = (x.modalidad || 'Sin modalidad')
         .toUpperCase()
         .replace(/SEMI\s+PRESENCIAL/g, 'SEMIPRESENCIAL');
