@@ -688,11 +688,11 @@ export class Dashboard implements OnInit, OnDestroy {
           this.cargandoKpis = false;
           this.cargandoResumen = false;
           this.construirGraficos(stats, resumen);
-<<<<<<< HEAD
+
           this.cargarMapaPeru();
-=======
+
           this.actualizarChartsDesdesDashboard(dashboard);
->>>>>>> 57d5a70433ff42300c855b1a9d2ad041bd0020d1
+
         },
         error: () => {
           this.cargandoKpis = false;
