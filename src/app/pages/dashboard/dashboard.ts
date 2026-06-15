@@ -105,14 +105,25 @@ export class Dashboard implements OnInit, OnDestroy {
       dashboard: this.pdpData.getDashboard(this.busquedaRed, this.filtroTematico),
     }).subscribe(({ stats, resumen, dashboard }) => {
       this.resumenRedes = resumen;
+
       this.construirGraficos(stats, this.resumenRedesFiltrado);
+
       this.actualizarChartsDesdesDashboard(dashboard);
     });
   }
 
   private actualizarChartsDesdesDashboard(dashboard: any) {
+    const sexoData = dashboard.participantesSexo ?? [];
+
+    const textoBusqueda = this.busquedaRed;
+
+    const registrosSexo = !this.busquedaRed
+      ? sexoData
+      : sexoData.filter((x: any) => x.red.toUpperCase().includes(textoBusqueda.toUpperCase()));
+
     const sexoAgrupado: any = {};
-    dashboard.participantesSexo.forEach((x: any) => {
+
+    registrosSexo.forEach((x: any) => {
       const raw = (x.sexo || '').toUpperCase().trim();
       const sexo = raw === 'F' ? 'FEMENINO' : raw === 'M' ? 'MASCULINO' : raw || 'Sin dato';
       sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
@@ -196,11 +207,11 @@ export class Dashboard implements OnInit, OnDestroy {
           {
             label: 'Redes Asistenciales',
 
-            data: [
-              { name: 'LIMA', value: 5000 },
-              { name: 'AREQUIPA', value: 3000 },
-              { name: 'PIURA', value: 2000 },
-            ],
+            data: this.resumenRedes.map((r: any) => ({
+              x: Number(r.participantes),
+              y: Number(r.presupuesto),
+              red: r.red,
+            })),
 
             backgroundColor: '#2563eb',
             pointRadius: 8,
@@ -218,7 +229,15 @@ export class Dashboard implements OnInit, OnDestroy {
           },
           tooltip: {
             callbacks: {
-              label: (ctx: any) => `Participantes: ${ctx.raw.x} | Presupuesto: S/ ${ctx.raw.y}`,
+              label: (ctx: any) => {
+                const punto = ctx.raw;
+
+                return [
+                  `${punto.red}`,
+                  `Participantes: ${punto.x.toLocaleString()}`,
+                  `Presupuesto: S/ ${punto.y.toLocaleString()}`,
+                ];
+              },
             },
           },
         },
@@ -435,6 +454,47 @@ export class Dashboard implements OnInit, OnDestroy {
     private pdpData: PdpDataService,
   ) {}
 
+  seleccionarDepartamentoDesdeRed() {
+    const redSeleccionada = this.busquedaRed;
+
+    const infoRed = this.resumenRedes.find((r: any) => r.red === redSeleccionada);
+
+    const departamento = this.obtenerDepartamento(redSeleccionada);
+
+    const infoDepartamento = this.topDepartamentos.find((d: any) => d.name === departamento);
+
+    this.departamentoSeleccionado = {
+      red: redSeleccionada,
+      nombre: departamento,
+      participantesRed: infoRed?.participantes || 0,
+      participantes: infoDepartamento?.value || 0,
+      ranking: infoDepartamento
+        ? this.topDepartamentos.findIndex((d: any) => d.name === departamento) + 1
+        : '-',
+    };
+
+    if (this.chartInstance) {
+      // quitar todos los resaltados anteriores
+      this.chartInstance.dispatchAction({
+        type: 'downplay',
+        seriesIndex: 0,
+      });
+
+      // resaltar el nuevo departamento
+      this.chartInstance.dispatchAction({
+        type: 'highlight',
+        seriesIndex: 0,
+        name: departamento,
+      });
+
+      this.chartInstance.dispatchAction({
+        type: 'showTip',
+        seriesIndex: 0,
+        name: departamento,
+      });
+    }
+  }
+
   onChartInit(ec: any) {
     this.chartInstance = ec;
 
@@ -453,6 +513,13 @@ export class Dashboard implements OnInit, OnDestroy {
         ranking: ranking > 0 ? ranking : '-',
       };
     });
+  }
+
+  onCambioRed() {
+    this.filtrarPorRed(this.busquedaRed);
+    this.seleccionarDepartamentoDesdeRed();
+
+    console.log('RED', this.busquedaRed);
   }
 
   private cargarMapaPeru() {
@@ -603,29 +670,43 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private obtenerDepartamento(red: string): string {
     const mapa: Record<string, string> = {
+      // Redes Prestacionales Lima/Callao
+      'RP ALMENARA': 'LIMA',
+      'RP REBAGLIATI': 'LIMA',
+      'RP SABOGAL': 'CALLAO',
+      'RP LAMBAYEQUE': 'LAMBAYEQUE',
+
+      INCOR: 'LIMA',
+      CNSR: 'LIMA',
+
+      // Redes Asistenciales
+      'RA AMAZONAS': 'AMAZONAS',
       'RA ANCASH': 'ANCASH',
+      'RA APURIMAC': 'APURIMAC',
       'RA AREQUIPA': 'AREQUIPA',
       'RA AYACUCHO': 'AYACUCHO',
       'RA CAJAMARCA': 'CAJAMARCA',
       'RA CUSCO': 'CUSCO',
       'RA HUANCAVELICA': 'HUANCAVELICA',
       'RA HUANUCO': 'HUANUCO',
+      'RA HUARAZ': 'ANCASH',
       'RA ICA': 'ICA',
+      'RA JAEN': 'CAJAMARCA',
+      'RA JULIACA': 'PUNO',
       'RA JUNIN': 'JUNIN',
       'RA LA LIBERTAD': 'LA LIBERTAD',
       'RA LAMBAYEQUE': 'LAMBAYEQUE',
       'RA LORETO': 'LORETO',
+      'RA MADRE DE DIOS': 'MADRE DE DIOS',
       'RA MOQUEGUA': 'MOQUEGUA',
+      'RA MOYOBAMBA': 'SAN MARTIN',
       'RA PASCO': 'PASCO',
       'RA PIURA': 'PIURA',
       'RA PUNO': 'PUNO',
       'RA TACNA': 'TACNA',
+      'RA TARAPOTO': 'SAN MARTIN',
       'RA TUMBES': 'TUMBES',
       'RA UCAYALI': 'UCAYALI',
-
-      'RP ALMENARA': 'LIMA',
-      'RP REBAGLIATI': 'LIMA',
-      'RP SABOGAL': 'CALLAO',
     };
 
     return mapa[red] || '';

@@ -148,7 +148,11 @@
             @if (cargandoResumen) {
               <div class="filtro-red-cargando">Cargando redes...</div>
             } @else {
-              <select [(ngModel)]="busquedaRed" (change)="filtrarPorRed(busquedaRed)">
+              <select
+                [(ngModel)]="busquedaRed"
+                (change)="filtrarPorRed(busquedaRed)"
+                (change)="seleccionarDepartamentoDesdeRed()"
+              >
                 <option value="">Todas las Redes ({{ resumenRedes.length }})</option>
                 @for (red of redesDisponibles; track red) {
                   <option [value]="red">{{ red }}</option>
@@ -382,9 +386,10 @@
 
           @if (departamentoSeleccionado?.nombre) {
             <div class="detalle-header">
-              <div>
-                <h2>{{ departamentoSeleccionado.nombre }}</h2>
-                <small class="detalle-subtitulo"> Información consolidada del departamento </small>
+              <h2>{{ departamentoSeleccionado.red }}</h2>
+
+              <div class="subtitulo-departamento">
+                Departamento: {{ departamentoSeleccionado.nombre }}
               </div>
 
               <span class="ranking-badge"> 🏆 #{{ departamentoSeleccionado.ranking }} </span>
@@ -392,19 +397,25 @@
 
             <div class="detalle-grid">
               <div class="detalle-kpi">
-                <span>👥 Participantes</span>
+                <span>🏥 Red Asistencial</span>
+                <strong>{{ departamentoSeleccionado.red }}</strong>
+              </div>
 
-                <strong>
-                  {{ departamentoSeleccionado.participantes | number }}
-                </strong>
+              <div class="detalle-kpi">
+                <span>👥 Participantes de la Red</span>
+                <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
+              </div>
+
+              <div class="detalle-kpi">
+                <span>🗺️ Participantes del Departamento</span>
+                <strong>{{ departamentoSeleccionado.participantes | number }}</strong>
               </div>
 
               <div class="detalle-kpi">
                 <span>📊 Participación Nacional</span>
-
                 <strong>
                   {{
-                    (departamentoSeleccionado.participantes * 100) / totalParticipantes
+                    (departamentoSeleccionado.participantes * 100) / totalParticipantesFiltrado
                       | number: '1.1-1'
                   }}%
                 </strong>
@@ -490,16 +501,21 @@
 
       @if (departamentoLider) {
         <div class="dash-card departamento-lider-card">
-          <div class="lider-icono">🏆</div>
+          <div class="lider-contenido">
+            <div class="lider-icono">🏆</div>
 
-          <div>
-            <div class="lider-titulo">Departamento Líder</div>
+            <div class="lider-info">
+              <div class="lider-titulo">Departamento Líder</div>
 
-            <div class="lider-nombre">
-              {{ departamentoLider.name }}
+              <div class="lider-nombre">
+                {{ departamentoLider.name }}
+              </div>
+
+              <div class="lider-valor">
+                {{ departamentoLider.value | number }}
+                <span>participantes</span>
+              </div>
             </div>
-
-            <div class="lider-valor">{{ departamentoLider.value | number }} participantes</div>
           </div>
         </div>
       }

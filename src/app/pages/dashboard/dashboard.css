@@ -1889,3 +1889,62 @@ tr:hover td {
   border-radius: 999px;
   font-weight: 700;
 }
+
+.departamento-lider-card {
+  min-height: 120px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 24px;
+  min-height: 160px;
+}
+
+.lider-contenido {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.lider-icono {
+  font-size: 4rem;
+}
+
+.lider-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.lider-titulo {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.lider-nombre {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.lider-valor {
+  margin-top: 0.5rem;
+}
+
+.lider-valor span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.lider-barra {
+  width: 45%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.lider-barra-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0056a6, #22c55e);
+}
