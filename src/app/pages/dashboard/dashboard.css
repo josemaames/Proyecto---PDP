@@ -1,37 +1,3 @@
-/* ── ASIGNACIÓN PRESUPUESTAL ─────────────────────── */
-
-.tabla-presupuesto .td-pct {
-  min-width: 160px;
-}
-
-.pres-barra-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pres-barra {
-  flex: 1;
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.pres-fill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.4s ease;
-}
-
-.pres-pct-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #374151;
-  min-width: 36px;
-  text-align: right;
-}
-
 /* ── BARRA FILTRO RED ASISTENCIAL ──────────────── */
 
 .filtro-red-bar {
@@ -1648,4 +1614,278 @@ tr:hover td {
 .mapa-peru {
   height: 600px;
   width: 100%;
+}
+
+.top-departamentos-card {
+  margin-top: 20px;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 12px 16px;
+  margin-bottom: 10px;
+
+  background: #f8fafc;
+  border-radius: 10px;
+
+  border-left: 4px solid #2563eb;
+}
+
+.departamento-lider-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  margin-top: 20px;
+}
+
+.lider-icono {
+  font-size: 42px;
+}
+
+.lider-titulo {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.lider-nombre {
+  font-size: 24px;
+  font-weight: 700;
+  color: #005baa;
+}
+
+.lider-valor {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cobertura-card {
+  margin-top: 20px;
+}
+
+.cobertura-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.cobertura-item {
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #2563eb;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.cobertura-item span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cobertura-item strong {
+  font-size: 24px;
+  color: #005baa;
+}
+
+.departamento-detalle-card {
+  margin-top: 20px;
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.detalle-item {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid #2563eb;
+}
+
+.detalle-item span {
+  display: block;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.detalle-item strong {
+  font-size: 22px;
+  color: #005baa;
+}
+
+.departamento-detalle-card {
+  margin-top: 20px;
+  padding: 24px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.detalle-header h2 {
+  margin: 0;
+  color: #1d4ed8;
+  font-size: 28px;
+}
+
+.ranking-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detalle-kpi {
+  background: #f8fafc;
+  padding: 18px;
+  border-radius: 12px;
+}
+
+.detalle-kpi span {
+  display: block;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.detalle-kpi strong {
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.dashboard-nacional-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.departamento-detalle-card {
+  min-height: 220px;
+}
+
+.detalle-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  color: #64748b;
+  text-align: center;
+}
+
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ranking-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.detalle-kpi {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.detalle-kpi span {
+  display: block;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.detalle-kpi strong {
+  font-size: 28px;
+  color: #1d4ed8;
+}
+
+.cobertura-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.cobertura-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.cobertura-item strong {
+  display: block;
+  font-size: 24px;
+  margin-top: 8px;
+  color: #1d4ed8;
+}
+
+.dashboard-nacional-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+}
+
+.mapa-peru {
+  height: 650px;
+}
+
+.departamento-detalle-card {
+  min-height: 320px;
+}
+
+.detalle-subtitulo {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.detalle-resumen {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.detalle-resumen strong {
+  color: #1d4ed8;
+}
+
+.ranking-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
 }

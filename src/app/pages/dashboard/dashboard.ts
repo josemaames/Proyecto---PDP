@@ -362,9 +362,9 @@ export class Dashboard implements OnInit, OnDestroy {
   presupuestoRedes: any[] = [];
 
   get presupuestoConEjecutado() {
-    return this.presupuestoRedes.map(p => {
+    return this.presupuestoRedes.map((p) => {
       const keyP = this.normalizarRedKey(p.red);
-      const resumen = this.resumenRedes.find(r => this.normalizarRedKey(r.red) === keyP);
+      const resumen = this.resumenRedes.find((r) => this.normalizarRedKey(r.red) === keyP);
       const ejecutado = resumen ? Number(resumen.presupuesto) : 0;
       const techo = Number(p.techo);
       const disponible = techo - ejecutado;
@@ -378,10 +378,12 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private normalizarRedKey(s: string): string {
-    return (s || '').toLowerCase()
+    return (s || '')
+      .toLowerCase()
       .replace(/^red (asistencial|prestacional)\s+/i, '')
       .replace(/^(ra|rp)\s+/i, '')
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
       .trim();
   }
 
@@ -397,6 +399,17 @@ export class Dashboard implements OnInit, OnDestroy {
   modalidadesResumen: any[] = [];
   chartConfigMapaPeru: any;
   topDepartamentos: any[] = [];
+  chartConfigDepartamentos: any;
+  departamentoLider: any;
+  departamentoSeleccionado: any = null;
+  chartInstance: any;
+
+  coberturaNacional = {
+    departamentos: 25,
+    redes: 32,
+    participantes: 0,
+    capacitaciones: 0,
+  };
 
   mejorRed = '';
   mejorRedParticipantes = 0;
@@ -422,67 +435,40 @@ export class Dashboard implements OnInit, OnDestroy {
     private pdpData: PdpDataService,
   ) {}
 
+  onChartInit(ec: any) {
+    this.chartInstance = ec;
+
+    ec.off('click');
+
+    ec.on('click', (params: any) => {
+      const dep = params.name;
+
+      const ranking =
+        this.topDepartamentos.findIndex((x: any) => x.name?.toUpperCase() === dep?.toUpperCase()) +
+        1;
+
+      this.departamentoSeleccionado = {
+        nombre: dep,
+        participantes: Number(params.value || 0),
+        ranking: ranking > 0 ? ranking : '-',
+      };
+    });
+  }
+
   private cargarMapaPeru() {
     console.log('ENTRO A CARGAR MAPA');
 
     this.http.get('/maps/peru.geojson').subscribe((geoJson: any) => {
-      console.log('GEOJSON CARGADO', geoJson);
-      console.log('FEATURES', geoJson.features?.length);
-
-      console.log(
-        'DEPARTAMENTOS GEOJSON',
-        geoJson.features.forEach((f: any) => (f.properties.name = f.properties.NOMBDEP)),
-      );
-
       geoJson.features.forEach((f: any) => {
-        if (f.properties.NOMBDEP.includes('CALLAO')) {
-          console.log('CALLAO FEATURE', f.properties);
-        }
+        f.properties.name = f.properties.NOMBDEP;
       });
 
       echarts.registerMap('peru', geoJson);
 
-      console.table(
-        this.resumenRedes.map((r: any) => ({
-          red: r.red,
-          departamento: this.obtenerDepartamento(r.red),
-          participantes: r.participantes,
-        })),
-      );
-
-      console.table(
-        this.resumenRedes
-          .map((r: any) => ({
-            red: r.red,
-            departamento: this.obtenerDepartamento(r.red),
-          }))
-          .filter((x: any) => !x.departamento),
-      );
-
       const departamentosAgrupados: Record<string, number> = {};
-      console.log(
-        'SABOGAL',
-        this.resumenRedes.filter((r: any) => r.red?.includes('SABOGAL')),
-      );
-
-      console.log('CALLAO AGRUPADO', departamentosAgrupados['CALLAO']);
-
-      console.table(
-        this.resumenRedes.map((r: any) => ({
-          red: r.red,
-          participantes: r.participantes,
-        })),
-      );
 
       this.resumenRedes.forEach((r: any) => {
         const dep = this.obtenerDepartamento(r.red);
-
-        console.log('CALLAO AGRUPADO', departamentosAgrupados['CALLAO']);
-        console.log('LIMA AGRUPADO', departamentosAgrupados['LIMA']);
-
-        console.table(departamentosAgrupados);
-
-        console.table(this.resumenRedes.filter((r: any) => r.red?.includes('SABOGAL')));
 
         if (!dep) return;
 
@@ -494,10 +480,62 @@ export class Dashboard implements OnInit, OnDestroy {
         value,
       }));
 
+      this.topDepartamentos = [...dataMapa]
+        .sort((a: any, b: any) => b.value - a.value)
+        .slice(0, 10);
+
+      if (this.topDepartamentos.length > 0) {
+        this.departamentoSeleccionado = {
+          nombre: this.topDepartamentos[0].name,
+          participantes: this.topDepartamentos[0].value,
+          ranking: 1,
+        };
+      }
+
       // TOP 5 DEPARTAMENTOS
       this.topDepartamentos = [...dataMapa]
         .sort((a: any, b: any) => Number(b.value) - Number(a.value))
         .slice(0, 5);
+      this.topDepartamentos = [...dataMapa].sort((a: any, b: any) => b.value - a.value).slice(0, 5);
+      this.departamentoLider = this.topDepartamentos[0];
+      this.coberturaNacional = {
+        departamentos: dataMapa.length,
+        redes: this.redesDisponibles.length,
+        participantes: this.totalParticipantesFiltrado,
+        capacitaciones: this.statsGlobal.actividades,
+      };
+
+      const departamentosOrdenados = [...dataMapa].sort((a: any, b: any) => b.value - a.value);
+
+      this.chartConfigDepartamentos = {
+        type: 'bar',
+
+        data: {
+          labels: departamentosOrdenados.map((x: any) => x.name),
+
+          datasets: [
+            {
+              label: 'Participantes',
+              data: departamentosOrdenados.map((x: any) => x.value),
+
+              backgroundColor: '#2563eb',
+              borderRadius: 8,
+            },
+          ],
+        },
+
+        options: {
+          indexAxis: 'y',
+
+          responsive: true,
+
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      };
 
       console.table(dataMapa);
       console.table(this.topDepartamentos);
@@ -505,6 +543,7 @@ export class Dashboard implements OnInit, OnDestroy {
       console.table(dataMapa);
 
       this.chartConfigMapaPeru = {
+        selectedMode: 'single',
         tooltip: {
           trigger: 'item',
 
@@ -641,9 +680,9 @@ export class Dashboard implements OnInit, OnDestroy {
       stats: this.pdpData.getStats(),
       resumen: this.pdpData.getResumenRedes(),
       dashboard: this.pdpData.getDashboard(),
-      presupuesto: this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes').pipe(
-        catchError(() => of([]))
-      ),
+      presupuesto: this.http
+        .get<any[]>('http://localhost:3001/api/presupuesto-redes')
+        .pipe(catchError(() => of([]))),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({

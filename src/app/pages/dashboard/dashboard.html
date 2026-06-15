@@ -171,7 +171,11 @@
           }
         </div>
 
-        <div class="filtro-red-bar" [class.filtro-red-activo]="filtroTematico" style="margin-top: 8px">
+        <div
+          class="filtro-red-bar"
+          [class.filtro-red-activo]="filtroTematico"
+          style="margin-top: 8px"
+        >
           <div class="filtro-red-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 6h16M4 12h10M4 18h6" />
@@ -246,7 +250,10 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    ((busquedaRed || filtroTematico) ? totalCapacitacionesFiltrado : statsGlobal.actividades) | number
+                    (busquedaRed || filtroTematico
+                      ? totalCapacitacionesFiltrado
+                      : statsGlobal.actividades
+                    ) | number
                   }}
                 </span>
                 <span class="kpi-label">Capacitaciones PDP</span>
@@ -266,7 +273,8 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    ((busquedaRed || filtroTematico) ? totalParticipantesFiltrado : statsGlobal.participantes) | number
+                    (busquedaRed || filtroTematico ? totalParticipantes : statsGlobal.participantes)
+                      | number
                   }}
                 </span>
                 <span class="kpi-label">Participantes Totales</span>
@@ -284,8 +292,10 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    ((busquedaRed || filtroTematico) ? totalPresupuestoFiltrado : statsGlobal.presupuesto_total)
-                      | number: '1.0-0'
+                    (busquedaRed || filtroTematico
+                      ? totalPresupuestoFiltrado
+                      : statsGlobal.presupuesto_total
+                    ) | number: '1.0-0'
                   }}
                 </span>
                 <span class="kpi-label">Presupuesto Total (S/.)</span>
@@ -304,7 +314,8 @@
               </div>
               <div class="kpi-info">
                 <span class="kpi-valor">{{
-                  ((busquedaRed || filtroTematico) ? resumenRedesFiltrado.length : statsGlobal.redes) | number
+                  (busquedaRed || filtroTematico ? resumenRedesFiltrado.length : statsGlobal.redes)
+                    | number
                 }}</span>
                 <span class="kpi-label">Redes Asistenciales</span>
               </div>
@@ -349,14 +360,149 @@
             <div class="insight-extra">participantes por actividad</div>
           </div>
         </div>
+      </div>
+      <div class="dashboard-nacional-grid">
+        <!-- MAPA -->
 
-        <div class="dash-card mapa-peru-card" style="border: 5px solid red">
-          <h1>MAPA AQUÍ</h1>
+        <div class="dash-card mapa-peru-card">
           <h3>🗺️ Distribución Nacional PDP</h3>
 
-          <div echarts [options]="chartConfigMapaPeru" class="mapa-peru"></div>
+          <div
+            echarts
+            [options]="chartConfigMapaPeru"
+            (chartInit)="onChartInit($event)"
+            class="mapa-peru"
+          ></div>
+        </div>
+
+        <!-- DETALLE -->
+
+        <div class="dash-card departamento-detalle-card">
+          <h3>📍 Departamento Seleccionado</h3>
+
+          @if (departamentoSeleccionado?.nombre) {
+            <div class="detalle-header">
+              <div>
+                <h2>{{ departamentoSeleccionado.nombre }}</h2>
+                <small class="detalle-subtitulo"> Información consolidada del departamento </small>
+              </div>
+
+              <span class="ranking-badge"> 🏆 #{{ departamentoSeleccionado.ranking }} </span>
+            </div>
+
+            <div class="detalle-grid">
+              <div class="detalle-kpi">
+                <span>👥 Participantes</span>
+
+                <strong>
+                  {{ departamentoSeleccionado.participantes | number }}
+                </strong>
+              </div>
+
+              <div class="detalle-kpi">
+                <span>📊 Participación Nacional</span>
+
+                <strong>
+                  {{
+                    (departamentoSeleccionado.participantes * 100) / totalParticipantes
+                      | number: '1.1-1'
+                  }}%
+                </strong>
+              </div>
+            </div>
+
+            <div class="detalle-resumen">
+              <p>
+                <strong>{{ departamentoSeleccionado.nombre }}</strong>
+                ocupa el puesto
+                <strong>#{{ departamentoSeleccionado.ranking }}</strong>
+                a nivel nacional con
+                <strong>{{ departamentoSeleccionado.participantes | number }}</strong>
+                participantes registrados.
+              </p>
+            </div>
+          } @else {
+            <div class="detalle-vacio">
+              🗺️ Haz clic en un departamento del mapa para visualizar sus indicadores.
+            </div>
+          }
+        </div>
+
+        <!-- TOP -->
+
+        <div class="dash-card top-departamentos-card">
+          <h3>🏆 Top Departamentos PDP</h3>
+
+          @for (dep of topDepartamentos; track dep.name) {
+            <div class="ranking-item">
+              <span>
+                @if ($index === 0) {
+                  🥇
+                }
+                @if ($index === 1) {
+                  🥈
+                }
+                @if ($index === 2) {
+                  🥉
+                }
+                @if ($index > 2) {
+                  🏅
+                }
+
+                {{ dep.name }}
+              </span>
+
+              <strong>
+                {{ dep.value | number }}
+              </strong>
+            </div>
+          }
+        </div>
+
+        <!-- COBERTURA -->
+
+        <div class="dash-card cobertura-card">
+          <h3>🌎 Cobertura Nacional PDP</h3>
+
+          <div class="cobertura-grid">
+            <div class="cobertura-item">
+              <span>🗺️ Departamentos</span>
+              <strong>{{ coberturaNacional.departamentos }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span>🏥 Redes</span>
+              <strong>{{ coberturaNacional.redes }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span>👥 Participantes</span>
+              <strong>{{ coberturaNacional.participantes | number }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span>📚 Capacitaciones</span>
+              <strong>{{ coberturaNacional.capacitaciones | number }}</strong>
+            </div>
+          </div>
         </div>
       </div>
+
+      @if (departamentoLider) {
+        <div class="dash-card departamento-lider-card">
+          <div class="lider-icono">🏆</div>
+
+          <div>
+            <div class="lider-titulo">Departamento Líder</div>
+
+            <div class="lider-nombre">
+              {{ departamentoLider.name }}
+            </div>
+
+            <div class="lider-valor">{{ departamentoLider.value | number }} participantes</div>
+          </div>
+        </div>
+      }
 
       <!-- KPIs OTROS ROLES -->
       @if (!esAdministrador) {
@@ -667,7 +813,9 @@
 
                 <tfoot>
                   <tr class="fila-total">
-                    <td colspan="2">TOTAL {{ (busquedaRed || filtroTematico) ? '(filtrado)' : '' }}</td>
+                    <td colspan="2">
+                      TOTAL {{ busquedaRed || filtroTematico ? '(filtrado)' : '' }}
+                    </td>
                     <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
                     <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
                     <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
@@ -696,27 +844,35 @@
                   <th>Techo (S/.)</th>
                   <th>Ejecutado (S/.)</th>
                   <th>Disponible (S/.)</th>
-                  <th style="min-width:160px">% Ejecutado</th>
+                  <th style="min-width: 160px">% Ejecutado</th>
                 </tr>
               </thead>
               <tbody>
                 @for (p of presupuestoConEjecutado; track p.red; let i = $index) {
                   <tr>
                     <td class="td-num">{{ i + 1 }}</td>
-                    <td class="td-red"><span class="red-nombre">{{ p.red }}</span></td>
+                    <td class="td-red">
+                      <span class="red-nombre">{{ p.red }}</span>
+                    </td>
                     <td class="td-monto">{{ formatMoneda(p.techo) }}</td>
                     <td class="td-monto">{{ formatMoneda(p.ejecutado) }}</td>
-                    <td class="td-monto"
-                        [style.color]="p.disponible < 0 ? '#dc2626' : '#16a34a'">
+                    <td class="td-monto" [style.color]="p.disponible < 0 ? '#dc2626' : '#16a34a'">
                       {{ formatMoneda(p.disponible) }}
                     </td>
                     <td class="td-pct">
                       <div class="pres-barra-wrap">
                         <div class="pres-barra">
-                          <div class="pres-fill"
-                               [style.width.%]="p.porcentaje"
-                               [style.background]="p.porcentaje >= 90 ? '#dc2626' : p.porcentaje >= 70 ? '#f59e0b' : '#16a34a'">
-                          </div>
+                          <div
+                            class="pres-fill"
+                            [style.width.%]="p.porcentaje"
+                            [style.background]="
+                              p.porcentaje >= 90
+                                ? '#dc2626'
+                                : p.porcentaje >= 70
+                                  ? '#f59e0b'
+                                  : '#16a34a'
+                            "
+                          ></div>
                         </div>
                         <span class="pres-pct-label">{{ p.porcentaje }}%</span>
                       </div>
@@ -729,8 +885,12 @@
                   <td colspan="2">TOTAL</td>
                   <td class="td-monto">{{ formatMoneda(totalTechoPresupuestal) }}</td>
                   <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
-                  <td class="td-monto"
-                      [style.color]="(totalTechoPresupuestal - totalPresupuesto) < 0 ? '#dc2626' : '#16a34a'">
+                  <td
+                    class="td-monto"
+                    [style.color]="
+                      totalTechoPresupuestal - totalPresupuesto < 0 ? '#dc2626' : '#16a34a'
+                    "
+                  >
                     {{ formatMoneda(totalTechoPresupuestal - totalPresupuesto) }}
                   </td>
                   <td></td>
@@ -740,7 +900,6 @@
           </div>
         </div>
       }
-
     </main>
   </div>
 </div>
