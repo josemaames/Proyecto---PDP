@@ -113,7 +113,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private actualizarChartsDesdesDashboard(dashboard: any) {
     const sexoAgrupado: any = {};
     dashboard.participantesSexo.forEach((x: any) => {
-      const sexo = (x.sexo || 'Sin dato').toUpperCase();
+      const raw = (x.sexo || '').toUpperCase().trim();
+      const sexo = raw === 'F' ? 'FEMENINO' : raw === 'M' ? 'MASCULINO' : raw || 'Sin dato';
       sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
     });
     this.chartConfigSexo = {
