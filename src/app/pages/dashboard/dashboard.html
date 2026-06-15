@@ -161,6 +161,26 @@
             }
           </div>
 
+          <div class="dash-card">
+            <h3>🏥 Redes del Departamento</h3>
+
+            @if (redesDepartamento.length > 0) {
+              @for (red of redesDepartamento; track red.red) {
+                <div class="ranking-item">
+                  <span>
+                    {{ red.red }}
+                  </span>
+
+                  <strong>
+                    {{ red.participantes | number }}
+                  </strong>
+                </div>
+              }
+            } @else {
+              <div class="detalle-vacio">Seleccione un departamento.</div>
+            }
+          </div>
+
           @if (busquedaRed) {
             <div class="filtro-red-badge">
               <span>Filtrando: {{ busquedaRed }}</span>

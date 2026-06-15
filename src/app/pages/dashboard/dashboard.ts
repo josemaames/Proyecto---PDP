@@ -421,6 +421,7 @@ export class Dashboard implements OnInit, OnDestroy {
   chartConfigDepartamentos: any;
   departamentoLider: any;
   departamentoSeleccionado: any = null;
+  redesDepartamento: any[] = [];
   chartInstance: any;
 
   coberturaNacional = {
@@ -461,26 +462,32 @@ export class Dashboard implements OnInit, OnDestroy {
 
     const departamento = this.obtenerDepartamento(redSeleccionada);
 
-    const infoDepartamento = this.topDepartamentos.find((d: any) => d.name === departamento);
+    const infoDepartamento = this.chartConfigMapaPeru?.series?.[0]?.data?.find(
+      (d: any) => d.name === departamento,
+    );
+
+    const ranking = this.topDepartamentos.findIndex((d: any) => d.name === departamento) + 1;
 
     this.departamentoSeleccionado = {
       red: redSeleccionada,
       nombre: departamento,
       participantesRed: infoRed?.participantes || 0,
       participantes: infoDepartamento?.value || 0,
-      ranking: infoDepartamento
-        ? this.topDepartamentos.findIndex((d: any) => d.name === departamento) + 1
-        : '-',
+      ranking: ranking > 0 ? ranking : '-',
     };
 
+    console.log('RED', redSeleccionada);
+    console.log('DEP', departamento);
+    console.log('INFO DEP', infoDepartamento);
+
+    this.cargarRedesDepartamento(departamento);
+
     if (this.chartInstance) {
-      // quitar todos los resaltados anteriores
       this.chartInstance.dispatchAction({
         type: 'downplay',
         seriesIndex: 0,
       });
 
-      // resaltar el nuevo departamento
       this.chartInstance.dispatchAction({
         type: 'highlight',
         seriesIndex: 0,
@@ -512,6 +519,7 @@ export class Dashboard implements OnInit, OnDestroy {
         participantes: Number(params.value || 0),
         ranking: ranking > 0 ? ranking : '-',
       };
+      this.cargarRedesDepartamento(dep);
     });
   }
 
@@ -710,6 +718,12 @@ export class Dashboard implements OnInit, OnDestroy {
     };
 
     return mapa[red] || '';
+  }
+
+  private cargarRedesDepartamento(departamento: string) {
+    this.redesDepartamento = this.resumenRedes
+      .filter((r: any) => this.obtenerDepartamento(r.red) === departamento)
+      .sort((a: any, b: any) => b.participantes - a.participantes);
   }
 
   ngOnInit() {
