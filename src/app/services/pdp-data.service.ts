@@ -156,13 +156,17 @@ export class PdpDataService {
   }
 
   // ── Estadísticas ──────────────────────────────
-  getStats(red = ''): Observable<Stats> {
-    const params = red ? new HttpParams().set('red', red) : new HttpParams();
+  getStats(red = '', ejeTematico = ''): Observable<Stats> {
+    let params = new HttpParams();
+    if (red) params = params.set('red', red);
+    if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     return this.http.get<Stats>(`${this.api}/stats`, { params });
   }
 
-  getResumenRedes(redes = ''): Observable<ResumenRed[]> {
-    const params = redes ? new HttpParams().set('redes', redes) : new HttpParams();
+  getResumenRedes(redes = '', ejeTematico = ''): Observable<ResumenRed[]> {
+    let params = new HttpParams();
+    if (redes) params = params.set('redes', redes);
+    if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     return this.http.get<ResumenRed[]>(`${this.api}/resumen-redes`, { params });
   }
 
@@ -200,13 +204,15 @@ export class PdpDataService {
     modalidad = '',
     page = 1,
     limit = 50,
+    ejeTematico = '',
   ): Observable<ApiResponse<Actividad>> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('q', q)
       .set('red', red)
       .set('modalidad', modalidad)
       .set('page', String(page))
       .set('limit', String(limit));
+    if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     return this.http.get<ApiResponse<Actividad>>(`${this.api}/actividades`, { params });
   }
 
@@ -244,9 +250,10 @@ export class PdpDataService {
     return this.http.get<PersonalEssalud>(`${this.api}/personal-essalud/dni/${dni}`);
   }
 
-  getDashboard(red = ''): Observable<any> {
-    const params = red ? new HttpParams().set('red', red) : new HttpParams();
-
+  getDashboard(red = '', ejeTematico = ''): Observable<any> {
+    let params = new HttpParams();
+    if (red) params = params.set('red', red);
+    if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     return this.http.get<any>(`${this.api}/dashboard`, { params });
   }
 }

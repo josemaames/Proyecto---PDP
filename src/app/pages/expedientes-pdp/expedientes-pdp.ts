@@ -19,11 +19,23 @@ export class ExpedientesPdp implements OnInit {
   busqueda = '';
   filtrored = '';
   filtroMod = '';
+  filtroEje = '';
   pagina = 1;
   limit = 20;
   total = 0;
   cargando = false;
   redFiltro = '';
+
+  redesDisponibles: string[] = [];
+  readonly ejesTematicos = [
+    'Atención Especializada',
+    'Atención primaria',
+    'Control interno o auditoría',
+    'Ética, integridad, lucha contra la corrupción',
+    'Gestión institucional',
+    'Salud Mental',
+    'Otros',
+  ];
 
   // Gestión de ejecutores (solo sectorista)
   rolUsuario = '';
@@ -64,6 +76,11 @@ export class ExpedientesPdp implements OnInit {
         .filter(Boolean);
       this.cargarEjecutores();
       this.cargarAsignaciones();
+    }
+    if (!this.redFiltro) {
+      this.pdpData.getResumenRedes().subscribe((redes) => {
+        this.redesDisponibles = redes.map((r) => r.red).sort();
+      });
     }
     this.cargar();
   }
@@ -164,7 +181,7 @@ export class ExpedientesPdp implements OnInit {
     this.cargando = true;
     const red = this.filtrored || this.redFiltro;
     this.pdpData
-      .getActividades(this.busqueda, red, this.filtroMod, this.pagina, this.limit)
+      .getActividades(this.busqueda, red, this.filtroMod, this.pagina, this.limit, this.filtroEje)
       .subscribe({
         next: (res) => {
           this.capacitaciones = res.data;

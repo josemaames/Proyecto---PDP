@@ -239,63 +239,87 @@
             }
           </div>
           <div class="form-acciones">
-            <button class="btn-guardar-form" (click)="guardarUsuario()">Guardar</button>
-            <button class="btn-cancelar-form" (click)="cancelarUsuario()">Cancelar</button>
+            <button class="btn-guardar-form" (click)="guardarUsuario()" [disabled]="guardando">
+              {{ guardando ? 'Guardando...' : 'Guardar' }}
+            </button>
+            <button class="btn-cancelar-form" (click)="cancelarUsuario()" [disabled]="guardando">Cancelar</button>
           </div>
         </div>
       }
 
       <!-- TABLA -->
       <div class="card tabla-card">
-        <table class="tabla-personal">
-          <thead>
-            <tr>
-              <th>DNI</th>
-              <th>Nombre</th>
-              <th>Cargo</th>
-              <th>Rol</th>
-              <th>Sedes / Red Asistencial</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (usuario of usuariosFiltrados; track usuario.dni) {
+        @if (cargandoUsuarios) {
+          <div style="text-align:center; padding: 40px; color: #6b7280;">
+            <div class="spinner-sm" style="margin: 0 auto 12px;"></div>
+            <span>Cargando usuarios...</span>
+          </div>
+        } @else if (errorUsuarios) {
+          <div style="text-align:center; padding: 40px; color: #ef4444;">
+            <p>{{ errorUsuarios }}</p>
+            <button class="btn-nuevo" style="margin-top:12px" (click)="cargarUsuarios()">Reintentar</button>
+          </div>
+        } @else {
+          <table class="tabla-personal">
+            <thead>
               <tr>
-                <td>{{ usuario.dni }}</td>
-                <td>{{ usuario.nombre }}</td>
-                <td>{{ usuario.cargo }}</td>
-                <td>
-                  <span class="badge-rol"
-                    [class.badge-rol-admin]="usuario.rol === 'Administrador' || usuario.rol === 'Administrativo'"
-                    [class.badge-rol-sectorista]="usuario.rol === 'Sectorista'"
-                    [class.badge-rol-ejecutor]="usuario.rol === 'Ejecutor'">
-                    {{ usuario.rol }}
-                  </span>
-                </td>
-                <td class="td-sedes">
-                  @if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') {
-                    <span class="sedes-admin">Acceso total</span>
-                  } @else {
-                    <span class="sedes-valor">{{ sedesTexto(usuario) }}</span>
-                  }
-                </td>
-                <td>
-                  <span class="badge-estado" [class.badge-activo]="usuario.estado === 'Activo'" [class.badge-inactivo]="usuario.estado !== 'Activo'">
-                    {{ usuario.estado }}
-                  </span>
-                </td>
-                <td class="acciones-col">
-                  <button class="btn-acc btn-ver" (click)="verUsuario(usuario.dni)">Ver</button>
-                  <button class="btn-acc btn-editar" (click)="editarUsuario(usuario.dni)">Editar</button>
-                  <button class="btn-acc" [class.btn-desactivar]="usuario.estado === 'Activo'" [class.btn-activar]="usuario.estado !== 'Activo'" (click)="cambiarEstado(usuario.dni)">
-                    {{ usuario.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
-                  </button>
-                </td>
+                <th>DNI</th>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th>Rol</th>
+                <th>Sedes / Red Asistencial</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (usuario of usuariosFiltrados; track usuario.dni) {
+                <tr>
+                  <td>{{ usuario.dni }}</td>
+                  <td>{{ usuario.nombre }}</td>
+                  <td>{{ usuario.cargo }}</td>
+                  <td>
+                    <span class="badge-rol"
+                      [class.badge-rol-admin]="usuario.rol === 'Administrador' || usuario.rol === 'Administrativo'"
+                      [class.badge-rol-sectorista]="usuario.rol === 'Sectorista'"
+                      [class.badge-rol-ejecutor]="usuario.rol === 'Ejecutor'">
+                      {{ usuario.rol }}
+                    </span>
+                  </td>
+                  <td class="td-sedes">
+                    @if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') {
+                      <span class="sedes-admin">Acceso total</span>
+                    } @else {
+                      <span class="sedes-valor">{{ sedesTexto(usuario) }}</span>
+                    }
+                  </td>
+                  <td>
+                    <span class="badge-estado" [class.badge-activo]="usuario.estado === 'Activo'" [class.badge-inactivo]="usuario.estado !== 'Activo'">
+                      {{ usuario.estado }}
+                    </span>
+                  </td>
+                  <td class="acciones-col">
+                    <button class="btn-acc btn-ver" (click)="verUsuario(usuario.dni)">Ver</button>
+                    <button class="btn-acc btn-editar" (click)="editarUsuario(usuario.dni)">Editar</button>
+                    <button class="btn-acc"
+                      [class.btn-desactivar]="usuario.estado === 'Activo'"
+                      [class.btn-activar]="usuario.estado !== 'Activo'"
+                      (click)="cambiarEstado(usuario.dni)">
+                      {{ usuario.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (usuariosFiltrados.length === 0) {
+                <tr>
+                  <td colspan="7" style="text-align:center; color:#9ca3af; padding:24px">
+                    No se encontraron usuarios con los filtros aplicados.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <!-- MODAL DETALLE -->

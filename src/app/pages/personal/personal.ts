@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { PdpDataService } from '../../services/pdp-data.service';
 })
 export class Personal implements OnInit {
   private router   = inject(Router);
+  private http     = inject(HttpClient);
   private pdpData  = inject(PdpDataService);
 
   usuarioActual: any = {};
@@ -36,111 +38,10 @@ export class Personal implements OnInit {
     password: '',
   };
 
-  usuarios: any[] = [
-    // ADMINISTRADORES
-    {
-      dni: '90642735',
-      nombre: 'José Manuel Ames Anapán',
-      cargo: 'Analista PDP',
-      rol: 'Administrador',
-      estado: 'Activo',
-      foto: 'jose-ames.png',
-      sedes: '',
-    },
-    {
-      dni: '70435255',
-      nombre: 'Víctor Gabriel Acero Garay',
-      cargo: 'Analista PDP',
-      rol: 'Administrador',
-      estado: 'Activo',
-      sedes: '',
-    },
-    {
-      dni: '73456264',
-      nombre: 'Fernando David Campos Quiroz',
-      cargo: 'Especialista PDP',
-      rol: 'Administrador',
-      estado: 'Activo',
-      sedes: '',
-    },
-    {
-      dni: '45611148',
-      nombre: 'Sthywen Javier Muñoz Ruiz',
-      cargo: 'Especialista PDP',
-      rol: 'Administrador',
-      estado: 'Activo',
-      foto: 'sthywen-munoz.png',
-      sedes: '',
-    },
-
-    // SECTORISTAS
-    {
-      dni: '11111111',
-      nombre: 'María Torres Quispe',
-      cargo: 'Sectorista Red Arequipa',
-      rol: 'Sectorista',
-      estado: 'Activo',
-      sedes: 'RA AREQUIPA',
-    },
-    {
-      dni: '33333333',
-      nombre: 'Ana Sofía Paredes Quispe',
-      cargo: 'Sectorista Redes Sur-Centro',
-      rol: 'Sectorista',
-      estado: 'Activo',
-      sedes: 'RA CUSCO,RA AREQUIPA,RA PIURA',
-    },
-    {
-      dni: '48562134',
-      nombre: 'María Elena Torres Salazar',
-      cargo: 'Sectorista Red Rebagliati',
-      rol: 'Sectorista',
-      estado: 'Activo',
-      sedes: 'RP REBAGLIATI',
-    },
-    {
-      dni: '71234589',
-      nombre: 'Luis Alberto Sánchez Rojas',
-      cargo: 'Sectorista Red Almenara',
-      rol: 'Sectorista',
-      estado: 'Activo',
-      sedes: 'RP ALMENARA',
-    },
-
-    // EJECUTORES
-    {
-      dni: '22222222',
-      nombre: 'Ricardo Mendoza García',
-      cargo: 'Ejecutor Red Lurin',
-      rol: 'Ejecutor',
-      estado: 'Activo',
-      sedes: 'RP REBAGLIATI',
-    },
-    {
-      dni: '44444444',
-      nombre: 'Carlos Alberto Huanca Torres',
-      cargo: 'Ejecutor Red Arequipa',
-      rol: 'Ejecutor',
-      estado: 'Activo',
-      sedes: 'RA AREQUIPA',
-    },
-    {
-      dni: '59874123',
-      nombre: 'Ana Lucía Rodríguez Vargas',
-      cargo: 'Ejecutor de Capacitación',
-      rol: 'Ejecutor',
-      estado: 'Activo',
-      sedes: '',
-    },
-    {
-      dni: '74125896',
-      nombre: 'Carmen Rosa Delgado Silva',
-      cargo: 'Ejecutor Administrativo',
-      rol: 'Ejecutor',
-      estado: 'Inactivo',
-      sedes: '',
-    },
-  ];
+  usuarios: any[] = [];
+  guardando = false;
+  cargandoUsuarios = false;
+  errorUsuarios = '';
 
   textoBusqueda = '';
   filtroRol = 'Todos';
@@ -154,26 +55,26 @@ export class Personal implements OnInit {
     });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-    const VERSION = 'v3';
-    if (localStorage.getItem('usuariosVersion') !== VERSION) {
-      localStorage.removeItem('usuarios');
-      localStorage.setItem('usuariosVersion', VERSION);
-    }
-
-    const usuariosGuardados = localStorage.getItem('usuarios');
-    if (usuariosGuardados) {
-      const guardados: any[] = JSON.parse(usuariosGuardados);
-      this.usuarios = this.usuarios.map((base) => {
-        const guardado = guardados.find((g: any) => g.dni === base.dni);
-        return guardado ? { ...base, ...guardado } : base;
-      });
-      const dniBase = this.usuarios.map((u) => u.dni);
-      guardados.filter((g: any) => !dniBase.includes(g.dni)).forEach((extra: any) => this.usuarios.push(extra));
-    }
+    this.cargarUsuarios();
 
     this.pdpData.getResumenRedes().subscribe({
       next: (redes) => {
         this.redesDisponibles = redes.map(r => r.red).filter(r => r !== 'Sin Red');
+      },
+    });
+  }
+
+  cargarUsuarios() {
+    this.cargandoUsuarios = true;
+    this.errorUsuarios = '';
+    this.http.get<any[]>('/api/usuarios').subscribe({
+      next: (data) => {
+        this.usuarios = data;
+        this.cargandoUsuarios = false;
+      },
+      error: () => {
+        this.cargandoUsuarios = false;
+        this.errorUsuarios = 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.';
       },
     });
   }
@@ -232,12 +133,11 @@ export class Personal implements OnInit {
 
   cambiarEstado(dni: string) {
     const usuario = this.usuarios.find((u) => u.dni === dni);
-
-    if (usuario) {
-      usuario.estado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
-
-      localStorage.setItem('usuarios', JSON.stringify(this.usuarios));
-    }
+    if (!usuario) return;
+    const nuevoEstado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
+    this.http.put<any>(`/api/usuarios/${dni}`, { estado: nuevoEstado }).subscribe({
+      next: () => { usuario.estado = nuevoEstado; },
+    });
   }
 
   cerrarDetalle() {
@@ -261,23 +161,39 @@ export class Personal implements OnInit {
     } else if (rol === 'Administrador' || rol === 'Administrativo') {
       this.nuevoUsuarioData.sedes = '';
     }
-    // Ejecutor: nuevoUsuarioData.sedes ya viene del select
 
-    if (this.modoEdicion) {
-      const index = this.usuarios.findIndex((u) => u.dni === this.dniEditando);
-      if (index !== -1) this.usuarios[index] = { ...this.nuevoUsuarioData };
-    } else {
-      this.usuarios.push({ ...this.nuevoUsuarioData });
-    }
+    this.guardando = true;
+    const payload = {
+      dni:              this.nuevoUsuarioData.dni,
+      nombre:           this.nuevoUsuarioData.nombre,
+      password:         this.nuevoUsuarioData.password,
+      rol:              this.nuevoUsuarioData.rol,
+      cargo:            this.nuevoUsuarioData.cargo,
+      estado:           this.nuevoUsuarioData.estado,
+      sedes:            this.nuevoUsuarioData.sedes,
+      numero_plantilla: this.nuevoUsuarioData.dni,
+    };
 
-    localStorage.setItem('usuarios', JSON.stringify(this.usuarios));
+    const req$ = this.modoEdicion
+      ? this.http.put<any>(`/api/usuarios/${this.dniEditando}`, payload)
+      : this.http.post<any>('/api/usuarios', payload);
 
-    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
-    this.sedesSeleccionadas = [];
-    this.mostrarPassword = false;
-    this.mostrarFormulario = false;
-    this.modoEdicion = false;
-    this.dniEditando = '';
+    req$.subscribe({
+      next: () => {
+        this.guardando = false;
+        this.cargarUsuarios();
+        this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '' };
+        this.sedesSeleccionadas = [];
+        this.mostrarPassword = false;
+        this.mostrarFormulario = false;
+        this.modoEdicion = false;
+        this.dniEditando = '';
+      },
+      error: (err) => {
+        this.guardando = false;
+        alert(err.error?.error || 'Error al guardar el usuario.');
+      },
+    });
   }
 
   sedesTexto(usuario: any): string {

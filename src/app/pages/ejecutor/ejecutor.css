@@ -767,3 +767,94 @@
   transition: background 0.15s;
 }
 .btn-refrescar:hover { background: #e8edf8; }
+
+/* ── MODAL PARTICIPANTES ── */
+.modal-partic-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px;
+}
+.modal-partic-box {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 900px;
+  max-height: 92vh; display: flex; flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18); overflow: hidden;
+}
+.modal-partic-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 22px 28px 16px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+}
+.modal-partic-titulo { font-size: 20px; font-weight: 700; color: #1a4fa8; margin: 0; }
+.modal-partic-sub    { font-size: 13px; color: #6b7280; margin: 4px 0 0; }
+.modal-partic-contador { text-align: right; }
+.modal-partic-contador span {
+  font-size: 15px; font-weight: 700; padding: 6px 14px;
+  border-radius: 20px; display: inline-block;
+}
+.contador-warn { background: #fff7ed; color: #b45309; }
+.contador-ok   { background: #f0fdf4; color: #15803d; }
+
+/* Formulario de ingreso */
+.modal-partic-form {
+  padding: 16px 28px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+  background: #f8fafc;
+}
+.partic-form-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px;
+}
+.partic-campo label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+.partic-campo input, .partic-campo select {
+  width: 100%; padding: 7px 10px; border: 1.5px solid #d1d5db;
+  border-radius: 7px; font-size: 13px; box-sizing: border-box;
+}
+.partic-error { color: #dc2626; font-size: 13px; margin: 4px 0 8px; }
+.btn-agregar-partic {
+  padding: 8px 20px; background: #1a4fa8; color: #fff;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-agregar-partic:hover:not(:disabled) { background: #163d85; }
+.btn-agregar-partic:disabled { opacity: .4; cursor: default; }
+
+/* Tabla de ingresados */
+.modal-partic-tabla-wrap { overflow-y: auto; flex: 1; padding: 0 28px 8px; }
+.modal-partic-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.modal-partic-tabla th {
+  background: #f1f5f9; color: #374151; font-weight: 600;
+  padding: 8px 10px; text-align: left; position: sticky; top: 0; z-index: 1;
+}
+.modal-partic-tabla td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; }
+.modal-partic-tabla tr:hover td { background: #eff6ff; }
+.btn-quitar-partic {
+  background: none; border: none; color: #dc2626; cursor: pointer;
+  font-size: 14px; padding: 2px 6px; border-radius: 4px;
+}
+.btn-quitar-partic:hover { background: #fef2f2; }
+
+.partic-cargando { padding: 24px 28px; color: #9ca3af; text-align: center; font-size: 14px; }
+
+.modal-partic-footer {
+  display: flex; justify-content: space-between; padding: 16px 28px;
+  border-top: 1px solid #e5e7eb; flex-shrink: 0;
+}
+.btn-volver-modal {
+  padding: 10px 22px; border: 1.5px solid #d1d5db; border-radius: 8px;
+  background: #fff; color: #374151; font-size: 14px; cursor: pointer;
+}
+.btn-volver-modal:hover { background: #f9fafb; }
+.btn-enviar-modal {
+  padding: 10px 26px; background: #16a34a; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.btn-enviar-modal:hover:not(:disabled) { background: #15803d; }
+.btn-enviar-modal:disabled { opacity: .5; cursor: default; }
+
+.input-bloqueado {
+  background: #f1f5f9 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  border-color: #e2e8f0 !important;
+}
+
+.partic-aviso {
+  font-size: 12px; color: #b45309; background: #fff7ed;
+  border: 1px solid #fed7aa; border-radius: 6px; padding: 4px 10px;
+}

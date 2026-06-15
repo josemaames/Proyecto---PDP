@@ -134,7 +134,7 @@
         </p>
       </div>
 
-      <!-- BARRA DE FILTRO POR RED ASISTENCIAL -->
+      <!-- BARRA DE FILTROS -->
       @if (esAdministrador) {
         <div class="filtro-red-bar" [class.filtro-red-activo]="busquedaRed">
           <div class="filtro-red-label">
@@ -148,7 +148,7 @@
             @if (cargandoResumen) {
               <div class="filtro-red-cargando">Cargando redes...</div>
             } @else {
-              <select [(ngModel)]="busquedaRed" (change)="actualizarGraficos()">
+              <select [(ngModel)]="busquedaRed" (change)="filtrarPorRed(busquedaRed)">
                 <option value="">Todas las Redes ({{ resumenRedes.length }})</option>
                 @for (red of redesDisponibles; track red) {
                   <option [value]="red">{{ red }}</option>
@@ -162,6 +162,37 @@
               <span>Filtrando: {{ busquedaRed }}</span>
             </div>
             <button class="filtro-red-limpiar" (click)="filtrarPorRed('')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Limpiar
+            </button>
+          }
+        </div>
+
+        <div class="filtro-red-bar" [class.filtro-red-activo]="filtroTematico" style="margin-top: 8px">
+          <div class="filtro-red-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h10M4 18h6" />
+            </svg>
+            <span>Eje Temático</span>
+          </div>
+
+          <div class="filtro-red-selector">
+            <select [(ngModel)]="filtroTematico" (change)="filtrarPorTema(filtroTematico)">
+              <option value="">Todos los Ejes Temáticos</option>
+              @for (eje of ejesTematicos; track eje) {
+                <option [value]="eje">{{ eje }}</option>
+              }
+            </select>
+          </div>
+
+          @if (filtroTematico) {
+            <div class="filtro-red-badge">
+              <span>Filtrando: {{ filtroTematico }}</span>
+            </div>
+            <button class="filtro-red-limpiar" (click)="filtrarPorTema('')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -215,7 +246,7 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    (busquedaRed ? totalCapacitacionesFiltrado : statsGlobal.actividades) | number
+                    ((busquedaRed || filtroTematico) ? totalCapacitacionesFiltrado : statsGlobal.actividades) | number
                   }}
                 </span>
                 <span class="kpi-label">Capacitaciones PDP</span>
@@ -235,7 +266,7 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    (busquedaRed ? totalParticipantesFiltrado : statsGlobal.participantes) | number
+                    ((busquedaRed || filtroTematico) ? totalParticipantesFiltrado : statsGlobal.participantes) | number
                   }}
                 </span>
                 <span class="kpi-label">Participantes Totales</span>
@@ -253,7 +284,7 @@
               <div class="kpi-info">
                 <span class="kpi-valor">
                   {{
-                    (busquedaRed ? totalPresupuestoFiltrado : statsGlobal.presupuesto_total)
+                    ((busquedaRed || filtroTematico) ? totalPresupuestoFiltrado : statsGlobal.presupuesto_total)
                       | number: '1.0-0'
                   }}
                 </span>
@@ -273,7 +304,7 @@
               </div>
               <div class="kpi-info">
                 <span class="kpi-valor">{{
-                  (busquedaRed ? resumenRedesFiltrado.length : statsGlobal.redes) | number
+                  ((busquedaRed || filtroTematico) ? resumenRedesFiltrado.length : statsGlobal.redes) | number
                 }}</span>
                 <span class="kpi-label">Redes Asistenciales</span>
               </div>
@@ -636,7 +667,7 @@
 
                 <tfoot>
                   <tr class="fila-total">
-                    <td colspan="2">TOTAL {{ busquedaRed ? '(filtrado)' : '' }}</td>
+                    <td colspan="2">TOTAL {{ (busquedaRed || filtroTematico) ? '(filtrado)' : '' }}</td>
                     <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
                     <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
                     <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>

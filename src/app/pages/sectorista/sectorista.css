@@ -966,3 +966,21 @@
 }
 .btn-confirmar-rechazo:hover:not(:disabled) { background: #b91c1c; }
 .btn-confirmar-rechazo:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── PARTICIPANTES EN DETALLE SOLICITUD ── */
+.detalle-participantes { margin-top: 16px; }
+.detalle-partic-titulo {
+  font-size: 13px; font-weight: 700; color: #1a4fa8;
+  margin: 0 0 8px; text-transform: uppercase; letter-spacing: .5px;
+}
+.tabla-partic-detalle {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.tabla-partic-detalle th {
+  background: #eff6ff; color: #1e40af; font-weight: 600;
+  padding: 6px 10px; text-align: left;
+}
+.tabla-partic-detalle td {
+  padding: 6px 10px; border-bottom: 1px solid #f3f4f6; color: #374151;
+}
+.tabla-partic-detalle tr:last-child td { border-bottom: none; }

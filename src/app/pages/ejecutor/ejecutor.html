@@ -44,6 +44,15 @@
         </svg>
         <span>Personal</span>
       </div>
+      <div class="menu-item" (click)="irA('/lista-participantes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>Participantes</span>
+      </div>
       <div class="menu-item cerrar" (click)="cerrarSesion()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -167,7 +176,7 @@
           </div>
           <div class="campo">
             <label>Fecha de finalización</label>
-            <input type="date" [(ngModel)]="formulario.fechaFin" />
+            <input type="date" [ngModel]="formulario.fechaFin" (ngModelChange)="formulario.fechaFin=$event; actualizarMesTermino()" />
           </div>
           <div class="campo">
             <label>Mes de término de ejecución</label>
@@ -189,7 +198,7 @@
           </div>
           <div class="campo">
             <label>Red asistencial / Unidad orgánica solicitante</label>
-            <select [(ngModel)]="formulario.redAsistencial">
+            <select [(ngModel)]="formulario.redAsistencial" disabled>
               <option value="">Seleccione...</option>
               <option value="RA ALMENARA">RA ALMENARA</option>
               <option value="RA AREQUIPA">RA AREQUIPA</option>
@@ -286,7 +295,7 @@
             />
           </div>
           <div class="campo">
-            <label>Objetivo estratégico total de participantes (planilla)</label>
+            <label>Total de participantes (planilla)</label>
             <input
               type="number"
               min="0"
@@ -295,17 +304,30 @@
             />
           </div>
         </div>
-        <div class="campo" style="margin-top: 18px">
-          <label>Eje temático</label>
-          <select [(ngModel)]="formulario.ejeTematico">
-            <option value="" disabled>Seleccione un eje temático</option>
-            <option value="Atención Especializada">Atención Especializada</option>
-            <option value="Atención primaria">Atención primaria</option>
-            <option value="Control interno o auditoría">Control interno o auditoría</option>
-            <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
-            <option value="Gestión institucional">Gestión institucional</option>
-            <option value="Otros">Otros</option>
-          </select>
+        <div class="datos-grid dos-col" style="margin-top: 18px">
+          <div class="campo">
+            <label>Eje temático</label>
+            <select [(ngModel)]="formulario.ejeTematico">
+              <option value="" disabled>Seleccione un eje temático</option>
+              <option value="Atención Especializada">Atención Especializada</option>
+              <option value="Atención primaria">Atención primaria</option>
+              <option value="Control interno o auditoría">Control interno o auditoría</option>
+              <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
+              <option value="Gestión institucional">Gestión institucional</option>
+              <option value="Salud Mental">Salud Mental</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Objetivo estratégico vinculado</label>
+            <select [(ngModel)]="formulario.objetivoEstrategico">
+              <option value="">Seleccione...</option>
+              <option value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos">OE1 – Proteger financieramente las prestaciones</option>
+              <option value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades">OE2 – Brindar acceso oportuno a prestaciones integrales</option>
+              <option value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución">OE3 – Impulsar la transformación digital</option>
+              <option value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud">OEI.05 – Promover la identidad y desarrollo de servidores</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -382,8 +404,8 @@
         </div>
       }
 
-      <button class="btn-guardar" (click)="guardarFormulario()" [disabled]="enviando">
-        {{ enviando ? '⏳ Enviando...' : '📤 Enviar Formulario' }}
+      <button class="btn-guardar" (click)="abrirSeleccionParticipantes()">
+        Siguiente →
       </button>
 
       <!-- MIS ENVÍOS -->
@@ -564,6 +586,151 @@
         >
         <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
       </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL INGRESO DE PARTICIPANTES -->
+@if (mostrarModalParticipantes) {
+  <div class="modal-partic-overlay">
+    <div class="modal-partic-box">
+
+      <div class="modal-partic-header">
+        <div>
+          <h2 class="modal-partic-titulo">Registrar Participantes</h2>
+          <p class="modal-partic-sub">{{ formulario.nombreActividad || 'Actividad' }}</p>
+        </div>
+        <div class="modal-partic-contador">
+          <span [class.contador-ok]="participantesSeleccionados.length === formulario.totalParticipantes"
+                [class.contador-warn]="participantesSeleccionados.length < formulario.totalParticipantes">
+            {{ participantesSeleccionados.length }} / {{ formulario.totalParticipantes }} registrados
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulario para agregar un participante -->
+      <div class="modal-partic-form">
+        <div class="partic-form-grid">
+          <div class="partic-campo">
+            <label>Código Act.</label>
+            <input type="text" [value]="nuevoPartic.codigo_act" disabled class="input-bloqueado" />
+          </div>
+          <div class="partic-campo">
+            <label>Red Asistencial</label>
+            <input type="text" [value]="nuevoPartic.red" disabled class="input-bloqueado" />
+          </div>
+          <div class="partic-campo">
+            <label>DNI / CE *</label>
+            <input type="text" placeholder="Ej: 12345678" [(ngModel)]="nuevoPartic.dni_ce" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Cód. Planilla</label>
+            <input type="text" placeholder="Cód. planilla" [(ngModel)]="nuevoPartic.cod_planilla" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Apellidos *</label>
+            <input type="text" placeholder="Apellido Paterno Materno" [(ngModel)]="nuevoPartic.apellidos" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Nombre *</label>
+            <input type="text" placeholder="Nombres" [(ngModel)]="nuevoPartic.nombre" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Sexo</label>
+            <select [(ngModel)]="nuevoPartic.sexo">
+              <option value="">—</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+          </div>
+          <div class="partic-campo">
+            <label>Sub-Programa</label>
+            <input type="text" placeholder="Sub-Programa" [(ngModel)]="nuevoPartic.sub_programa" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Servicio / Área (Actividad)</label>
+            <input type="text" placeholder="Servicio o área" [(ngModel)]="nuevoPartic.servicio_area" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Cargo</label>
+            <input type="text" placeholder="Ej: Médico" [(ngModel)]="nuevoPartic.cargo" (keyup.enter)="agregarParticipante()" />
+          </div>
+          <div class="partic-campo">
+            <label>Régimen laboral</label>
+            <input type="text" placeholder="Ej: 728, CAS" [(ngModel)]="nuevoPartic.regimen_laboral" (keyup.enter)="agregarParticipante()" />
+          </div>
+        </div>
+        @if (errorPartic) {
+          <p class="partic-error">{{ errorPartic }}</p>
+        }
+        <button class="btn-agregar-partic" (click)="agregarParticipante()"
+          [disabled]="participantesSeleccionados.length >= formulario.totalParticipantes">
+          + Agregar participante
+        </button>
+      </div>
+
+      <!-- Tabla de participantes ya ingresados -->
+      @if (participantesSeleccionados.length > 0) {
+        <div class="modal-partic-tabla-wrap">
+          <table class="modal-partic-tabla">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cód. Act.</th>
+                <th>Red</th>
+                <th>DNI / CE</th>
+                <th>Cód. Planilla</th>
+                <th>Apellidos y Nombre</th>
+                <th>Sexo</th>
+                <th>Sub-Prog.</th>
+                <th>Servicio / Área</th>
+                <th>Cargo</th>
+                <th>Régimen</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of participantesSeleccionados; track $index) {
+                <tr>
+                  <td>{{ $index + 1 }}</td>
+                  <td>{{ p.codigo_act || '—' }}</td>
+                  <td>{{ p.red || '—' }}</td>
+                  <td>{{ p.dni_ce }}</td>
+                  <td>{{ p.cod_planilla || '—' }}</td>
+                  <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                  <td>{{ p.sexo || '—' }}</td>
+                  <td>{{ p.sub_programa || '—' }}</td>
+                  <td>{{ p.servicio_area || '—' }}</td>
+                  <td>{{ p.cargo || '—' }}</td>
+                  <td>{{ p.regimen_laboral || '—' }}</td>
+                  <td><button class="btn-quitar-partic" (click)="quitarParticipante($index)">✕</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="partic-cargando">Aún no se han agregado participantes.</div>
+      }
+
+      <div class="modal-partic-footer">
+        <button class="btn-volver-modal" (click)="cerrarModalParticipantes()">← Volver</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
+          @if (participantesSeleccionados.length > 0 && participantesSeleccionados.length < formulario.totalParticipantes) {
+            <span class="partic-aviso">
+              ⚠ Lleva {{ participantesSeleccionados.length }} de {{ formulario.totalParticipantes }}. Asegúrese de hacer clic en "+ Agregar" antes de enviar.
+            </span>
+          }
+          <button
+            class="btn-enviar-modal"
+            [disabled]="participantesSeleccionados.length === 0 || enviando"
+            (click)="enviarFormulario()"
+          >
+            {{ enviando ? '⏳ Enviando...' : '📤 Enviar al Sectorista' }}
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 }

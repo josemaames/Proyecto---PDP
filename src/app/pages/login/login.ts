@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -9,6 +10,9 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './login.css',
 })
 export class Login {
+  private http   = inject(HttpClient);
+  private router = inject(Router);
+
   vista: 'login' | 'registro' = 'login';
 
   // LOGIN
@@ -16,6 +20,7 @@ export class Login {
   password = '';
   mostrarPassword = false;
   error = '';
+  cargando = false;
 
   // REGISTRO
   regDni = '';
@@ -30,218 +35,81 @@ export class Login {
   mostrarRegConfirm = false;
   errorReg = '';
   exitoReg = false;
-
-  constructor(private router: Router) {}
+  cargandoReg = false;
 
   ingresar() {
-    const base = [
-      // ── ADMINISTRADORES ──────────────────────────
-      {
-        id: 1,
-        dni: '90642735',
-        password: 'admin123',
-        nombre: 'José Manuel Ames Anapán',
-        numeroPlantilla: 'PL-0001',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-        sedes: [],
-      },
-      {
-        id: 2,
-        dni: '70435255',
-        password: 'admin123',
-        nombre: 'Víctor Gabriel Acero Garay',
-        numeroPlantilla: 'PL-0002',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-        sedes: [],
-      },
-      {
-        id: 3,
-        dni: '73456264',
-        password: 'admin123',
-        nombre: 'Fernando David Campos Quiroz',
-        numeroPlantilla: 'PL-0003',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-        sedes: [],
-      },
-      {
-        id: 4,
-        dni: '45611148',
-        password: 'admin123',
-        nombre: 'Sthywen Javier Muñoz Ruiz',
-        numeroPlantilla: 'PL-0004',
-        tipo: 'Especialista PDP',
-        rol: 'Administrador',
-        sedes: [],
-      },
-      // ── SECTORISTAS ──────────────────────────────
-      {
-        id: 5,
-        dni: '11111111',
-        password: 'sector123',
-        nombre: 'María Torres Quispe',
-        numeroPlantilla: 'PL-0005',
-        tipo: 'Sectorista',
-        rol: 'Sectorista',
-        sedes: ['RA AREQUIPA'],
-      },
-      {
-        id: 7,
-        dni: '33333333',
-        password: 'sector123',
-        nombre: 'Ana Sofía Paredes Quispe',
-        numeroPlantilla: 'PL-0007',
-        tipo: 'Sectorista',
-        rol: 'Sectorista',
-        sedes: ['RA CUSCO', 'RA AREQUIPA', 'RA PIURA'],
-      },
-      // ── EJECUTORES ───────────────────────────────
-      {
-        id: 6,
-        dni: '22222222',
-        password: 'ejecutor123',
-        nombre: 'Ricardo Mendoza García',
-        numeroPlantilla: 'PL-0006',
-        tipo: 'Ejecutor',
-        rol: 'Ejecutor',
-        sedes: ['RP REBAGLIATI'],
-      },
-      {
-        id: 8,
-        dni: '44444444',
-        password: 'ejecutor123',
-        nombre: 'Carlos Alberto Huanca Torres',
-        numeroPlantilla: 'PL-0008',
-        tipo: 'Ejecutor',
-        rol: 'Ejecutor',
-        sedes: ['RA AREQUIPA'],
-      },
-    ];
-
-    const registrados  = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
-    const adminUsers   = JSON.parse(localStorage.getItem('usuarios') || '[]');
-
-    // Usuarios del admin panel sobreescriben contraseña y datos del base array
-    const mergedBase = base.map(b => {
-      const override = adminUsers.find((a: any) => a.dni === b.dni);
-      return override ? { ...b, ...override } : b;
-    });
-
-    // Usuarios nuevos creados por admin (no están en base) con contraseña asignada
-    const baseDnis    = base.map(b => b.dni);
-    const soloAdmins  = adminUsers
-      .filter((a: any) => !baseDnis.includes(a.dni) && a.password)
-      .map((a: any) => ({
-        id: a.dni,
-        dni: a.dni,
-        password: a.password,
-        nombre: a.nombre,
-        numeroPlantilla: a.dni,
-        tipo: a.cargo || a.rol,
-        rol: a.rol,
-        sedes: a.sedes
-          ? (typeof a.sedes === 'string'
-              ? a.sedes.split(',').map((s: string) => s.trim()).filter(Boolean)
-              : a.sedes)
-          : [],
-      }));
-
-    const todos = [...mergedBase, ...registrados, ...soloAdmins];
-    const usuario = todos.find((u) => u.dni === this.dni && u.password === this.password);
-
-    if (!usuario) {
-      this.error = 'Documento de identidad o contraseña incorrectos.';
-      return;
-    }
-
-    const usuariosAdmin: any[] = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    const estadoEnAdmin = usuariosAdmin.find((u: any) => u.dni === usuario.dni);
-    if (estadoEnAdmin && estadoEnAdmin.estado === 'Inactivo') {
-      this.error = 'Su cuenta ha sido desactivada. Contacte al administrador.';
-      return;
-    }
-
-    localStorage.setItem('usuario', JSON.stringify(usuario));
     this.error = '';
-
-    switch (usuario.rol) {
-      case 'Administrador':
-        this.router.navigate(['/dashboard']);
-        break;
-      case 'Sectorista':
-        this.router.navigate(['/sectorista']);
-        break;
-      case 'Ejecutor':
-        this.router.navigate(['/ejecutor']);
-        break;
-      case 'Administrativo':
-        this.router.navigate(['/dashboard']);
-        break;
-      default:
-        this.router.navigate(['/dashboard']);
+    if (!this.dni || !this.password) {
+      this.error = 'Ingrese su DNI y contraseña.';
+      return;
     }
+    this.cargando = true;
+    this.http.post<any>('/api/auth/login', { dni: this.dni, password: this.password }).subscribe({
+      next: (usuario) => {
+        this.cargando = false;
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        switch (usuario.rol) {
+          case 'Administrador':
+          case 'Administrativo':
+            this.router.navigate(['/dashboard']); break;
+          case 'Sectorista':
+            this.router.navigate(['/sectorista']); break;
+          case 'Ejecutor':
+            this.router.navigate(['/ejecutor']); break;
+          default:
+            this.router.navigate(['/dashboard']);
+        }
+      },
+      error: (err) => {
+        this.cargando = false;
+        this.error = err.error?.error || 'Documento de identidad o contraseña incorrectos.';
+      },
+    });
   }
 
   registrarse() {
     this.errorReg = '';
 
-    if (
-      !this.regDni ||
-      !this.regPlantilla ||
-      !this.regFechaNac ||
-      !this.regCorreo ||
-      !this.regCelular ||
-      !this.regPassword ||
-      !this.regConfirm
-    ) {
+    if (!this.regDni || !this.regPlantilla || !this.regFechaNac ||
+        !this.regCorreo || !this.regCelular || !this.regPassword || !this.regConfirm) {
       this.errorReg = 'Todos los campos son obligatorios.';
       return;
     }
-
     if (this.regPassword !== this.regConfirm) {
       this.errorReg = 'Las contraseñas no coinciden.';
       return;
     }
-
     if (this.regPassword.length < 6) {
       this.errorReg = 'La contraseña debe tener mínimo 6 caracteres.';
       return;
     }
 
-    const registrados = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
-
-    if (registrados.some((u: any) => u.dni === this.regDni)) {
-      this.errorReg = 'Ya existe un usuario con ese documento de identidad.';
-      return;
-    }
-
-    registrados.push({
+    this.cargandoReg = true;
+    this.http.post<any>('/api/usuarios', {
       dni: this.regDni,
-      password: this.regPassword,
       nombre: this.regDni,
-      numeroPlantilla: this.regPlantilla,
-      correo: this.regCorreo,
-      celular: this.regCelular,
-      fechaNac: this.regFechaNac,
-      tipo: this.regRol,
+      password: this.regPassword,
       rol: this.regRol,
-
-      sedes: [],
-      sede: '',
+      numero_plantilla: this.regPlantilla,
+      estado: 'Activo',
+      sedes: '',
+    }).subscribe({
+      next: () => {
+        this.cargandoReg = false;
+        this.exitoReg = true;
+        setTimeout(() => {
+          this.vista = 'login';
+          this.exitoReg = false;
+          this.regDni = this.regPlantilla = this.regFechaNac = '';
+          this.regCorreo = this.regCelular = this.regPassword = this.regConfirm = '';
+          this.regRol = 'Sectorista';
+        }, 2000);
+      },
+      error: (err) => {
+        this.cargandoReg = false;
+        this.errorReg = err.error?.error || 'Error al registrar usuario.';
+      },
     });
-
-    localStorage.setItem('usuariosRegistrados', JSON.stringify(registrados));
-    this.exitoReg = true;
-
-    setTimeout(() => {
-      this.vista = 'login';
-      this.exitoReg = false;
-      this.regDni = this.regPlantilla = this.regFechaNac = '';
-      this.regCorreo = this.regCelular = this.regPassword = this.regConfirm = '';
-      this.regRol = 'Sectorista';
-    }, 2000);
   }
 
   irALogin() {
