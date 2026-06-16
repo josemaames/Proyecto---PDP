@@ -1976,3 +1976,125 @@ tr:hover td {
   color: #1d4ed8;
   font-size: 18px;
 }
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.periodo-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.periodo-selector label {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.periodo-selector select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 120px;
+  cursor: pointer;
+}
+.dashboard-header {
+  display: flex;
+  align-items: center;
+}
+
+.periodo-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  /* Empuja el selector hacia la derecha */
+  margin-left: auto;
+  margin-right: 50px; /* ajusta a gusto */
+}
+
+.periodo-selector label {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.periodo-selector select {
+  min-width: 180px;
+  height: 50px;
+  padding: 0 16px;
+
+  font-size: 1.2rem;
+  font-weight: 500;
+
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+}
+
+.periodo-selector {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.periodo-texto {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f4ea3;
+  letter-spacing: 0.3px;
+}
+
+.periodo-selector select {
+  width: 140px;
+  height: 48px;
+
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #fff;
+
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+}
+
+.periodo-pill {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #fff;
+
+  padding: 8px 14px;
+
+  border-radius: 16px;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.periodo-pill select {
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f4ea3;
+
+  cursor: pointer;
+}
