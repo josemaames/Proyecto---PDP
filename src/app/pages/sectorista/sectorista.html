@@ -171,6 +171,39 @@
                           </div>
                         </div>
 
+                        <div class="detalle-participantes">
+                          <p class="detalle-partic-titulo">📎 Comprobante de pago</p>
+                          @if (documentosDetalle.length === 0) {
+                            <p style="font-size: 0.85rem; color: #6b7280">
+                              El ejecutor no ha subido ningún comprobante.
+                            </p>
+                          } @else {
+                            @for (doc of documentosDetalle; track doc.id) {
+                              <div
+                                style="
+                                  display: flex;
+                                  justify-content: space-between;
+                                  align-items: center;
+                                  padding: 8px 12px;
+                                  background: #f8fafc;
+                                  border: 1px solid #e2e8f0;
+                                  border-radius: 8px;
+                                  margin-bottom: 6px;
+                                "
+                              >
+                                <span style="font-size: 0.85rem">📄 {{ doc.nombre_archivo }}</span>
+                                <button
+                                  type="button"
+                                  class="btn-ver-detalle"
+                                  (click)="descargarDocumentoDetalle(doc)"
+                                >
+                                  Descargar
+                                </button>
+                              </div>
+                            }
+                          }
+                        </div>
+
                         @if (s.datos?.participantesDetalle?.length > 0) {
                           <div class="detalle-participantes">
                             <p class="detalle-partic-titulo">
@@ -256,11 +289,52 @@
                 </div>
 
                 <div class="modal-documentos-body">
-                  <p>Aquí se visualizarán los documentos cargados por el ejecutor.</p>
-
-                  <div class="sin-resultados">
-                    <p>No hay documentos para mostrar.</p>
-                  </div>
+                  @if (cargandoDocumentosGestion) {
+                    <div class="sin-resultados"><p>Cargando documentos...</p></div>
+                  } @else if (documentosGestion.length === 0) {
+                    <div class="sin-resultados">
+                      <p>No hay documentos para mostrar.</p>
+                    </div>
+                  } @else {
+                    @for (doc of documentosGestion; track doc.id) {
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: space-between;
+                          align-items: center;
+                          padding: 10px 14px;
+                          background: #f8fafc;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 8px;
+                          margin-bottom: 8px;
+                        "
+                      >
+                        <div>
+                          <span
+                            style="
+                              background: #005baa;
+                              color: #fff;
+                              padding: 2px 8px;
+                              border-radius: 6px;
+                              font-size: 0.75rem;
+                              font-weight: 600;
+                            "
+                            >{{ doc.codigo_act }}</span
+                          >
+                          <span style="margin-left: 10px; font-size: 0.85rem">
+                            📄 {{ doc.nombre_archivo }}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          class="btn-ver-detalle"
+                          (click)="descargarDocumentoGestion(doc)"
+                        >
+                          Descargar
+                        </button>
+                      </div>
+                    }
+                  }
                 </div>
               </div>
             </div>
@@ -284,6 +358,7 @@
                   <th>Red asistencial</th>
                   <th>Estado</th>
                   <th>Motivo rechazo</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -302,6 +377,11 @@
                     </td>
                     <td style="color: #dc2626; font-size: 0.85rem">
                       {{ s.motivo_rechazo || '—' }}
+                    </td>
+                    <td>
+                      @if (s.estado === 'aprobado') {
+                        <button class="btn-ver-detalle" (click)="abrirEdicion(s)">✏️ Editar</button>
+                      }
                     </td>
                   </tr>
                 }
@@ -354,6 +434,187 @@
           >
             {{ procesandoRevision ? 'Procesando...' : 'Confirmar rechazo' }}
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL EDITAR CAPACITACIÓN -->
+  @if (mostrarModalEditar) {
+    <div class="modal-busqueda-overlay" (click)="cerrarEdicion()">
+      <div class="modal-documentos" (click)="$event.stopPropagation()" style="max-width: 760px">
+        <div class="modal-documentos-header">
+          <h3>✏️ Editar capacitación</h3>
+          <button class="btn-cerrar-modal" (click)="cerrarEdicion()">✕</button>
+        </div>
+
+        <div class="modal-documentos-body">
+          @if (cargandoEdicion) {
+            <div class="sin-resultados"><p>Cargando...</p></div>
+          } @else if (errorEdicion && !actividadEditando) {
+            <div class="sin-resultados"><p>{{ errorEdicion }}</p></div>
+          } @else if (actividadEditando) {
+            <div class="detalle-solicitud-grid">
+              <div class="campo">
+                <label>Código de actividad</label>
+                <input type="text" [(ngModel)]="actividadEditando.codigo_act" />
+              </div>
+              <div class="campo">
+                <label>Nombre de la actividad</label>
+                <input type="text" [(ngModel)]="actividadEditando.nombre_actividad" />
+              </div>
+              <div class="campo">
+                <label>Red asistencial</label>
+                <input type="text" [(ngModel)]="actividadEditando.red_asistencial" />
+              </div>
+              <div class="campo">
+                <label>Servicio / Área</label>
+                <input type="text" [(ngModel)]="actividadEditando.servicio_area" />
+              </div>
+              <div class="campo">
+                <label>Fecha inicio</label>
+                <input type="date" [(ngModel)]="actividadEditando.fecha_inicio" />
+              </div>
+              <div class="campo">
+                <label>Fecha fin</label>
+                <input type="date" [(ngModel)]="actividadEditando.fecha_fin" />
+              </div>
+              <div class="campo">
+                <label>Mes término</label>
+                <input type="text" [(ngModel)]="actividadEditando.mes_termino" />
+              </div>
+              <div class="campo">
+                <label>Modalidad</label>
+                <input type="text" [(ngModel)]="actividadEditando.modalidad" />
+              </div>
+              <div class="campo">
+                <label>Público objetivo</label>
+                <input type="text" [(ngModel)]="actividadEditando.publico" />
+              </div>
+              <div class="campo">
+                <label>Total horas</label>
+                <input type="number" min="0" [(ngModel)]="actividadEditando.total_horas" />
+              </div>
+              <div class="campo">
+                <label>Eje temático</label>
+                <input type="text" [(ngModel)]="actividadEditando.eje_tematico" />
+              </div>
+              <div class="campo">
+                <label>Presupuesto ejecutado (S/)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [(ngModel)]="actividadEditando.presupuesto_ejecutado"
+                />
+              </div>
+            </div>
+
+            <div class="detalle-participantes" style="margin-top: 20px">
+              <p class="detalle-partic-titulo">
+                Participantes ({{ participantesEditando.length }})
+              </p>
+
+              @if (participantesEditando.length > 0) {
+                <table class="tabla-partic-detalle">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>DNI / CE</th>
+                      <th>Apellidos y Nombre</th>
+                      <th>Sexo</th>
+                      <th>Cargo</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of participantesEditando; track p.id) {
+                      <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ p.dni_ce || '—' }}</td>
+                        <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                        <td>{{ p.sexo || '—' }}</td>
+                        <td>{{ p.cargo || '—' }}</td>
+                        <td>
+                          <button class="btn-denegar" style="padding: 4px 10px; font-size: 0.8rem" (click)="quitarParticipanteEdicion(p)">
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+
+              <p class="detalle-partic-titulo" style="margin-top: 16px">Agregar participante</p>
+              <div class="detalle-solicitud-grid">
+                <div class="campo">
+                  <label>DNI / CE</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.dni_ce" />
+                </div>
+                <div class="campo">
+                  <label>Cód. Planilla</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cod_planilla" />
+                </div>
+                <div class="campo">
+                  <label>Apellidos</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.apellidos" />
+                </div>
+                <div class="campo">
+                  <label>Nombre</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.nombre" />
+                </div>
+                <div class="campo">
+                  <label>Sexo</label>
+                  <select [(ngModel)]="nuevoParticipanteEdicion.sexo">
+                    <option value="">Seleccione</option>
+                    <option value="MASCULINO">Masculino</option>
+                    <option value="FEMENINO">Femenino</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Cargo</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cargo" />
+                </div>
+                <div class="campo">
+                  <label>Sub-Programa</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.sub_programa" />
+                </div>
+                <div class="campo">
+                  <label>Servicio / Área</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.servicio_area" />
+                </div>
+                <div class="campo">
+                  <label>Régimen laboral</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.regimen_laboral" />
+                </div>
+              </div>
+              @if (errorParticipanteEdicion) {
+                <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
+                  {{ errorParticipanteEdicion }}
+                </p>
+              }
+              <button class="btn-ver-detalle" style="margin-top: 10px" (click)="agregarParticipanteEdicion()">
+                ➕ Agregar participante
+              </button>
+            </div>
+
+            @if (errorEdicion) {
+              <p style="color: #dc2626; font-size: 0.85rem; margin-top: 12px">{{ errorEdicion }}</p>
+            }
+
+            <div class="modal-rechazo-acciones" style="margin-top: 20px">
+              <button class="btn-cancelar-modal" (click)="cerrarEdicion()">Cancelar</button>
+              <button
+                class="btn-confirmar-rechazo"
+                style="background: #16a34a"
+                (click)="guardarEdicionActividad()"
+                [disabled]="guardandoEdicion"
+              >
+                {{ guardandoEdicion ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+            </div>
+          }
         </div>
       </div>
     </div>

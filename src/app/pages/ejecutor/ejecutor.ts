@@ -45,6 +45,12 @@ export class Ejecutor implements OnInit {
 
   presupuestoRed = 0;
 
+  // COMPROBANTE DE PAGO
+  comprobantes: any[] = [];
+  archivoComprobante: File | null = null;
+  subiendoComprobante = false;
+  errorComprobante = '';
+
   private PRESUPUESTOS_RED: Record<string, number> = {
     'RA ALMENARA': 240000,
     'RA AREQUIPA': 120000,
@@ -172,6 +178,31 @@ export class Ejecutor implements OnInit {
     const red = (this.redEjecutor || '').toUpperCase().trim();
 
     this.presupuestoRed = this.PRESUPUESTOS_RED[red] ?? 0;
+  }
+
+  // COMPROBANTE DE PAGO
+  cargarComprobantes() {
+    const codigo = this.formulario.codigoAct.trim();
+    if (!codigo) {
+      this.comprobantes = [];
+      return;
+    }
+    this.pdpData.getDocumentos(codigo).subscribe({
+      next: (docs) => (this.comprobantes = docs),
+      error: () => (this.comprobantes = []),
+    });
+  }
+
+  onArchivoComprobante(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.archivoComprobante = input.files?.[0] || null;
+    this.errorComprobante = '';
+  }
+
+  eliminarComprobante(doc: any) {
+    if (!doc.id) return;
+    if (!confirm(`¿Eliminar el documento "${doc.nombre_archivo}"?`)) return;
+    this.pdpData.eliminarDocumento(doc.id).subscribe(() => this.cargarComprobantes());
   }
 
   abrirBusqueda() {
@@ -334,6 +365,30 @@ export class Ejecutor implements OnInit {
       return;
     }
 
+    if (this.archivoComprobante) {
+      this.subiendoComprobante = true;
+      this.errorComprobante = '';
+      this.pdpData.subirDocumento(f.codigoAct.trim(), this.archivoComprobante).subscribe({
+        next: () => {
+          this.subiendoComprobante = false;
+          this.archivoComprobante = null;
+          const inputEl = document.getElementById('comprobanteInput') as HTMLInputElement;
+          if (inputEl) inputEl.value = '';
+          this.cargarComprobantes();
+          this.continuarASeleccionParticipantes();
+        },
+        error: (err) => {
+          this.subiendoComprobante = false;
+          this.errorComprobante = 'Error al subir el comprobante: ' + (err.error?.error || err.message);
+        },
+      });
+      return;
+    }
+
+    this.continuarASeleccionParticipantes();
+  }
+
+  private continuarASeleccionParticipantes() {
     this.participantesSeleccionados = [];
     this.errorPartic = '';
     this.nuevoPartic = {
@@ -374,6 +429,7 @@ export class Ejecutor implements OnInit {
 
   enviarFormulario() {
     this.enviando = true;
+    this.mostrarModalParticipantes = false;
     const payload = {
       datos: { ...this.formulario, participantesDetalle: this.participantesSeleccionados },
       ejecutor_nombre: this.usuario?.nombre || '',
@@ -411,6 +467,8 @@ export class Ejecutor implements OnInit {
           sectorProveedor: '',
           presupuestoEjecutado: 0,
         };
+        this.comprobantes = [];
+        this.archivoComprobante = null;
         this.cargarMisEnvios();
         setTimeout(() => {
           document

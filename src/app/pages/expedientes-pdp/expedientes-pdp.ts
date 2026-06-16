@@ -15,6 +15,7 @@ export class ExpedientesPdp implements OnInit {
 
   capacitaciones: Actividad[] = [];
   seleccionada: Actividad | null = null;
+  documentosSeleccionada: any[] = [];
 
   busqueda = '';
   filtrored = '';
@@ -214,9 +215,24 @@ export class ExpedientesPdp implements OnInit {
 
   ver(cap: Actividad) {
     this.seleccionada = cap;
+    this.documentosSeleccionada = [];
+    if (cap.codigo_act) {
+      this.pdpData.getDocumentos(cap.codigo_act).subscribe({
+        next: (docs) => (this.documentosSeleccionada = docs),
+        error: () => (this.documentosSeleccionada = []),
+      });
+    }
   }
   cerrarModal() {
     this.seleccionada = null;
+  }
+
+  descargarDocumentoSeleccionada(doc: any) {
+    if (!doc.id) return;
+    this.pdpData.descargarDocumento(doc.id).subscribe({
+      next: (res) => window.open(res.url, '_blank'),
+      error: () => alert('No se pudo generar el enlace de descarga.'),
+    });
   }
 
   formatMoneda(v: number | undefined): string {

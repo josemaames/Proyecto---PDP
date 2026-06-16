@@ -296,6 +296,38 @@
         </div>
 
         <div class="modal-seccion">
+          <h4>📎 Comprobante de pago</h4>
+          @if (documentosSeleccionada.length === 0) {
+            <p style="font-size: 0.85rem; color: #6b7280">No se ha subido ningún comprobante.</p>
+          } @else {
+            @for (doc of documentosSeleccionada; track doc.id) {
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 8px 12px;
+                  background: #f8fafc;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  margin-bottom: 6px;
+                "
+              >
+                <span style="font-size: 0.85rem">📄 {{ doc.nombre_archivo }}</span>
+                <button
+                  type="button"
+                  class="btn-cerrar"
+                  style="width: auto; padding: 4px 12px; font-size: 0.8rem"
+                  (click)="descargarDocumentoSeleccionada(doc)"
+                >
+                  Descargar
+                </button>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="modal-seccion">
           <h4>Proveedor</h4>
           <div class="modal-grid">
             <div class="dato"><span class="dato-label">RUC Proveedor</span><span>{{ seleccionada.ruc_proveedor || '—' }}</span></div>

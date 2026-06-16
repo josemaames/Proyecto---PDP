@@ -70,7 +70,7 @@ export class Documentos implements OnInit {
       return;
     }
     if (!this.archivoSeleccionado) {
-      this.errorSubida = 'Selecciona un archivo (PDF, Word o Excel).';
+      this.errorSubida = 'Selecciona un archivo (PDF, Word, Excel o imagen).';
       return;
     }
 
@@ -118,6 +118,7 @@ export class Documentos implements OnInit {
     if (tipo.includes('pdf')) return '📕';
     if (tipo.includes('word') || tipo.includes('msword') || tipo.includes('officedocument.wordprocessingml')) return '📘';
     if (tipo.includes('excel') || tipo.includes('spreadsheetml') || tipo.includes('ms-excel')) return '📗';
+    if (tipo.includes('imagen') || tipo.includes('image')) return '🖼️';
     return '📄';
   }
 

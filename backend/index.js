@@ -24,14 +24,17 @@ const TIPOS_PERMITIDOS = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
   'application/vnd.ms-excel': 'excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
+  'image/jpeg': 'imagen',
+  'image/png': 'imagen',
+  'image/webp': 'imagen',
 };
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB (límite del bucket "documentos" en Supabase)
   fileFilter: (req, file, cb) => {
     if (TIPOS_PERMITIDOS[file.mimetype]) return cb(null, true);
-    cb(new Error('Tipo de archivo no permitido. Solo PDF, Word o Excel.'));
+    cb(new Error('Tipo de archivo no permitido. Solo PDF, Word, Excel o imágenes (JPG, PNG, WEBP).'));
   },
 });
 

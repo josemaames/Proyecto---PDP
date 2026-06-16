@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DecimalPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
-import { PdpDataService } from '../../services/pdp-data.service';
+import { PdpDataService, Actividad, Participante } from '../../services/pdp-data.service';
 
 @Component({
   selector: 'app-sectorista',
@@ -83,6 +83,7 @@ export class Sectorista implements OnInit {
   solicitudes: any[] = [];
   cargandoSolicitudes = false;
   solicitudDetalle: any = null;
+  documentosDetalle: any[] = [];
   mostrarModalRechazo = false;
   motivoRechazo = '';
   solicitudADenegar: any = null;
@@ -93,6 +94,32 @@ export class Sectorista implements OnInit {
   cargandoHistorial = false;
 
   mostrarModalDocumentos = false;
+  documentosGestion: any[] = [];
+  cargandoDocumentosGestion = false;
+
+  // EDICIÓN DE CAPACITACIÓN (sectorista)
+  mostrarModalEditar = false;
+  cargandoEdicion = false;
+  guardandoEdicion = false;
+  errorEdicion = '';
+  actividadEditando: Actividad | null = null;
+  participantesEditando: Participante[] = [];
+  nuevoParticipanteEdicion = this.participanteVacioEdicion();
+  errorParticipanteEdicion = '';
+
+  participanteVacioEdicion() {
+    return {
+      dni_ce: '',
+      cod_planilla: '',
+      apellidos: '',
+      nombre: '',
+      sexo: '',
+      sub_programa: '',
+      servicio_area: '',
+      cargo: '',
+      regimen_laboral: '',
+    };
+  }
 
   // PRESUPUESTO
   presupuestoMiRed: any[] = [];
@@ -210,10 +237,121 @@ export class Sectorista implements OnInit {
 
   abrirGestionDocumentos() {
     this.mostrarModalDocumentos = true;
+    this.cargandoDocumentosGestion = true;
+    this.pdpData.getDocumentos('').subscribe({
+      next: (docs) => {
+        this.documentosGestion = docs;
+        this.cargandoDocumentosGestion = false;
+      },
+      error: () => {
+        this.documentosGestion = [];
+        this.cargandoDocumentosGestion = false;
+      },
+    });
   }
 
   cerrarGestionDocumentos() {
     this.mostrarModalDocumentos = false;
+  }
+
+  descargarDocumentoGestion(doc: any) {
+    if (!doc.id) return;
+    this.pdpData.descargarDocumento(doc.id).subscribe({
+      next: (res) => window.open(res.url, '_blank'),
+      error: () => alert('No se pudo generar el enlace de descarga.'),
+    });
+  }
+
+  abrirEdicion(s: any) {
+    const codigo = (s.datos?.codigoAct || '').trim();
+    if (!codigo) return;
+
+    this.errorEdicion = '';
+    this.errorParticipanteEdicion = '';
+    this.nuevoParticipanteEdicion = this.participanteVacioEdicion();
+    this.cargandoEdicion = true;
+    this.mostrarModalEditar = true;
+    this.actividadEditando = null;
+    this.participantesEditando = [];
+
+    forkJoin({
+      actividades: this.pdpData.getActividades(codigo, '', '', 1, 10),
+      participantes: this.pdpData.getParticipantes('', codigo, 1, 500),
+    }).subscribe({
+      next: ({ actividades, participantes }) => {
+        const act = actividades.data.find((a) => a.codigo_act === codigo) || actividades.data[0];
+        this.actividadEditando = act ? { ...act } : null;
+        this.participantesEditando = participantes.data;
+        if (!this.actividadEditando) {
+          this.errorEdicion = 'No se encontró el registro de esta actividad.';
+        }
+        this.cargandoEdicion = false;
+      },
+      error: () => {
+        this.errorEdicion = 'Error al cargar los datos de la actividad.';
+        this.cargandoEdicion = false;
+      },
+    });
+  }
+
+  cerrarEdicion() {
+    this.mostrarModalEditar = false;
+    this.actividadEditando = null;
+    this.participantesEditando = [];
+  }
+
+  agregarParticipanteEdicion() {
+    const p = this.nuevoParticipanteEdicion;
+    if (!this.actividadEditando) return;
+    if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
+      this.errorParticipanteEdicion = 'DNI/CE, Apellidos y Nombre son obligatorios.';
+      return;
+    }
+    this.errorParticipanteEdicion = '';
+    this.pdpData
+      .crearParticipante({
+        codigo_act: this.actividadEditando.codigo_act,
+        red: this.actividadEditando.red_asistencial,
+        ...p,
+      })
+      .subscribe({
+        next: (nuevo) => {
+          this.participantesEditando.push(nuevo);
+          this.nuevoParticipanteEdicion = this.participanteVacioEdicion();
+        },
+        error: () => {
+          this.errorParticipanteEdicion = 'No se pudo agregar al participante.';
+        },
+      });
+  }
+
+  quitarParticipanteEdicion(p: Participante) {
+    if (!p.id) return;
+    if (!confirm(`¿Quitar a ${p.apellidos} ${p.nombre} de la lista de participantes?`)) return;
+    this.pdpData.eliminarParticipante(p.id).subscribe(() => {
+      this.participantesEditando = this.participantesEditando.filter((x) => x.id !== p.id);
+    });
+  }
+
+  guardarEdicionActividad() {
+    if (!this.actividadEditando?.id) return;
+    this.guardandoEdicion = true;
+    this.errorEdicion = '';
+    const payload: Actividad = {
+      ...this.actividadEditando,
+      total_participantes: this.participantesEditando.length,
+    };
+    this.pdpData.actualizarActividad(this.actividadEditando.id, payload).subscribe({
+      next: () => {
+        this.guardandoEdicion = false;
+        this.cerrarEdicion();
+        this.cargarHistorial();
+      },
+      error: () => {
+        this.guardandoEdicion = false;
+        this.errorEdicion = 'No se pudo guardar la actividad.';
+      },
+    });
   }
 
   private normalizarRedKey(s: string): string {
@@ -272,6 +410,22 @@ export class Sectorista implements OnInit {
 
   verSolicitud(s: any) {
     this.solicitudDetalle = this.solicitudDetalle?.id === s.id ? null : s;
+    this.documentosDetalle = [];
+    const codigo = this.solicitudDetalle?.datos?.codigoAct;
+    if (codigo) {
+      this.pdpData.getDocumentos(codigo).subscribe({
+        next: (docs) => (this.documentosDetalle = docs),
+        error: () => (this.documentosDetalle = []),
+      });
+    }
+  }
+
+  descargarDocumentoDetalle(doc: any) {
+    if (!doc.id) return;
+    this.pdpData.descargarDocumento(doc.id).subscribe({
+      next: (res) => window.open(res.url, '_blank'),
+      error: () => alert('No se pudo generar el enlace de descarga.'),
+    });
   }
 
   aprobarSolicitud(s: any) {

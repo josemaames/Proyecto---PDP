@@ -170,7 +170,12 @@
         <div class="datos-grid tres-col">
           <div class="campo">
             <label>Código act.</label>
-            <input type="text" placeholder="Ej: CAP-2024-001" [(ngModel)]="formulario.codigoAct" />
+            <input
+              type="text"
+              placeholder="Ej: CAP-2024-001"
+              [(ngModel)]="formulario.codigoAct"
+              (blur)="cargarComprobantes()"
+            />
           </div>
           <div class="campo">
             <label>Fecha de inicio</label>
@@ -427,6 +432,62 @@
             placeholder="0.00"
             [(ngModel)]="formulario.presupuestoEjecutado"
           />
+        </div>
+
+        <div class="campo" style="margin-top: 16px">
+          <label>Comprobante de pago (PDF, Word, Excel o imagen)</label>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+            <input
+              id="comprobanteInput"
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+              (change)="onArchivoComprobante($event)"
+            />
+          </div>
+          @if (archivoComprobante) {
+            <p style="color: #2563eb; font-size: 0.8rem; margin-top: 6px">
+              📎 {{ archivoComprobante.name }} — se subirá al presionar "Siguiente"
+            </p>
+          }
+          @if (subiendoComprobante) {
+            <p style="color: #2563eb; font-size: 0.85rem; margin-top: 6px">
+              Subiendo comprobante...
+            </p>
+          }
+          @if (errorComprobante) {
+            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
+              {{ errorComprobante }}
+            </p>
+          }
+
+          @if (comprobantes.length > 0) {
+            <div style="margin-top: 12px">
+              @for (doc of comprobantes; track doc.id) {
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px 12px;
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    margin-bottom: 6px;
+                  "
+                >
+                  <span style="font-size: 0.85rem">📄 {{ doc.nombre_archivo }}</span>
+                  <button
+                    type="button"
+                    class="btn-denegar"
+                    style="padding: 4px 10px; font-size: 0.8rem"
+                    (click)="eliminarComprobante(doc)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              }
+            </div>
+          }
         </div>
       </div>
 
