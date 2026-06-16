@@ -92,6 +92,8 @@ export class Sectorista implements OnInit {
   historial: any[] = [];
   cargandoHistorial = false;
 
+  mostrarModalDocumentos = false;
+
   // PRESUPUESTO
   presupuestoMiRed: any[] = [];
 
@@ -195,20 +197,32 @@ export class Sectorista implements OnInit {
     ]).subscribe({
       next: ([aprobadas, denegadas]) => {
         this.historial = [...aprobadas, ...denegadas].sort(
-          (a, b) => new Date(b.reviewed_at).getTime() - new Date(a.reviewed_at).getTime()
+          (a, b) => new Date(b.reviewed_at).getTime() - new Date(a.reviewed_at).getTime(),
         );
         this.cargandoHistorial = false;
         this.cdr.detectChanges();
       },
-      error: () => { this.cargandoHistorial = false; },
+      error: () => {
+        this.cargandoHistorial = false;
+      },
     });
   }
 
+  abrirGestionDocumentos() {
+    this.mostrarModalDocumentos = true;
+  }
+
+  cerrarGestionDocumentos() {
+    this.mostrarModalDocumentos = false;
+  }
+
   private normalizarRedKey(s: string): string {
-    return (s || '').toLowerCase()
+    return (s || '')
+      .toLowerCase()
       .replace(/^red (asistencial|prestacional)\s+/i, '')
       .replace(/^(ra|rp)\s+/i, '')
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
       .trim();
   }
 
@@ -224,7 +238,9 @@ export class Sectorista implements OnInit {
     this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes').subscribe({
       next: (data) => {
         this.presupuestoMiRed = sedes.length
-          ? data.filter(p => sedes.some(s => this.normalizarRedKey(s) === this.normalizarRedKey(p.red)))
+          ? data.filter((p) =>
+              sedes.some((s) => this.normalizarRedKey(s) === this.normalizarRedKey(p.red)),
+            )
           : [];
       },
     });
@@ -260,15 +276,19 @@ export class Sectorista implements OnInit {
 
   aprobarSolicitud(s: any) {
     this.procesandoRevision = true;
-    this.http.put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, { estado: 'aprobado' }).subscribe({
-      next: () => {
-        this.procesandoRevision = false;
-        this.solicitudDetalle = null;
-        this.cargarSolicitudes();
-        this.cargarHistorial();
-      },
-      error: () => { this.procesandoRevision = false; },
-    });
+    this.http
+      .put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, { estado: 'aprobado' })
+      .subscribe({
+        next: () => {
+          this.procesandoRevision = false;
+          this.solicitudDetalle = null;
+          this.cargarSolicitudes();
+          this.cargarHistorial();
+        },
+        error: () => {
+          this.procesandoRevision = false;
+        },
+      });
   }
 
   abrirModalRechazo(s: any) {
@@ -286,19 +306,23 @@ export class Sectorista implements OnInit {
   confirmarRechazo() {
     if (!this.solicitudADenegar) return;
     this.procesandoRevision = true;
-    this.http.put(`http://localhost:3001/api/solicitudes/${this.solicitudADenegar.id}/revisar`, {
-      estado: 'denegado',
-      motivo_rechazo: this.motivoRechazo.trim() || 'Sin motivo especificado',
-    }).subscribe({
-      next: () => {
-        this.procesandoRevision = false;
-        this.cerrarModalRechazo();
-        this.solicitudDetalle = null;
-        this.cargarSolicitudes();
-        this.cargarHistorial();
-      },
-      error: () => { this.procesandoRevision = false; },
-    });
+    this.http
+      .put(`http://localhost:3001/api/solicitudes/${this.solicitudADenegar.id}/revisar`, {
+        estado: 'denegado',
+        motivo_rechazo: this.motivoRechazo.trim() || 'Sin motivo especificado',
+      })
+      .subscribe({
+        next: () => {
+          this.procesandoRevision = false;
+          this.cerrarModalRechazo();
+          this.solicitudDetalle = null;
+          this.cargarSolicitudes();
+          this.cargarHistorial();
+        },
+        error: () => {
+          this.procesandoRevision = false;
+        },
+      });
   }
 
   irA(ruta: string) {

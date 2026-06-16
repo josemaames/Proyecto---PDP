@@ -71,7 +71,6 @@
 
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
-
       <!-- SOLICITUDES PENDIENTES -->
       <div class="card">
         <div class="card-section-title-row">
@@ -105,7 +104,7 @@
               <tbody>
                 @for (s of solicitudes; track s.id) {
                   <tr [class.fila-seleccionada]="solicitudDetalle?.id === s.id">
-                    <td>{{ s.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
                     <td>{{ s.ejecutor_nombre || '—' }}</td>
                     <td>{{ s.datos?.nombreActividad || '—' }}</td>
                     <td>{{ s.red_asistencial || '—' }}</td>
@@ -113,29 +112,70 @@
                       <button class="btn-ver-detalle" (click)="verSolicitud(s)">
                         {{ solicitudDetalle?.id === s.id ? 'Ocultar' : 'Ver detalle' }}
                       </button>
-                      <button class="btn-aprobar" (click)="aprobarSolicitud(s)" [disabled]="procesandoRevision">✅ Aprobar</button>
-                      <button class="btn-denegar" (click)="abrirModalRechazo(s)" [disabled]="procesandoRevision">❌ Denegar</button>
+                      <button
+                        class="btn-aprobar"
+                        (click)="aprobarSolicitud(s)"
+                        [disabled]="procesandoRevision"
+                      >
+                        ✅ Aprobar
+                      </button>
+                      <button
+                        class="btn-denegar"
+                        (click)="abrirModalRechazo(s)"
+                        [disabled]="procesandoRevision"
+                      >
+                        ❌ Denegar
+                      </button>
                     </td>
                   </tr>
                   @if (solicitudDetalle?.id === s.id) {
                     <tr class="fila-detalle">
                       <td colspan="5">
                         <div class="detalle-solicitud-grid">
-                          <div><span>Código act.</span><strong>{{ s.datos?.codigoAct || '—' }}</strong></div>
-                          <div><span>Fecha inicio</span><strong>{{ s.datos?.fechaInicio || '—' }}</strong></div>
-                          <div><span>Fecha fin</span><strong>{{ s.datos?.fechaFin || '—' }}</strong></div>
-                          <div><span>Modalidad</span><strong>{{ s.datos?.modalidad || '—' }}</strong></div>
-                          <div><span>Total horas</span><strong>{{ s.datos?.totalHoras ?? '—' }}</strong></div>
-                          <div><span>Participantes</span><strong>{{ s.datos?.totalParticipantes ?? '—' }}</strong></div>
-                          <div><span>Eje temático</span><strong>{{ s.datos?.ejeTematico || '—' }}</strong></div>
-                          <div><span>Presupuesto (S/)</span><strong>{{ s.datos?.presupuestoEjecutado ?? '—' }}</strong></div>
-                          <div><span>Proveedor</span><strong>{{ s.datos?.nombreProveedor || '—' }}</strong></div>
-                          <div><span>Nivel evaluación</span><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong></div>
+                          <div>
+                            <span>Código act.</span><strong>{{ s.datos?.codigoAct || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Fecha inicio</span
+                            ><strong>{{ s.datos?.fechaInicio || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Fecha fin</span><strong>{{ s.datos?.fechaFin || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Modalidad</span><strong>{{ s.datos?.modalidad || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Total horas</span
+                            ><strong>{{ s.datos?.totalHoras ?? '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Participantes</span
+                            ><strong>{{ s.datos?.totalParticipantes ?? '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Eje temático</span
+                            ><strong>{{ s.datos?.ejeTematico || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Presupuesto (S/)</span
+                            ><strong>{{ s.datos?.presupuestoEjecutado ?? '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Proveedor</span
+                            ><strong>{{ s.datos?.nombreProveedor || '—' }}</strong>
+                          </div>
+                          <div>
+                            <span>Nivel evaluación</span
+                            ><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong>
+                          </div>
                         </div>
 
                         @if (s.datos?.participantesDetalle?.length > 0) {
                           <div class="detalle-participantes">
-                            <p class="detalle-partic-titulo">Participantes registrados ({{ s.datos.participantesDetalle.length }})</p>
+                            <p class="detalle-partic-titulo">
+                              Participantes registrados ({{ s.datos.participantesDetalle.length }})
+                            </p>
                             <table class="tabla-partic-detalle">
                               <thead>
                                 <tr>
@@ -188,10 +228,43 @@
           <span class="card-section-title">
             📋 Historial de Revisiones
             @if (historial.length > 0) {
-              <span class="badge-pendiente" style="background:#6b7280">{{ historial.length }}</span>
+              <span class="badge-pendiente" style="background: #6b7280">
+                {{ historial.length }}
+              </span>
             }
           </span>
-          <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
+
+          <div class="acciones-historial">
+            <button
+              class="btn-documentos"
+              (click)="abrirGestionDocumentos()"
+              title="Gestionar documentación"
+            >
+              📎 Gestionar documentos
+            </button>
+
+            <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
+          </div>
+
+          @if (mostrarModalDocumentos) {
+            <div class="modal-busqueda-overlay" (click)="cerrarGestionDocumentos()">
+              <div class="modal-documentos" (click)="$event.stopPropagation()">
+                <div class="modal-documentos-header">
+                  <h3>📎 Gestión de Documentos</h3>
+
+                  <button class="btn-cerrar-modal" (click)="cerrarGestionDocumentos()">✕</button>
+                </div>
+
+                <div class="modal-documentos-body">
+                  <p>Aquí se visualizarán los documentos cargados por el ejecutor.</p>
+
+                  <div class="sin-resultados">
+                    <p>No hay documentos para mostrar.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         </div>
 
         @if (cargandoHistorial) {
@@ -216,7 +289,7 @@
               <tbody>
                 @for (s of historial; track s.id) {
                   <tr>
-                    <td>{{ s.reviewed_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ s.reviewed_at | date: 'dd/MM/yyyy HH:mm' }}</td>
                     <td>{{ s.ejecutor_nombre || '—' }}</td>
                     <td>{{ s.datos?.nombreActividad || '—' }}</td>
                     <td>{{ s.red_asistencial || '—' }}</td>
@@ -227,7 +300,7 @@
                         <span class="badge-denegado">❌ Denegado</span>
                       }
                     </td>
-                    <td style="color:#dc2626; font-size:0.85rem">
+                    <td style="color: #dc2626; font-size: 0.85rem">
                       {{ s.motivo_rechazo || '—' }}
                     </td>
                   </tr>
@@ -250,14 +323,13 @@
                 <div class="presupuesto-red-nombre">{{ p.red }}</div>
                 <div class="presupuesto-techo-row">
                   <span class="presupuesto-anio">Techo {{ p.anio }}</span>
-                  <span class="presupuesto-monto">S/ {{ p.techo | number:'1.2-2' }}</span>
+                  <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
                 </div>
               </div>
             }
           </div>
         </div>
       }
-
     </main>
   </div>
 
@@ -275,7 +347,11 @@
         ></textarea>
         <div class="modal-rechazo-acciones">
           <button class="btn-cancelar-modal" (click)="cerrarModalRechazo()">Cancelar</button>
-          <button class="btn-confirmar-rechazo" (click)="confirmarRechazo()" [disabled]="procesandoRevision">
+          <button
+            class="btn-confirmar-rechazo"
+            (click)="confirmarRechazo()"
+            [disabled]="procesandoRevision"
+          >
             {{ procesandoRevision ? 'Procesando...' : 'Confirmar rechazo' }}
           </button>
         </div>
