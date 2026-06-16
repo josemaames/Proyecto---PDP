@@ -299,11 +299,17 @@
           </div>
           <div class="campo">
             <label>Nivel de evaluación ejecutado</label>
-            <input
-              type="text"
-              placeholder="Ej: Reacción, Aprendizaje"
-              [(ngModel)]="formulario.nivelEvaluacion"
-            />
+            <select [(ngModel)]="formulario.nivelEvaluacion">
+              <option value="">Seleccione...</option>
+              <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
+              <option value="Reación y aprendizaje (Conocimientos y habilidades)">
+                Reación y aprendizaje (Conocimientos y habilidades)
+              </option>
+              <option value="Reacción, aprendizaje y acción">Reacción, aprendizaje y acción</option>
+              <option value="Reacción, aprendizaje y aplicación">
+                Reacción, aprendizaje y aplicación
+              </option>
+            </select>
           </div>
           <div class="campo">
             <label>Total de participantes (planilla)</label>
