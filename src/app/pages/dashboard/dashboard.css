@@ -305,8 +305,13 @@
   margin-bottom: 20px;
 }
 
+.grafico-wide {
+  grid-column: 1 / -1;
+}
+
 .grafico-box {
   padding: 20px 18px !important;
+  width: 100%;
 }
 
 .grafico-box h3 {
@@ -2097,4 +2102,64 @@ tr:hover td {
   color: #1f4ea3;
 
   cursor: pointer;
+}
+
+.btn-editar-meta {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-editar-meta:hover {
+  opacity: 0.9;
+}
+
+.chart-container {
+  height: 350px;
+  position: relative;
+}
+
+.chart-container-large {
+  height: 450px;
+  position: relative;
+}
+
+.chart-container {
+  width: 100%;
+  height: 350px;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.grafico-full-width {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.grafico-full-width canvas {
+  width: 100% !important;
+  height: 420px !important;
+  max-height: none !important;
+}
+
+.estadisticas-responsable-box {
+  width: 100%;
+}
+
+.estadisticas-responsable-box {
+  grid-column: span 2;
+}
+
+.grafico-box {
+  padding: 20px 18px !important;
+  grid-column: 1 / -1;
 }

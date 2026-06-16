@@ -620,7 +620,6 @@
 
             <div>
               <div class="kpi-titulo">Meta Cumplida</div>
-
               <div class="meta-numero">{{ porcentajeMeta }}%</div>
             </div>
           </div>
@@ -634,6 +633,22 @@
             de
             {{ metaParticipantes | number }}
             participantes
+          </div>
+
+          <button class="btn-editar-meta" (click)="abrirModalMeta()">✏️ Editar Meta</button>
+
+          <div class="modal-backdrop" *ngIf="mostrarModalMeta">
+            <div class="modal-meta">
+              <h3>Editar Meta de Participantes</h3>
+
+              <p>Define la cantidad objetivo de participantes.</p>
+
+              <input type="number" [(ngModel)]="nuevaMeta" min="1" class="input-meta" />
+
+              <div class="modal-actions">
+                <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -674,112 +689,111 @@
             </div>
           </div>
         </div>
-      </div>
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <!-- Sexo -->
-          <div class="dash-card grafico-box">
-            <h3>Participantes por Sexo</h3>
+        @if (esAdministrador) {
+          <div class="graficos-container">
+            <!-- Sexo -->
+            <div class="dash-card grafico-box">
+              <h3>Participantes por Sexo</h3>
 
-            @if (chartConfigSexo) {
-              <canvas
-                baseChart
-                [type]="chartConfigSexo.type"
-                [data]="chartConfigSexo.data"
-                [options]="chartConfigSexo.options"
-              ></canvas>
-            }
-          </div>
+              @if (chartConfigSexo) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigSexo.type"
+                  [data]="chartConfigSexo.data"
+                  [options]="chartConfigSexo.options"
+                ></canvas>
+              }
+            </div>
 
-          <!-- Meses -->
-          <div class="dash-card grafico-box">
-            <h3>Actividades por Mes</h3>
+            <!-- Meses -->
+            <div class="dash-card grafico-box">
+              <h3>Actividades por Mes</h3>
 
-            @if (chartConfigMeses) {
-              <canvas
-                baseChart
-                [type]="chartConfigMeses.type"
-                [data]="chartConfigMeses.data"
-                [options]="chartConfigMeses.options"
-              ></canvas>
-            }
-          </div>
+              @if (chartConfigMeses) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigMeses.type"
+                  [data]="chartConfigMeses.data"
+                  [options]="chartConfigMeses.options"
+                ></canvas>
+              }
+            </div>
 
-          <!-- Modalidad -->
-          <div class="dash-card modalidad-card">
-            <h3>Distribución por Modalidad</h3>
+            <!-- Modalidad -->
+            <div class="dash-card modalidad-card">
+              <h3>Distribución por Modalidad</h3>
 
-            @for (item of modalidadesResumen; track item.nombre) {
-              <div class="modalidad-item">
-                <div class="modalidad-header">
-                  <span>{{ item.nombre }}</span>
-                  <strong>{{ item.porcentaje }}%</strong>
+              @for (item of modalidadesResumen; track item.nombre) {
+                <div class="modalidad-item">
+                  <div class="modalidad-header">
+                    <span>{{ item.nombre }}</span>
+                    <strong>{{ item.porcentaje }}%</strong>
+                  </div>
+
+                  <div class="modalidad-barra">
+                    <div class="modalidad-fill" [style.width.%]="item.porcentaje"></div>
+                  </div>
                 </div>
-
-                <div class="modalidad-barra">
-                  <div class="modalidad-fill" [style.width.%]="item.porcentaje"></div>
-                </div>
-              </div>
-            }
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <div class="dash-card grafico-box grafico-wide">
-            <h3>🏆 Top Redes por Participantes</h3>
+        @if (esAdministrador) {
+          <div class="graficos-container">
+            <div class="dash-card grafico-box grafico-wide">
+              <h3>🏆 Top Redes por Participantes</h3>
 
-            @if (chartConfigParticipantesRed) {
-              <canvas
-                baseChart
-                [type]="chartConfigParticipantesRed.type"
-                [data]="chartConfigParticipantesRed.data"
-                [options]="chartConfigParticipantesRed.options"
-              ></canvas>
-            }
+              @if (chartConfigParticipantesRed) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigParticipantesRed.type"
+                  [data]="chartConfigParticipantesRed.data"
+                  [options]="chartConfigParticipantesRed.options"
+                  style="height: 260px"
+                ></canvas>
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <div class="dash-card grafico-box grafico-wide">
-            <h3>Presupuesto Ejecutado por Red Asistencial</h3>
+        @if (esAdministrador) {
+          <div class="graficos-container">
+            <div class="dash-card grafico-box grafico-wide">
+              <h3>Presupuesto Ejecutado por Red Asistencial</h3>
 
-            @if (chartConfigPresupuestoRed) {
-              <canvas
-                baseChart
-                [type]="chartConfigPresupuestoRed.type"
-                [data]="chartConfigPresupuestoRed.data"
-                [options]="chartConfigPresupuestoRed.options"
-              ></canvas>
-            }
+              @if (chartConfigPresupuestoRed) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigPresupuestoRed.type"
+                  [data]="chartConfigPresupuestoRed.data"
+                  [options]="chartConfigPresupuestoRed.options"
+                ></canvas>
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <div class="dash-card grafico-box grafico-wide">
-            <h3>📈 Participantes vs Presupuesto</h3>
+        @if (esAdministrador) {
+          <div class="graficos-container">
+            <div class="dash-card grafico-box grafico-wide">
+              <h3>📈 Participantes vs Presupuesto</h3>
 
-            @if (chartConfigEficienciaRed) {
-              <canvas
-                baseChart
-                [type]="chartConfigEficienciaRed.type"
-                [data]="chartConfigEficienciaRed.data"
-                [options]="chartConfigEficienciaRed.options"
-              ></canvas>
-            }
+              @if (chartConfigEficienciaRed) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigEficienciaRed.type"
+                  [data]="chartConfigEficienciaRed.data"
+                  [options]="chartConfigEficienciaRed.options"
+                ></canvas>
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
 
-      @if (esAdministrador) {
-        <div class="graficos-container">
-          <div class="dash-card grafico-box grafico-wide">
+        @if (esAdministrador) {
+          <div class="dash-card grafico-box">
             <h3>Costo por Participante por Red</h3>
 
             @if (chartConfigCostoParticipante) {
@@ -788,114 +802,114 @@
                 [type]="chartConfigCostoParticipante.type"
                 [data]="chartConfigCostoParticipante.data"
                 [options]="chartConfigCostoParticipante.options"
-              ></canvas>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- RESUMEN POR RED ASISTENCIAL -->
-      @if (esAdministrador) {
-        <div class="dash-card estadisticas-responsable-box">
-          <div class="box-header">
-            <h3>Resumen por Red Asistencial</h3>
-            @if (cargandoResumen) {
-              <span class="cargando-badge">Cargando...</span>
-            } @else {
-              <span class="total-badge"
-                >{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span
               >
+              </canvas>
             }
           </div>
+        }
 
-          @if (cargandoResumen) {
-            <div class="tabla-cargando">
-              <div class="spinner-sm"></div>
-              <span>Cargando datos de la base de datos...</span>
+        <!-- RESUMEN POR RED ASISTENCIAL -->
+        @if (esAdministrador) {
+          <div class="dash-card estadisticas-responsable-box">
+            <div class="box-header">
+              <h3>Resumen por Red Asistencial</h3>
+              @if (cargandoResumen) {
+                <span class="cargando-badge">Cargando...</span>
+              } @else {
+                <span class="total-badge"
+                  >{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span
+                >
+              }
             </div>
-          } @else if (resumenRedes.length === 0) {
-            <div class="tabla-vacia">
-              <div class="vacio-icono">📊</div>
 
-              <h4>No hay datos disponibles</h4>
+            @if (cargandoResumen) {
+              <div class="tabla-cargando">
+                <div class="spinner-sm"></div>
+                <span>Cargando datos de la base de datos...</span>
+              </div>
+            } @else if (resumenRedes.length === 0) {
+              <div class="tabla-vacia">
+                <div class="vacio-icono">📊</div>
 
-              <p>
-                Verifique la conexión con la base de datos para visualizar las estadísticas del
-                sistema.
-              </p>
-            </div>
-          } @else {
-            <div class="tabla-scroll">
-              <table class="tabla-resumen">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Red Asistencial</th>
-                    <th>Capacitaciones</th>
-                    <th>Total Horas</th>
-                    <th>Participantes</th>
-                    <th>Presupuesto Ejecutado</th>
-                  </tr>
-                </thead>
+                <h4>No hay datos disponibles</h4>
 
-                <tbody>
-                  @if (resumenRedesFiltrado.length === 0) {
+                <p>
+                  Verifique la conexión con la base de datos para visualizar las estadísticas del
+                  sistema.
+                </p>
+              </div>
+            } @else {
+              <div class="tabla-scroll">
+                <table class="tabla-resumen">
+                  <thead>
                     <tr>
-                      <td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px">
-                        Sin resultados para "{{ busquedaRed }}"
-                      </td>
+                      <th>#</th>
+                      <th>Red Asistencial</th>
+                      <th>Capacitaciones</th>
+                      <th>Total Horas</th>
+                      <th>Participantes</th>
+                      <th>Presupuesto Ejecutado</th>
                     </tr>
-                  }
-                  @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
-                    <tr>
-                      <td class="td-num">
-                        {{ i + 1 }}
-                      </td>
+                  </thead>
 
-                      <td class="td-red">
-                        <span class="red-nombre">
-                          {{ item.red }}
-                        </span>
-                      </td>
+                  <tbody>
+                    @if (resumenRedesFiltrado.length === 0) {
+                      <tr>
+                        <td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px">
+                          Sin resultados para "{{ busquedaRed }}"
+                        </td>
+                      </tr>
+                    }
+                    @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
+                      <tr>
+                        <td class="td-num">
+                          {{ i + 1 }}
+                        </td>
 
-                      <td class="td-num">
-                        <span class="badge-cap">
-                          {{ item.capacitaciones }}
-                        </span>
-                      </td>
+                        <td class="td-red">
+                          <span class="red-nombre">
+                            {{ item.red }}
+                          </span>
+                        </td>
 
-                      <td class="td-num">
-                        {{ item.horas | number: '1.0-1' }}
-                      </td>
+                        <td class="td-num">
+                          <span class="badge-cap">
+                            {{ item.capacitaciones }}
+                          </span>
+                        </td>
 
-                      <td class="td-num">
-                        {{ item.participantes | number }}
-                      </td>
+                        <td class="td-num">
+                          {{ item.horas | number: '1.0-1' }}
+                        </td>
 
-                      <td class="td-monto">
-                        {{ formatMoneda(item.presupuesto) }}
+                        <td class="td-num">
+                          {{ item.participantes | number }}
+                        </td>
+
+                        <td class="td-monto">
+                          {{ formatMoneda(item.presupuesto) }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+
+                  <tfoot>
+                    <tr class="fila-total">
+                      <td colspan="2">
+                        TOTAL {{ busquedaRed || filtroTematico ? '(filtrado)' : '' }}
                       </td>
+                      <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
+                      <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
+                      <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
+                      <td class="td-monto">{{ formatMoneda(totalPresupuestoFiltrado) }}</td>
                     </tr>
-                  }
-                </tbody>
-
-                <tfoot>
-                  <tr class="fila-total">
-                    <td colspan="2">
-                      TOTAL {{ busquedaRed || filtroTematico ? '(filtrado)' : '' }}
-                    </td>
-                    <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
-                    <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
-                    <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
-                    <td class="td-monto">{{ formatMoneda(totalPresupuestoFiltrado) }}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          }
-        </div>
-      }
-
+                  </tfoot>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </div>
       <!-- ASIGNACIÓN PRESUPUESTAL (ADMIN) -->
       @if (esAdministrador && presupuestoConEjecutado.length > 0) {
         <div class="dash-card estadisticas-responsable-box" style="margin-top: 24px">

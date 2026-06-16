@@ -10,6 +10,7 @@ import { PdpDataService } from '../../services/pdp-data.service';
 import * as echarts from 'echarts';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
 type ResumenRed = {
   red: string;
@@ -22,7 +23,14 @@ type ResumenRed = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, BaseChartDirective, NgxEchartsDirective],
+  imports: [
+    FormsModule,
+    DecimalPipe,
+    BaseChartDirective,
+    NgxEchartsDirective,
+    CommonModule,
+    FormsModule,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -154,20 +162,36 @@ export class Dashboard implements OnInit, OnDestroy {
               .map((r: any) => Number(r.participantes)),
 
             backgroundColor: '#16a34a',
-            borderRadius: 8,
+            borderRadius: 10,
+            maxBarThickness: 28,
           },
         ],
       },
 
       options: {
         indexAxis: 'y',
-
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
 
         plugins: {
           legend: {
             display: false,
+          },
+        },
+
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value: any) => value.toLocaleString(),
+            },
+          },
+          y: {
+            ticks: {
+              font: {
+                size: 12,
+              },
+            },
           },
         },
       },
@@ -184,16 +208,33 @@ export class Dashboard implements OnInit, OnDestroy {
             data: this.resumenRedes.slice(0, 8).map((r: any) => Number(r.presupuesto)),
 
             backgroundColor: '#f59e0b',
-            borderRadius: 8,
+            borderRadius: 10,
+            maxBarThickness: 40,
           },
         ],
       },
+
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
+
         plugins: {
           legend: {
             display: true,
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx: any) => `S/ ${ctx.parsed.y.toLocaleString()}`,
+            },
+          },
+        },
+
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value: any) => `S/ ${Number(value).toLocaleString()}`,
+            },
           },
         },
       },
@@ -215,18 +256,20 @@ export class Dashboard implements OnInit, OnDestroy {
 
             backgroundColor: '#2563eb',
             pointRadius: 8,
+            pointHoverRadius: 10,
           },
         ],
       },
 
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
 
         plugins: {
           legend: {
             display: false,
           },
+
           tooltip: {
             callbacks: {
               label: (ctx: any) => {
@@ -254,6 +297,9 @@ export class Dashboard implements OnInit, OnDestroy {
               display: true,
               text: 'Presupuesto (S/)',
             },
+            ticks: {
+              callback: (value: any) => `S/ ${Number(value).toLocaleString()}`,
+            },
           },
         },
       },
@@ -261,6 +307,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.chartConfigCostoParticipante = {
       type: 'bar',
+
       data: {
         labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
 
@@ -275,16 +322,33 @@ export class Dashboard implements OnInit, OnDestroy {
               ),
 
             backgroundColor: '#8b5cf6',
-            borderRadius: 8,
+            borderRadius: 10,
+            maxBarThickness: 40,
           },
         ],
       },
+
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
+
         plugins: {
           legend: {
             display: true,
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx: any) => `S/ ${ctx.parsed.y.toFixed(2)}`,
+            },
+          },
+        },
+
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value: any) => `S/ ${value}`,
+            },
           },
         },
       },
@@ -826,7 +890,9 @@ export class Dashboard implements OnInit, OnDestroy {
               datasets: [
                 {
                   data: Object.values(sexoAgrupado),
-                  backgroundColor: Object.keys(sexoAgrupado).map((s) => coloresSexo[s] || '#9ca3af'),
+                  backgroundColor: Object.keys(sexoAgrupado).map(
+                    (s) => coloresSexo[s] || '#9ca3af',
+                  ),
                 },
               ],
             },
@@ -970,6 +1036,31 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       },
     };
+  }
+
+  editarMeta(): void {
+    const nuevaMeta = prompt(
+      'Ingrese la nueva meta de participantes',
+      this.metaParticipantes.toString(),
+    );
+
+    if (!nuevaMeta) {
+      return;
+    }
+
+    const valor = Number(nuevaMeta);
+
+    if (isNaN(valor) || valor <= 0) {
+      alert('Ingrese una cantidad válida mayor a 0');
+      return;
+    }
+
+    this.metaParticipantes = valor;
+  }
+
+  abrirModalMeta(): void {
+    this.nuevaMeta = this.metaParticipantes;
+    this.mostrarModalMeta = true;
   }
 
   cargarMenuPorRol() {
