@@ -161,13 +161,26 @@
             }
           </div>
 
-          <div class="dash-card">
+          <div class="dash-card redes-departamento-card">
             <h3>🏥 Redes del Departamento</h3>
 
             @if (redesDepartamento.length > 0) {
-              @for (red of redesDepartamento; track red.red) {
+              @for (red of redesDepartamento; track red.red; let i = $index) {
                 <div class="ranking-item">
                   <span>
+                    @if (i === 0) {
+                      🥇
+                    }
+                    @if (i === 1) {
+                      🥈
+                    }
+                    @if (i === 2) {
+                      🥉
+                    }
+                    @if (i > 2) {
+                      🏅
+                    }
+
                     {{ red.red }}
                   </span>
 
@@ -177,7 +190,7 @@
                 </div>
               }
             } @else {
-              <div class="detalle-vacio">Seleccione un departamento.</div>
+              <div class="detalle-vacio">No existen redes para mostrar.</div>
             }
           </div>
 
@@ -428,15 +441,15 @@
 
               <div class="detalle-kpi">
                 <span>🗺️ Participantes del Departamento</span>
-                <strong>{{ departamentoSeleccionado.participantes | number }}</strong>
+                <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
               </div>
 
               <div class="detalle-kpi">
                 <span>📊 Participación Nacional</span>
                 <strong>
                   {{
-                    (departamentoSeleccionado.participantes * 100) / totalParticipantesFiltrado
-                      | number: '1.1-1'
+                    (departamentoSeleccionado.participantesRed * 100) /
+                      coberturaNacional.participantes | number: '1.1-1'
                   }}%
                 </strong>
               </div>
@@ -445,10 +458,20 @@
             <div class="detalle-resumen">
               <p>
                 <strong>{{ departamentoSeleccionado.nombre }}</strong>
+
                 ocupa el puesto
+
                 <strong>#{{ departamentoSeleccionado.ranking }}</strong>
+
                 a nivel nacional con
-                <strong>{{ departamentoSeleccionado.participantes | number }}</strong>
+
+                <strong>
+                  {{
+                    departamentoSeleccionado.participantesRed ||
+                      departamentoSeleccionado.participantes | number
+                  }}
+                </strong>
+
                 participantes registrados.
               </p>
             </div>

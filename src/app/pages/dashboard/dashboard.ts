@@ -468,17 +468,30 @@ export class Dashboard implements OnInit, OnDestroy {
 
     const ranking = this.topDepartamentos.findIndex((d: any) => d.name === departamento) + 1;
 
+    const participantesRed = Number(infoRed?.participantes || 0);
+
+    const participantesDepartamento = Number(infoDepartamento?.value || 0);
+
+    const porcentajeNacional =
+      this.totalParticipantesFiltrado > 0
+        ? (participantesRed * 100) / this.totalParticipantesFiltrado
+        : 0;
+
     this.departamentoSeleccionado = {
       red: redSeleccionada,
       nombre: departamento,
-      participantesRed: infoRed?.participantes || 0,
-      participantes: infoDepartamento?.value || 0,
+      participantesRed,
+      participantes: participantesDepartamento,
+      porcentajeNacional,
       ranking: ranking > 0 ? ranking : '-',
     };
 
     console.log('RED', redSeleccionada);
     console.log('DEP', departamento);
-    console.log('INFO DEP', infoDepartamento);
+    console.log('PARTICIPANTES RED', participantesRed);
+    console.log('PARTICIPANTES DEP', participantesDepartamento);
+    console.log('TOTAL NACIONAL', this.totalParticipantesFiltrado);
+    console.log('PORCENTAJE', porcentajeNacional);
 
     this.cargarRedesDepartamento(departamento);
 
