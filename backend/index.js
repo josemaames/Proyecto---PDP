@@ -5,10 +5,35 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ──────────────────────────────────────────────
+// Supabase Storage (documentos)
+// ──────────────────────────────────────────────
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const BUCKET_DOCUMENTOS = 'documentos';
+
+const TIPOS_PERMITIDOS = {
+  'application/pdf': 'pdf',
+  'application/msword': 'word',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
+  'application/vnd.ms-excel': 'excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'excel',
+};
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
+  fileFilter: (req, file, cb) => {
+    if (TIPOS_PERMITIDOS[file.mimetype]) return cb(null, true);
+    cb(new Error('Tipo de archivo no permitido. Solo PDF, Word o Excel.'));
+  },
+});
 
 // ──────────────────────────────────────────────
 // Normaliza nombre corto de red al formato largo
@@ -230,6 +255,20 @@ async function crearTablas() {
     );
   }
   console.log('✓ Presupuesto redes verificado');
+
+  // ── Documentos adjuntos ─────────────────────────────────────────────────
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS documentos (
+      id              SERIAL PRIMARY KEY,
+      codigo_act      TEXT NOT NULL,
+      nombre_archivo  TEXT NOT NULL,
+      tipo_archivo    TEXT,
+      ruta_storage    TEXT NOT NULL,
+      tamano_kb       INT,
+      fecha_subida    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  console.log('✓ Tabla documentos verificada');
 
   console.log('✓ Tablas verificadas');
 }
@@ -739,8 +778,9 @@ app.get('/api/dashboard', async (req, res) => {
     if (ejeTematico) { actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${actParams.length + 1}))`); actParams.push(`%${ejeTematico}%`); }
     const whereActividad = actConds.length ? `WHERE ${actConds.join(' AND ')}` : '';
 
-    const redBusqueda = red.replace(/^RA\s+/i, '').trim();
-    const whereParticipante = redBusqueda ? `WHERE red ILIKE '%${redBusqueda}%'` : '';
+    const redBusqueda = red.replace(/^(RA|RP)\s+/i, '').trim();
+    const whereParticipante = redBusqueda ? `WHERE red ILIKE $1` : '';
+    const participanteParams = redBusqueda ? [`%${redBusqueda}%`] : [];
 
     const [
       personal,
@@ -758,7 +798,7 @@ app.get('/api/dashboard', async (req, res) => {
       pool.query('SELECT COUNT(*) total FROM lista_participantes'),
       pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) total FROM datos_actividad`),
       pool.query(`SELECT mes_termino, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY mes_termino ORDER BY total DESC`, actParams),
-      pool.query(`SELECT red, sexo, COUNT(*) total FROM lista_participantes ${whereParticipante} GROUP BY red, sexo`),
+      pool.query(`SELECT red, sexo, COUNT(*) total FROM lista_participantes ${whereParticipante} GROUP BY red, sexo`, participanteParams),
       pool.query(`SELECT red, COUNT(*) total FROM lista_participantes GROUP BY red ORDER BY total DESC LIMIT 10`),
       pool.query(`SELECT modalidad, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY modalidad`, actParams),
       pool.query(`SELECT servicio_area, COUNT(*) total FROM datos_actividad GROUP BY servicio_area ORDER BY total DESC LIMIT 10`),
@@ -1158,6 +1198,86 @@ app.get('/api/sunat/ruc', async (req, res) => {
     res.json(data);
   } catch (err) {
     res.status(404).json({ error: 'No se encontró información para este RUC' });
+  }
+});
+
+// ══════════════════════════════════════════════
+// DOCUMENTOS (PDF / Word / Excel)
+// POST   /api/documentos            (subir archivo)
+// GET    /api/documentos?codigo_act=
+// GET    /api/documentos/:id/descargar
+// DELETE /api/documentos/:id
+// ══════════════════════════════════════════════
+
+app.post('/api/documentos', upload.single('archivo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+    const { codigo_act } = req.body;
+    if (!codigo_act) return res.status(400).json({ error: 'codigo_act requerido' });
+
+    const tipo = TIPOS_PERMITIDOS[req.file.mimetype];
+    const nombreSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const ruta = `${codigo_act}/${Date.now()}_${nombreSeguro}`;
+
+    const { error: errSubida } = await supabase.storage
+      .from(BUCKET_DOCUMENTOS)
+      .upload(ruta, req.file.buffer, { contentType: req.file.mimetype });
+
+    if (errSubida) throw errSubida;
+
+    const { rows } = await pool.query(
+      `INSERT INTO documentos (codigo_act, nombre_archivo, tipo_archivo, ruta_storage, tamano_kb)
+       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [codigo_act, req.file.originalname, tipo, ruta, Math.round(req.file.size / 1024)]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/documentos', async (req, res) => {
+  try {
+    const { codigo_act } = req.query;
+    const where = codigo_act ? 'WHERE codigo_act = $1' : '';
+    const params = codigo_act ? [codigo_act] : [];
+    const { rows } = await pool.query(
+      `SELECT * FROM documentos ${where} ORDER BY fecha_subida DESC`,
+      params
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/documentos/:id/descargar', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM documentos WHERE id=$1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
+
+    const { data, error } = await supabase.storage
+      .from(BUCKET_DOCUMENTOS)
+      .createSignedUrl(rows[0].ruta_storage, 60);
+
+    if (error) throw error;
+    res.json({ url: data.signedUrl, nombre_archivo: rows[0].nombre_archivo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/documentos/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM documentos WHERE id=$1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
+
+    await supabase.storage.from(BUCKET_DOCUMENTOS).remove([rows[0].ruta_storage]);
+    await pool.query('DELETE FROM documentos WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

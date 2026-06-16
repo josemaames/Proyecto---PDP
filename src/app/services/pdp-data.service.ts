@@ -80,6 +80,16 @@ export interface Stats {
   por_modalidad: { modalidad: string; total: number }[];
 }
 
+export interface Documento {
+  id?: number;
+  codigo_act: string;
+  nombre_archivo: string;
+  tipo_archivo: string;
+  ruta_storage?: string;
+  tamano_kb?: number;
+  fecha_subida?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PdpDataService {
   private api = '/api';
@@ -255,5 +265,26 @@ export class PdpDataService {
     if (red) params = params.set('red', red);
     if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     return this.http.get<any>(`${this.api}/dashboard`, { params });
+  }
+
+  // ── Documentos ────────────────────────────────
+  getDocumentos(codigo_act: string): Observable<Documento[]> {
+    const params = new HttpParams().set('codigo_act', codigo_act);
+    return this.http.get<Documento[]>(`${this.api}/documentos`, { params });
+  }
+
+  subirDocumento(codigo_act: string, file: File): Observable<Documento> {
+    const formData = new FormData();
+    formData.append('codigo_act', codigo_act);
+    formData.append('archivo', file);
+    return this.http.post<Documento>(`${this.api}/documentos`, formData);
+  }
+
+  descargarDocumento(id: number): Observable<{ url: string }> {
+    return this.http.get<{ url: string }>(`${this.api}/documentos/${id}/descargar`);
+  }
+
+  eliminarDocumento(id: number): Observable<any> {
+    return this.http.delete(`${this.api}/documentos/${id}`);
   }
 }

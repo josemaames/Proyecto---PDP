@@ -113,13 +113,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private actualizarChartsDesdesDashboard(dashboard: any) {
-    const sexoData = dashboard.participantesSexo ?? [];
-
-    const textoBusqueda = this.busquedaRed;
-
-    const registrosSexo = !this.busquedaRed
-      ? sexoData
-      : sexoData.filter((x: any) => x.red.toUpperCase().includes(textoBusqueda.toUpperCase()));
+    const registrosSexo = dashboard.participantesSexo ?? [];
 
     const sexoAgrupado: any = {};
 
@@ -128,11 +122,17 @@ export class Dashboard implements OnInit, OnDestroy {
       const sexo = raw === 'F' ? 'FEMENINO' : raw === 'M' ? 'MASCULINO' : raw || 'Sin dato';
       sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
     });
+    const coloresSexo: any = { MASCULINO: '#3b82f6', FEMENINO: '#ec4899' };
     this.chartConfigSexo = {
       type: 'doughnut',
       data: {
         labels: Object.keys(sexoAgrupado),
-        datasets: [{ data: Object.values(sexoAgrupado), backgroundColor: ['#ec4899', '#3b82f6'] }],
+        datasets: [
+          {
+            data: Object.values(sexoAgrupado),
+            backgroundColor: Object.keys(sexoAgrupado).map((s) => coloresSexo[s] || '#9ca3af'),
+          },
+        ],
       },
       options: { responsive: true, maintainAspectRatio: true },
     };
@@ -812,11 +812,13 @@ export class Dashboard implements OnInit, OnDestroy {
           const sexoAgrupado: any = {};
 
           dashboard.participantesSexo.forEach((x: any) => {
-            const sexo = (x.sexo || 'Sin dato').toUpperCase();
+            const raw = (x.sexo || '').toUpperCase().trim();
+            const sexo = raw === 'F' ? 'FEMENINO' : raw === 'M' ? 'MASCULINO' : raw || 'Sin dato';
 
             sexoAgrupado[sexo] = (sexoAgrupado[sexo] || 0) + Number(x.total);
           });
 
+          const coloresSexo: any = { MASCULINO: '#3b82f6', FEMENINO: '#ec4899' };
           this.chartConfigSexo = {
             type: 'doughnut',
             data: {
@@ -824,7 +826,7 @@ export class Dashboard implements OnInit, OnDestroy {
               datasets: [
                 {
                   data: Object.values(sexoAgrupado),
-                  backgroundColor: ['#ec4899', '#3b82f6'],
+                  backgroundColor: Object.keys(sexoAgrupado).map((s) => coloresSexo[s] || '#9ca3af'),
                 },
               ],
             },

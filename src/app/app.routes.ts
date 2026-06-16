@@ -11,6 +11,7 @@ import { Personal } from './pages/personal/personal';
 import { Ejecutor } from './pages/ejecutor/ejecutor';
 import { ListaParticipantes } from './pages/lista-participantes/lista-participantes';
 import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
+import { Documentos } from './pages/documentos/documentos';
 
 const ADMIN = ['Administrador', 'Administrativo'];
 const SECTORISTA = ['Sectorista'];
@@ -81,6 +82,12 @@ export const routes: Routes = [
     path: 'personal',
     component: Personal,
     canActivate: [authGuard, roleGuard(ADMIN)],
+  },
+
+  {
+    path: 'documentos',
+    component: Documentos,
+    canActivate: [authGuard, roleGuard(TODOS)],
   },
 
   {
