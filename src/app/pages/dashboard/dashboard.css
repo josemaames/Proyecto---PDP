@@ -298,17 +298,6 @@
 
 /* GRÁFICOS */
 
-.graficos-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 20px;
-}
-
-.grafico-wide {
-  grid-column: 1 / -1;
-}
-
 .grafico-box {
   padding: 20px 18px !important;
   width: 100%;
@@ -1154,11 +1143,6 @@ tr:hover td {
   background: #e5e7eb;
 }
 
-/* ── GRÁFICO ANCHO ────────────────────────────── */
-.grafico-wide {
-  grid-column: 1 / -1;
-}
-
 /* ── SKELETON LOADER KPIs ────────────────────── */
 @keyframes shimmer {
   0% {
@@ -1352,10 +1336,6 @@ tr:hover td {
   cursor: pointer;
 }
 
-.grafico-wide {
-  grid-column: 1 / -1;
-}
-
 .top-redes {
   background: #fff;
   border-radius: 20px;
@@ -1525,10 +1505,6 @@ tr:hover td {
   cursor: pointer;
 }
 
-.modalidad-card {
-  padding: 24px;
-}
-
 .modalidad-item {
   margin-bottom: 18px;
 }
@@ -1551,12 +1527,6 @@ tr:hover td {
   height: 100%;
   background: linear-gradient(90deg, #2563eb, #60a5fa);
   border-radius: 999px;
-}
-
-.graficos-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
 }
 
 .insights-grid {
@@ -2159,7 +2129,126 @@ tr:hover td {
   grid-column: span 2;
 }
 
+.sexo-card {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* Actividades debajo de Top Redes */
+.actividades-card {
+  grid-column: span 2;
+}
+
+.graficos-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+/* ===== TOP REDES ===== */
+
+.top-redes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.top-redes-header {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #174ea6;
+  margin-bottom: 8px;
+}
+
+/* Tarjeta de cada red */
+.top-red-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  transition: all 0.25s ease;
+  border-left: 6px solid transparent;
+}
+
+.top-red-card:hover {
+  transform: translateX(4px);
+}
+
+/* Medalla */
+.medalla {
+  font-size: 2rem;
+  min-width: 42px;
+  text-align: center;
+}
+
+/* Nombre de red */
+.top-red-card h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Participantes */
+.top-red-card span {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Oro */
+.top-red-card.oro {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.18), rgba(255, 215, 0, 0.05));
+  border-left-color: #ffd700;
+}
+
+/* Plata */
+.top-red-card.plata {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.18), rgba(192, 192, 192, 0.05));
+  border-left-color: #c0c0c0;
+}
+
+/* Bronce */
+.top-red-card.bronce {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.18), rgba(205, 127, 50, 0.05));
+  border-left-color: #cd7f32;
+}
+
 .grafico-box {
-  padding: 20px 18px !important;
+  position: relative;
+}
+
+.sexo-card {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.top-redes-card {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.modalidad-card {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.actividades-card {
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+
+.presupuesto-card {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.eficiencia-card {
   grid-column: 1 / -1;
+  width: 100%;
+}
+
+.costo-card {
+  grid-column: 1 / -1;
+  width: 100%;
 }
