@@ -25,7 +25,8 @@
     <nav class="menu-superior">
       <div class="menu-item activo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 10.5L12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" />
+          <path d="M3 10.5L12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
         </svg>
         <span>Inicio</span>
       </div>
@@ -40,7 +41,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
         <span>Personal</span>
       </div>
@@ -176,7 +178,11 @@
           </div>
           <div class="campo">
             <label>Fecha de finalización</label>
-            <input type="date" [ngModel]="formulario.fechaFin" (ngModelChange)="formulario.fechaFin=$event; actualizarMesTermino()" />
+            <input
+              type="date"
+              [ngModel]="formulario.fechaFin"
+              (ngModelChange)="formulario.fechaFin = $event; actualizarMesTermino()"
+            />
           </div>
           <div class="campo">
             <label>Mes de término de ejecución</label>
@@ -312,7 +318,9 @@
               <option value="Atención Especializada">Atención Especializada</option>
               <option value="Atención primaria">Atención primaria</option>
               <option value="Control interno o auditoría">Control interno o auditoría</option>
-              <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
+              <option value="Ética, integridad, lucha contra la corrupción">
+                Ética, integridad, lucha contra la corrupción
+              </option>
               <option value="Gestión institucional">Gestión institucional</option>
               <option value="Salud Mental">Salud Mental</option>
               <option value="Otros">Otros</option>
@@ -322,10 +330,26 @@
             <label>Objetivo estratégico vinculado</label>
             <select [(ngModel)]="formulario.objetivoEstrategico">
               <option value="">Seleccione...</option>
-              <option value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos">OE1 – Proteger financieramente las prestaciones</option>
-              <option value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades">OE2 – Brindar acceso oportuno a prestaciones integrales</option>
-              <option value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución">OE3 – Impulsar la transformación digital</option>
-              <option value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud">OEI.05 – Promover la identidad y desarrollo de servidores</option>
+              <option
+                value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos"
+              >
+                OE1 – Proteger financieramente las prestaciones
+              </option>
+              <option
+                value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades"
+              >
+                OE2 – Brindar acceso oportuno a prestaciones integrales
+              </option>
+              <option
+                value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución"
+              >
+                OE3 – Impulsar la transformación digital
+              </option>
+              <option
+                value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud"
+              >
+                OEI.05 – Promover la identidad y desarrollo de servidores
+              </option>
             </select>
           </div>
         </div>
@@ -372,8 +396,28 @@
       </div>
 
       <!-- PRESUPUESTO -->
+      <!-- PRESUPUESTO -->
       <div class="card">
         <div class="card-section-title">💰 Presupuesto</div>
+
+        <div
+          style="
+            background: #eef6ff;
+            border: 1px solid #cfe2ff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 18px;
+          "
+        >
+          <div style="font-size: 13px; color: #555">Presupuesto asignado a la red</div>
+
+          <div style="font-size: 24px; font-weight: 700; color: #0d6efd; margin-top: 4px">
+            S/ {{ presupuestoRed | number: '1.2-2' }}
+          </div>
+
+          <div style="font-size: 12px; color: #777; margin-top: 4px">Red: {{ redEjecutor }}</div>
+        </div>
+
         <div class="campo" style="max-width: 320px">
           <label>Presupuesto ejecutado (S/)</label>
           <input
@@ -388,10 +432,17 @@
 
       @if (errorFormulario) {
         <div class="error-formulario-ej">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="18"
+            height="18"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <div>
             <strong>{{ errorFormulario }}</strong>
@@ -404,9 +455,7 @@
         </div>
       }
 
-      <button class="btn-guardar" (click)="abrirSeleccionParticipantes()">
-        Siguiente →
-      </button>
+      <button class="btn-guardar" (click)="abrirSeleccionParticipantes()">Siguiente →</button>
 
       <!-- MIS ENVÍOS -->
       <div class="mis-envios-section card" style="margin-top: 28px">
@@ -434,12 +483,18 @@
               <tbody>
                 @for (e of misEnvios; track e.id) {
                   <tr>
-                    <td>{{ e.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ e.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
                     <td>{{ e.datos?.nombreActividad || '—' }}</td>
                     <td>{{ e.datos?.redAsistencial || '—' }}</td>
                     <td>
                       <span class="badge-envio" [class]="'envio-' + e.estado">
-                        {{ e.estado === 'pendiente' ? '⏳ Pendiente' : e.estado === 'aprobado' ? '✅ Aprobado' : '❌ Denegado' }}
+                        {{
+                          e.estado === 'pendiente'
+                            ? '⏳ Pendiente'
+                            : e.estado === 'aprobado'
+                              ? '✅ Aprobado'
+                              : '❌ Denegado'
+                        }}
                       </span>
                     </td>
                     <td>{{ e.motivo_rechazo || '—' }}</td>
@@ -594,16 +649,22 @@
 @if (mostrarModalParticipantes) {
   <div class="modal-partic-overlay">
     <div class="modal-partic-box">
-
       <div class="modal-partic-header">
         <div>
           <h2 class="modal-partic-titulo">Registrar Participantes</h2>
           <p class="modal-partic-sub">{{ formulario.nombreActividad || 'Actividad' }}</p>
         </div>
         <div class="modal-partic-contador">
-          <span [class.contador-ok]="participantesSeleccionados.length === formulario.totalParticipantes"
-                [class.contador-warn]="participantesSeleccionados.length < formulario.totalParticipantes">
-            {{ participantesSeleccionados.length }} / {{ formulario.totalParticipantes }} registrados
+          <span
+            [class.contador-ok]="
+              participantesSeleccionados.length === formulario.totalParticipantes
+            "
+            [class.contador-warn]="
+              participantesSeleccionados.length < formulario.totalParticipantes
+            "
+          >
+            {{ participantesSeleccionados.length }} /
+            {{ formulario.totalParticipantes }} registrados
           </span>
         </div>
       </div>
@@ -621,19 +682,39 @@
           </div>
           <div class="partic-campo">
             <label>DNI / CE *</label>
-            <input type="text" placeholder="Ej: 12345678" [(ngModel)]="nuevoPartic.dni_ce" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Ej: 12345678"
+              [(ngModel)]="nuevoPartic.dni_ce"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Cód. Planilla</label>
-            <input type="text" placeholder="Cód. planilla" [(ngModel)]="nuevoPartic.cod_planilla" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Cód. planilla"
+              [(ngModel)]="nuevoPartic.cod_planilla"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Apellidos *</label>
-            <input type="text" placeholder="Apellido Paterno Materno" [(ngModel)]="nuevoPartic.apellidos" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Apellido Paterno Materno"
+              [(ngModel)]="nuevoPartic.apellidos"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Nombre *</label>
-            <input type="text" placeholder="Nombres" [(ngModel)]="nuevoPartic.nombre" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Nombres"
+              [(ngModel)]="nuevoPartic.nombre"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Sexo</label>
@@ -645,26 +726,49 @@
           </div>
           <div class="partic-campo">
             <label>Sub-Programa</label>
-            <input type="text" placeholder="Sub-Programa" [(ngModel)]="nuevoPartic.sub_programa" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Sub-Programa"
+              [(ngModel)]="nuevoPartic.sub_programa"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Servicio / Área (Actividad)</label>
-            <input type="text" placeholder="Servicio o área" [(ngModel)]="nuevoPartic.servicio_area" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Servicio o área"
+              [(ngModel)]="nuevoPartic.servicio_area"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Cargo</label>
-            <input type="text" placeholder="Ej: Médico" [(ngModel)]="nuevoPartic.cargo" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Ej: Médico"
+              [(ngModel)]="nuevoPartic.cargo"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
           <div class="partic-campo">
             <label>Régimen laboral</label>
-            <input type="text" placeholder="Ej: 728, CAS" [(ngModel)]="nuevoPartic.regimen_laboral" (keyup.enter)="agregarParticipante()" />
+            <input
+              type="text"
+              placeholder="Ej: 728, CAS"
+              [(ngModel)]="nuevoPartic.regimen_laboral"
+              (keyup.enter)="agregarParticipante()"
+            />
           </div>
         </div>
         @if (errorPartic) {
           <p class="partic-error">{{ errorPartic }}</p>
         }
-        <button class="btn-agregar-partic" (click)="agregarParticipante()"
-          [disabled]="participantesSeleccionados.length >= formulario.totalParticipantes">
+        <button
+          class="btn-agregar-partic"
+          (click)="agregarParticipante()"
+          [disabled]="participantesSeleccionados.length >= formulario.totalParticipantes"
+        >
           + Agregar participante
         </button>
       </div>
@@ -703,7 +807,11 @@
                   <td>{{ p.servicio_area || '—' }}</td>
                   <td>{{ p.cargo || '—' }}</td>
                   <td>{{ p.regimen_laboral || '—' }}</td>
-                  <td><button class="btn-quitar-partic" (click)="quitarParticipante($index)">✕</button></td>
+                  <td>
+                    <button class="btn-quitar-partic" (click)="quitarParticipante($index)">
+                      ✕
+                    </button>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -715,10 +823,15 @@
 
       <div class="modal-partic-footer">
         <button class="btn-volver-modal" (click)="cerrarModalParticipantes()">← Volver</button>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
-          @if (participantesSeleccionados.length > 0 && participantesSeleccionados.length < formulario.totalParticipantes) {
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+          @if (
+            participantesSeleccionados.length > 0 &&
+            participantesSeleccionados.length < formulario.totalParticipantes
+          ) {
             <span class="partic-aviso">
-              ⚠ Lleva {{ participantesSeleccionados.length }} de {{ formulario.totalParticipantes }}. Asegúrese de hacer clic en "+ Agregar" antes de enviar.
+              ⚠ Lleva {{ participantesSeleccionados.length }} de
+              {{ formulario.totalParticipantes }}. Asegúrese de hacer clic en "+ Agregar" antes de
+              enviar.
             </span>
           }
           <button
@@ -730,7 +843,6 @@
           </button>
         </div>
       </div>
-
     </div>
   </div>
 }

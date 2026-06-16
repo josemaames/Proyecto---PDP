@@ -43,6 +43,47 @@ export class Ejecutor implements OnInit {
 
   redEjecutor = '';
 
+  presupuestoRed = 0;
+
+  private PRESUPUESTOS_RED: Record<string, number> = {
+    'RA ALMENARA': 240000,
+    'RA AREQUIPA': 120000,
+    'RA CAJAMARCA': 80000,
+    'RA CUSCO': 160000,
+    'RA ICA': 175000,
+    'RA JUNIN': 54000,
+    'RA LA LIBERTAD': 114960,
+    'RA LAMBAYEQUE': 140000,
+    'RA PIURA': 45000,
+    'RA REBAGLIATI': 240000,
+    'RA SABOGAL': 195000,
+    'RA TACNA': 90000,
+
+    'RP REBAGLIATI': 240000,
+
+    'RA AMAZONAS': 30000,
+    'RA ANCASH': 158640,
+    'RA APURIMAC': 66000,
+    'RA AYACUCHO': 65000,
+    'RA HUANCAVELICA': 32000,
+    'RA HUANUCO': 74000,
+    'RA HUARAZ': 40000,
+    'RA JAEN': 32000,
+    'RA JULIACA': 65760,
+    'RA LORETO': 60000,
+    'RA MADRE DE DIOS': 60000,
+    'RA MOQUEGUA': 91020,
+    'RA MOYOBAMBA': 62000,
+    'RA PASCO': 72000,
+    'RA PUNO': 122524,
+    'RA TARAPOTO': 58000,
+    'RA TUMBES': 36130,
+    'RA UCAYALI': 45000,
+
+    'CENTRO NACIONAL DE SALUD RENAL': 72000,
+    'INSTITUTO NACIONAL CARDIOVASCULAR': 52000,
+  };
+
   // MODAL PARTICIPANTES
   mostrarModalParticipantes = false;
   participantesSeleccionados: any[] = [];
@@ -107,8 +148,11 @@ export class Ejecutor implements OnInit {
     const sedes = this.usuario?.sedes;
     this.redEjecutor = Array.isArray(sedes)
       ? sedes[0] || ''
-      : (typeof sedes === 'string' ? sedes.split(',')[0].trim() : '');
+      : typeof sedes === 'string'
+        ? sedes.split(',')[0].trim()
+        : '';
     this.formulario.redAsistencial = this.redEjecutor;
+    this.cargarPresupuestoRed();
 
     this.cargarMisEnvios();
 
@@ -122,6 +166,12 @@ export class Ejecutor implements OnInit {
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
     this.cargarActividades();
+  }
+
+  private cargarPresupuestoRed() {
+    const red = (this.redEjecutor || '').toUpperCase().trim();
+
+    this.presupuestoRed = this.PRESUPUESTOS_RED[red] ?? 0;
   }
 
   abrirBusqueda() {
@@ -170,8 +220,13 @@ export class Ejecutor implements OnInit {
     if (!dni) return;
     this.cargandoEnvios = true;
     this.http.get<any[]>(`http://localhost:3001/api/solicitudes/mis-envios?dni=${dni}`).subscribe({
-      next: (data) => { this.misEnvios = data; this.cargandoEnvios = false; },
-      error: () => { this.cargandoEnvios = false; },
+      next: (data) => {
+        this.misEnvios = data;
+        this.cargandoEnvios = false;
+      },
+      error: () => {
+        this.cargandoEnvios = false;
+      },
     });
   }
 
@@ -207,8 +262,20 @@ export class Ejecutor implements OnInit {
 
   actualizarMesTermino() {
     if (!this.formulario.fechaFin) return;
-    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const meses = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
     const mes = new Date(this.formulario.fechaFin + 'T00:00:00').getMonth();
     this.formulario.mesTermino = meses[mes];
   }
@@ -226,7 +293,8 @@ export class Ejecutor implements OnInit {
 
     this.http.get<any>(`http://localhost:3001/api/sunat/ruc?numero=${ruc}`).subscribe({
       next: (data) => {
-        this.formulario.nombreProveedor = data.razon_social || data.razonSocial || data.nombre || '';
+        this.formulario.nombreProveedor =
+          data.razon_social || data.razonSocial || data.nombre || '';
         this.buscandoRuc = false;
       },
       error: () => {
@@ -243,23 +311,25 @@ export class Ejecutor implements OnInit {
     const f = this.formulario;
     const errores: string[] = [];
 
-    if (!f.codigoAct.trim())         errores.push('Código de actividad');
-    if (!f.fechaInicio)               errores.push('Fecha de inicio');
-    if (!f.fechaFin)                  errores.push('Fecha de finalización');
-    if (!f.mesTermino)                errores.push('Mes de término');
-    if (!f.redAsistencial.trim())     errores.push('Red asistencial / Unidad orgánica');
-    if (!f.nombreActividad.trim())    errores.push('Nombre de la actividad');
+    if (!f.codigoAct.trim()) errores.push('Código de actividad');
+    if (!f.fechaInicio) errores.push('Fecha de inicio');
+    if (!f.fechaFin) errores.push('Fecha de finalización');
+    if (!f.mesTermino) errores.push('Mes de término');
+    if (!f.redAsistencial.trim()) errores.push('Red asistencial / Unidad orgánica');
+    if (!f.nombreActividad.trim()) errores.push('Nombre de la actividad');
     if (!f.totalHoras || f.totalHoras <= 0) errores.push('Total horas ejecutadas');
-    if (!f.frecuencia)                errores.push('Frecuencia de desarrollo');
-    if (!f.modalidad)                 errores.push('Modalidad');
-    if (!f.nivelEvaluacion)           errores.push('Nivel de evaluación');
+    if (!f.frecuencia) errores.push('Frecuencia de desarrollo');
+    if (!f.modalidad) errores.push('Modalidad');
+    if (!f.nivelEvaluacion) errores.push('Nivel de evaluación');
     if (!f.totalParticipantes || f.totalParticipantes <= 0) errores.push('Total de participantes');
 
     if (errores.length > 0) {
       this.camposInvalidos = errores;
       this.errorFormulario = 'Debe completar los siguientes campos obligatorios:';
       setTimeout(() => {
-        document.querySelector('.error-formulario-ej')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document
+          .querySelector('.error-formulario-ej')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 50);
       return;
     }
@@ -318,17 +388,34 @@ export class Ejecutor implements OnInit {
         this.camposInvalidos = [];
         this.participantesSeleccionados = [];
         this.formulario = {
-          codigoAct: '', fechaInicio: '', fechaFin: '', mesTermino: '',
-          redAsistencial: this.redEjecutor, servicioArea: '', nombreActividad: '',
-          totalHoras: 0, horasFueraHorario: 0, frecuencia: '',
-          horaInicio: '', horaTermino: '', modalidad: '', publico: '',
-          nivelEvaluacion: '', totalParticipantes: 0, ejeTematico: '', objetivoEstrategico: '',
-          rucProveedor: '', nombreProveedor: '', sectorProveedor: '',
+          codigoAct: '',
+          fechaInicio: '',
+          fechaFin: '',
+          mesTermino: '',
+          redAsistencial: this.redEjecutor,
+          servicioArea: '',
+          nombreActividad: '',
+          totalHoras: 0,
+          horasFueraHorario: 0,
+          frecuencia: '',
+          horaInicio: '',
+          horaTermino: '',
+          modalidad: '',
+          publico: '',
+          nivelEvaluacion: '',
+          totalParticipantes: 0,
+          ejeTematico: '',
+          objetivoEstrategico: '',
+          rucProveedor: '',
+          nombreProveedor: '',
+          sectorProveedor: '',
           presupuestoEjecutado: 0,
         };
         this.cargarMisEnvios();
         setTimeout(() => {
-          document.querySelector('.mis-envios-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document
+            .querySelector('.mis-envios-section')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       },
       error: () => {
