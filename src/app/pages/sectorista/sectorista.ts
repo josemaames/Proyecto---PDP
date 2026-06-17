@@ -558,7 +558,7 @@ export class Sectorista implements OnInit {
       // Fila de encabezado
       const headerRow = sheet.addRow(columnas.map(c => c.header));
       headerRow.height = 50;
-      headerRow.eachCell((cell, colNumber) => {
+      headerRow.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
         const col = columnas[colNumber - 1];
         cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + col.color } };
         cell.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 9, name: 'Calibri' };
@@ -599,7 +599,7 @@ export class Sectorista implements OnInit {
           a.eje_tematico          ?? '',
         ]);
         dataRow.height = 40;
-        dataRow.eachCell(cell => {
+        dataRow.eachCell((cell: ExcelJS.Cell) => {
           cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: fondo } };
           cell.font      = { size: 9, name: 'Calibri' };
           cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
