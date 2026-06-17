@@ -1211,6 +1211,26 @@ export class Dashboard implements OnInit, OnDestroy {
     this.mostrarModalMeta = false;
   }
 
+  actualizarCumplimientoPresupuesto(): void {
+    this.saldoDisponible = this.presupuestoAsignado - this.presupuestoEjecutado;
+
+    this.porcentajeCumplimiento =
+      this.presupuestoAsignado > 0
+        ? (this.presupuestoEjecutado / this.presupuestoAsignado) * 100
+        : 0;
+  }
+
+  redSeleccionada = '';
+
+  presupuestoAsignado = 2500000;
+  presupuestoEjecutado = 1845320;
+
+  porcentajeCumplimiento = 73.8;
+
+  saldoDisponible = 654680;
+
+  redes: string[] = [];
+
   cerrarModalMeta() {
     this.mostrarModalMeta = false;
   }

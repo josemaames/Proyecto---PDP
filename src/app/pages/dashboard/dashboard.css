@@ -2224,7 +2224,7 @@ tr:hover td {
 }
 
 .top-redes-card {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
 }
 
@@ -2235,12 +2235,14 @@ tr:hover td {
 
 .actividades-card {
   grid-column: 2 / 4;
-  grid-row: 2;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .presupuesto-card {
   grid-column: 3;
-  grid-row: 1;
+  grid-row: 1; /* antes estaba en la fila 2 */
+  align-self: start;
 }
 
 .eficiencia-card {
@@ -2251,4 +2253,73 @@ tr:hover td {
 .costo-card {
   grid-column: 1 / -1;
   width: 100%;
+}
+
+.cumplimiento-presupuesto-card {
+  grid-column: 2 / 4;
+  grid-row: 3;
+}
+
+.presupuesto-control {
+  margin-bottom: 20px;
+}
+
+.presupuesto-control label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.presupuesto-control select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+}
+
+.presupuesto-kpis {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.kpi-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.progress-container {
+  height: 16px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  transition: width 0.5s ease;
+}
+
+.porcentaje-texto {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.saldo-texto {
+  text-align: center;
+  color: #6b7280;
 }

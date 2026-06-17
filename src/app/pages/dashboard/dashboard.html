@@ -760,8 +760,55 @@
                 ></canvas>
               }
             </div>
+
+            <!-- Cumplimiento Presupuestal -->
+            <div class="dash-card grafico-box cumplimiento-presupuesto-card">
+              <h3>🎯 Cumplimiento Presupuestal por Red</h3>
+
+              <div class="presupuesto-control">
+                <label>Red Asistencial</label>
+
+                <select
+                  [(ngModel)]="redSeleccionada"
+                  (change)="actualizarCumplimientoPresupuesto()"
+                >
+                  <option value="">Todas las Redes</option>
+
+                  @for (red of redes; track red) {
+                    <option [value]="red">
+                      {{ red }}
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div class="presupuesto-kpis">
+                <div class="kpi-item">
+                  <span class="label">Asignado</span>
+                  <span class="valor"> S/ {{ presupuestoAsignado | number: '1.0-0' }} </span>
+                </div>
+
+                <div class="kpi-item">
+                  <span class="label">Ejecutado</span>
+                  <span class="valor"> S/ {{ presupuestoEjecutado | number: '1.0-0' }} </span>
+                </div>
+              </div>
+
+              <div class="progress-container">
+                <div class="progress-fill" [style.width.%]="porcentajeCumplimiento"></div>
+              </div>
+
+              <div class="porcentaje-texto">
+                {{ porcentajeCumplimiento | number: '1.0-1' }}% ejecutado
+              </div>
+
+              <div class="saldo-texto">Saldo: S/ {{ saldoDisponible | number: '1.0-0' }}</div>
+            </div>
           </div>
+          <!-- cierre dashboard-grid -->
         }
+        <!-- cierre @if (esAdministrador) -->
+
         <!-- Presupuesto -->
         @if (esAdministrador) {
           <div class="graficos-container">
