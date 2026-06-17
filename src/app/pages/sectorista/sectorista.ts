@@ -719,6 +719,118 @@ export class Sectorista implements OnInit {
     }
   }
 
+  // SINDICATOS ─────────────────────────────────────────────────────────────
+  seccionActiva: 'inicio' | 'sindicatos' = 'inicio';
+
+  sindicatoSeleccionado = '';
+  guardandoSindicato = false;
+  errorSindicatoForm = '';
+  capacitacionesSindicato: any[] = [];
+
+  // Lista provisional — se reemplazará por consulta BD cuando la tabla esté disponible
+  readonly SINDICATOS_LISTA: string[] = [
+    'SINAMED',
+    'SINATRAE',
+    'FENATRAE',
+    'CACEES',
+    'SINASIE',
+  ];
+
+  get redesDisponibles(): string[] {
+    return this.redFiltro
+      ? this.redFiltro.split(',').map((r) => r.trim()).filter(Boolean)
+      : [];
+  }
+
+  formularioSindicato = this.formSindicatoVacio();
+  participantesSindicato: any[] = [];
+  nuevoParticipanteSindicato = this.participanteVacioEdicion();
+  errorParticipanteSindicato = '';
+
+  formSindicatoVacio() {
+    return {
+      sindicato: '',
+      codigoAct: '',
+      fechaInicio: '',
+      fechaFin: '',
+      mesTermino: '',
+      redAsistencial: '',
+      servicioArea: '',
+      nombreActividad: '',
+      totalHoras: null as number | null,
+      horasFueraHorario: null as number | null,
+      frecuencia: '',
+      horaInicio: '',
+      horaTermino: '',
+      modalidad: '',
+      publico: '',
+      nivelEvaluacion: '',
+      totalParticipantes: null as number | null,
+      ejeTematico: '',
+      objetivoEstrategico: '',
+      rucProveedor: '',
+      nombreProveedor: '',
+      sectorProveedor: '',
+      presupuestoEjecutado: null as number | null,
+    };
+  }
+
+  cambiarSeccion(s: 'inicio' | 'sindicatos') {
+    this.seccionActiva = s;
+  }
+
+  actualizarMesTerminoSindicato() {
+    if (!this.formularioSindicato.fechaFin) return;
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    ];
+    const d = new Date(this.formularioSindicato.fechaFin + 'T00:00:00');
+    this.formularioSindicato.mesTermino = meses[d.getMonth()] ?? '';
+  }
+
+  agregarParticipanteSindicato() {
+    const p = this.nuevoParticipanteSindicato;
+    if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
+      this.errorParticipanteSindicato = 'DNI/CE, Apellidos y Nombre son obligatorios.';
+      return;
+    }
+    this.errorParticipanteSindicato = '';
+    this.participantesSindicato.push({ ...p });
+    this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
+  }
+
+  quitarParticipanteSindicato(idx: number) {
+    this.participantesSindicato.splice(idx, 1);
+  }
+
+  guardarCapacitacionSindicato() {
+    this.errorSindicatoForm = '';
+    const f = this.formularioSindicato;
+
+    if (!f.sindicato) { this.errorSindicatoForm = 'Seleccione un sindicato.'; return; }
+    if (!f.codigoAct.trim()) { this.errorSindicatoForm = 'El código de actividad es obligatorio.'; return; }
+    if (!f.nombreActividad.trim()) { this.errorSindicatoForm = 'El nombre de la actividad es obligatorio.'; return; }
+    if (!f.fechaInicio) { this.errorSindicatoForm = 'La fecha de inicio es obligatoria.'; return; }
+    if (!f.redAsistencial) { this.errorSindicatoForm = 'Seleccione una red asistencial.'; return; }
+
+    this.guardandoSindicato = true;
+
+    // TODO: reemplazar por llamada HTTP cuando el endpoint /api/capacitaciones-sindicato esté disponible
+    const registro = {
+      ...f,
+      participantes: [...this.participantesSindicato],
+      totalParticipantes: this.participantesSindicato.length || f.totalParticipantes,
+      fechaRegistro: new Date().toISOString(),
+    };
+    this.capacitacionesSindicato.unshift(registro);
+    this.formularioSindicato = this.formSindicatoVacio();
+    this.participantesSindicato = [];
+    this.guardandoSindicato = false;
+
+    alert('✅ Capacitación de sindicato registrada.\n\nSe sincronizará con la base de datos cuando el módulo esté habilitado.');
+  }
+
   guardarMatriz() {
     this.errorFormulario = '';
     this.camposError = {};

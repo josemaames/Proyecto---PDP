@@ -1,3 +1,34 @@
+/* ── SINDICATOS ──────────────────────────────── */
+.badge-sindicato {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.btn-guardar-sindicato {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-guardar-sindicato:hover {
+  background: #6d28d9;
+}
+.btn-guardar-sindicato:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
 /* ── ASIGNACIÓN PRESUPUESTAL ─────────────────── */
 .presupuesto-card {
   grid-column: 3;

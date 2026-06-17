@@ -23,7 +23,7 @@
 
   <div class="perfil-superior">
     <nav class="menu-superior">
-      <div class="menu-item activo">
+      <div class="menu-item" [class.activo]="seccionActiva === 'inicio'" (click)="cambiarSeccion('inicio')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 10.5L12 3l9 7.5" />
           <path d="M5 9.5V21h14V9.5" />
@@ -55,6 +55,15 @@
         </svg>
         <span>Participantes</span>
       </div>
+      <div class="menu-item" [class.activo]="seccionActiva === 'sindicatos'" (click)="cambiarSeccion('sindicatos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 20h5v-1a4 4 0 0 0-4-4h-1" />
+          <path d="M9 20H4v-1a4 4 0 0 1 4-4h1" />
+          <circle cx="12" cy="7" r="4" />
+          <path d="M12 11v9" />
+        </svg>
+        <span>Sindicatos</span>
+      </div>
       <div class="menu-item cerrar" (click)="cerrarSesion()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -71,6 +80,8 @@
 
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
+
+    @if (seccionActiva === 'inicio') {
       <!-- SOLICITUDES PENDIENTES -->
       <div class="card">
         <div class="card-section-title-row">
@@ -419,6 +430,338 @@
           </div>
         </div>
       }
+    } <!-- fin @if seccionActiva === 'inicio' -->
+
+    @if (seccionActiva === 'sindicatos') {
+      <!-- ===== SECCIÓN SINDICATOS ===== -->
+
+      <!-- TABLA DE REGISTROS -->
+      <div class="card">
+        <div class="card-section-title-row">
+          <span class="card-section-title">
+            🤝 Capacitaciones de Sindicatos
+            @if (capacitacionesSindicato.length > 0) {
+              <span class="badge-pendiente" style="background: #7c3aed">{{ capacitacionesSindicato.length }}</span>
+            }
+          </span>
+        </div>
+
+        @if (capacitacionesSindicato.length === 0) {
+          <div class="sin-resultados"><p>Aún no se han registrado capacitaciones para sindicatos.</p></div>
+        } @else {
+          <div class="tabla-scroll">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Sindicato</th>
+                  <th>Código act.</th>
+                  <th>Nombre de la actividad</th>
+                  <th>Red asistencial</th>
+                  <th>Modalidad</th>
+                  <th>Fecha inicio</th>
+                  <th>Fecha fin</th>
+                  <th>Participantes</th>
+                  <th>Presupuesto (S/)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of capacitacionesSindicato; track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td><span class="badge-sindicato">{{ c.sindicato }}</span></td>
+                    <td>{{ c.codigoAct || '—' }}</td>
+                    <td>{{ c.nombreActividad || '—' }}</td>
+                    <td>{{ c.redAsistencial || '—' }}</td>
+                    <td>{{ c.modalidad || '—' }}</td>
+                    <td>{{ c.fechaInicio || '—' }}</td>
+                    <td>{{ c.fechaFin || '—' }}</td>
+                    <td>{{ c.totalParticipantes ?? '—' }}</td>
+                    <td>{{ c.presupuestoEjecutado != null ? (c.presupuestoEjecutado | number:'1.2-2') : '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- FORMULARIO -->
+      <div class="card">
+        <div class="card-section-title">🤝 Registrar Capacitación para Sindicato</div>
+
+        <!-- SELECCIÓN DE SINDICATO -->
+        <div class="datos-grid tres-col" style="margin-bottom: 20px">
+          <div class="campo">
+            <label>Sindicato *</label>
+            <select [(ngModel)]="formularioSindicato.sindicato">
+              <option value="">Seleccione un sindicato...</option>
+              @for (s of SINDICATOS_LISTA; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- INFORMACIÓN GENERAL -->
+        <div class="card-section-title" style="font-size: 14px; margin-bottom: 12px">📋 Información General</div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>Código act.</label>
+            <input type="text" placeholder="Ej: CAP-2025-001" [(ngModel)]="formularioSindicato.codigoAct" />
+          </div>
+          <div class="campo">
+            <label>Fecha de inicio</label>
+            <input type="date" [(ngModel)]="formularioSindicato.fechaInicio" />
+          </div>
+          <div class="campo">
+            <label>Fecha de finalización</label>
+            <input type="date"
+              [ngModel]="formularioSindicato.fechaFin"
+              (ngModelChange)="formularioSindicato.fechaFin = $event; actualizarMesTerminoSindicato()" />
+          </div>
+          <div class="campo">
+            <label>Mes de término de ejecución</label>
+            <select [(ngModel)]="formularioSindicato.mesTermino">
+              <option value="">Seleccione...</option>
+              @for (mes of ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']; track mes) {
+                <option [value]="mes">{{ mes }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label>Red asistencial *</label>
+            <select [(ngModel)]="formularioSindicato.redAsistencial">
+              <option value="">Seleccione...</option>
+              @for (red of redesDisponibles; track red) {
+                <option [value]="red">{{ red }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label>Servicio / Área solicitante</label>
+            <input type="text" placeholder="Ej: Recursos Humanos" [(ngModel)]="formularioSindicato.servicioArea" />
+          </div>
+        </div>
+
+        <!-- DATOS DE LA ACTIVIDAD -->
+        <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px">🎓 Datos de la Actividad</div>
+        <div class="campo" style="margin-bottom: 18px">
+          <label>Nombre de la acción de formación laboral *</label>
+          <input type="text" placeholder="Ej: Gestión Documental Electrónica" [(ngModel)]="formularioSindicato.nombreActividad" />
+        </div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>Total horas ejecutadas (cronológicas)</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.totalHoras" />
+          </div>
+          <div class="campo">
+            <label>Horas fuera del horario laboral</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.horasFueraHorario" />
+          </div>
+          <div class="campo">
+            <label>Frecuencia de desarrollo</label>
+            <input type="text" placeholder="Ej: Única, Diaria, Semanal" [(ngModel)]="formularioSindicato.frecuencia" />
+          </div>
+          <div class="campo">
+            <label>Hora de inicio</label>
+            <input type="time" [(ngModel)]="formularioSindicato.horaInicio" />
+          </div>
+          <div class="campo">
+            <label>Hora de término</label>
+            <input type="time" [(ngModel)]="formularioSindicato.horaTermino" />
+          </div>
+          <div class="campo">
+            <label>Modalidad</label>
+            <select [(ngModel)]="formularioSindicato.modalidad">
+              <option value="">Seleccione...</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Virtual">Virtual</option>
+              <option value="Semipresencial">Semipresencial</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Público</label>
+            <select [(ngModel)]="formularioSindicato.publico">
+              <option value="">Seleccione...</option>
+              <option value="Asistencial">Asistencial</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Mixto">Mixto</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Nivel de evaluación ejecutado</label>
+            <select [(ngModel)]="formularioSindicato.nivelEvaluacion">
+              <option value="">Seleccione...</option>
+              <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
+              <option value="Reación y aprendizaje (Conocimientos y habilidades)">Reacción y aprendizaje (Conocimientos y habilidades)</option>
+              <option value="Reacción, aprendizaje y acción">Reacción, aprendizaje y acción</option>
+              <option value="Reacción, aprendizaje y aplicación">Reacción, aprendizaje y aplicación</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Total de participantes (planilla)</label>
+            <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.totalParticipantes" />
+          </div>
+        </div>
+        <div class="datos-grid dos-col" style="margin-top: 18px">
+          <div class="campo">
+            <label>Eje temático</label>
+            <select [(ngModel)]="formularioSindicato.ejeTematico">
+              <option value="" disabled>Seleccione un eje temático</option>
+              <option value="Atención Especializada">Atención Especializada</option>
+              <option value="Atención primaria">Atención primaria</option>
+              <option value="Control interno o auditoría">Control interno o auditoría</option>
+              <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
+              <option value="Gestión institucional">Gestión institucional</option>
+              <option value="Salud Mental">Salud Mental</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Objetivo estratégico vinculado</label>
+            <select [(ngModel)]="formularioSindicato.objetivoEstrategico">
+              <option value="">Seleccione...</option>
+              <option value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos">OE1 – Proteger financieramente las prestaciones</option>
+              <option value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades">OE2 – Brindar acceso oportuno a prestaciones integrales</option>
+              <option value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución">OE3 – Impulsar la transformación digital</option>
+              <option value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud">OEI.05 – Promover la identidad y desarrollo de servidores</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PROVEEDOR -->
+        <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px">🏢 Proveedor Adjudicado</div>
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>RUC del proveedor</label>
+            <input type="text" placeholder="20123456789" maxlength="11" [(ngModel)]="formularioSindicato.rucProveedor" />
+          </div>
+          <div class="campo">
+            <label>Nombre del proveedor</label>
+            <input type="text" placeholder="Razón social" [(ngModel)]="formularioSindicato.nombreProveedor" />
+          </div>
+          <div class="campo">
+            <label>Sector del proveedor</label>
+            <select [(ngModel)]="formularioSindicato.sectorProveedor">
+              <option value="">Seleccione...</option>
+              <option value="Público">Público</option>
+              <option value="Privado">Privado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PRESUPUESTO -->
+        <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px">💰 Presupuesto</div>
+        <div class="campo" style="max-width: 320px">
+          <label>Presupuesto ejecutado (S/)</label>
+          <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="formularioSindicato.presupuestoEjecutado" />
+        </div>
+
+        <!-- PARTICIPANTES -->
+        <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px">
+          👥 Participantes ({{ participantesSindicato.length }})
+        </div>
+
+        @if (participantesSindicato.length > 0) {
+          <div class="tabla-scroll" style="margin-bottom: 16px">
+            <table class="tabla-part">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>DNI / CE</th>
+                  <th>Apellidos y Nombre</th>
+                  <th>Sexo</th>
+                  <th>Cargo</th>
+                  <th>Régimen</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of participantesSindicato; track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ p.dni_ce || '—' }}</td>
+                    <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                    <td>{{ p.sexo || '—' }}</td>
+                    <td>{{ p.cargo || '—' }}</td>
+                    <td>{{ p.regimen_laboral || '—' }}</td>
+                    <td>
+                      <button class="btn-denegar" style="padding: 4px 10px; font-size: 0.8rem"
+                        (click)="quitarParticipanteSindicato($index)">Quitar</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <div class="datos-grid tres-col">
+          <div class="campo">
+            <label>DNI / CE</label>
+            <input type="text" placeholder="Ej: 12345678" [(ngModel)]="nuevoParticipanteSindicato.dni_ce" />
+          </div>
+          <div class="campo">
+            <label>Cód. Planilla</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cod_planilla" />
+          </div>
+          <div class="campo">
+            <label>Apellidos</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.apellidos" />
+          </div>
+          <div class="campo">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.nombre" />
+          </div>
+          <div class="campo">
+            <label>Sexo</label>
+            <select [(ngModel)]="nuevoParticipanteSindicato.sexo">
+              <option value="">—</option>
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Cargo</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cargo" />
+          </div>
+          <div class="campo">
+            <label>Sub-Programa</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.sub_programa" />
+          </div>
+          <div class="campo">
+            <label>Servicio / Área</label>
+            <input type="text" [(ngModel)]="nuevoParticipanteSindicato.servicio_area" />
+          </div>
+          <div class="campo">
+            <label>Régimen laboral</label>
+            <input type="text" placeholder="Ej: 728, CAS" [(ngModel)]="nuevoParticipanteSindicato.regimen_laboral" />
+          </div>
+        </div>
+
+        @if (errorParticipanteSindicato) {
+          <p style="color: #dc2626; font-size: 0.85rem; margin-top: 8px">{{ errorParticipanteSindicato }}</p>
+        }
+        <button class="btn-ver-detalle" style="margin-top: 12px" (click)="agregarParticipanteSindicato()">
+          ➕ Agregar participante
+        </button>
+
+        <!-- VALIDACIÓN Y ENVÍO -->
+        @if (errorSindicatoForm) {
+          <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:14px 18px; margin-top:20px; color:#dc2626; font-size:0.9rem">
+            ⚠ {{ errorSindicatoForm }}
+          </div>
+        }
+
+        <div style="display:flex; justify-content:flex-end; margin-top:24px">
+          <button class="btn-guardar-sindicato" (click)="guardarCapacitacionSindicato()" [disabled]="guardandoSindicato">
+            {{ guardandoSindicato ? '⏳ Guardando...' : '💾 Registrar capacitación' }}
+          </button>
+        </div>
+      </div>
+    } <!-- fin @if seccionActiva === 'sindicatos' -->
+
     </main>
   </div>
 
