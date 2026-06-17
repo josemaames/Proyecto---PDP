@@ -672,8 +672,8 @@ app.get('/api/personal-essalud/dni/:dni', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/resumen-redes', async (req, res) => {
   try {
-    const { redes = '', eje_tematico = '' } = req.query;
-    const cacheKey = `resumen-redes:${redes}:${eje_tematico}`;
+    const { redes = '', eje_tematico = '', anio = '' } = req.query;
+    const cacheKey = `resumen-redes:${redes}:${eje_tematico}:${anio}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
@@ -693,6 +693,12 @@ app.get('/api/resumen-redes', async (req, res) => {
     if (eje_tematico) {
       conditions.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${idx}))`);
       params.push(`%${eje_tematico}%`);
+      idx++;
+    }
+    if (anio) {
+      conditions.push(`EXTRACT(YEAR FROM COALESCE(fecha_fin, fecha_inicio)) = $${idx}`);
+      params.push(parseInt(anio));
+      idx++;
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -722,8 +728,8 @@ app.get('/api/resumen-redes', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/stats', async (req, res) => {
   try {
-    const { red = '', eje_tematico = '' } = req.query;
-    const cacheKey = `stats:${red}:${eje_tematico}`;
+    const { red = '', eje_tematico = '', anio = '' } = req.query;
+    const cacheKey = `stats:${red}:${eje_tematico}:${anio}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
@@ -740,6 +746,11 @@ app.get('/api/stats', async (req, res) => {
     if (eje_tematico) {
       actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${idx}))`);
       actParams.push(`%${eje_tematico}%`);
+      idx++;
+    }
+    if (anio) {
+      actConds.push(`EXTRACT(YEAR FROM COALESCE(fecha_fin, fecha_inicio)) = $${idx}`);
+      actParams.push(parseInt(anio));
       idx++;
     }
 
@@ -775,10 +786,12 @@ app.get('/api/dashboard', async (req, res) => {
   try {
     const red = req.query.red || '';
     const ejeTematico = req.query.eje_tematico || '';
+    const anio = req.query.anio || '';
 
     const actConds = [], actParams = [];
     if (red) { actConds.push(`red_asistencial ILIKE $${actParams.length + 1}`); actParams.push(`%${red}%`); }
     if (ejeTematico) { actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${actParams.length + 1}))`); actParams.push(`%${ejeTematico}%`); }
+    if (anio) { actConds.push(`EXTRACT(YEAR FROM COALESCE(fecha_fin, fecha_inicio)) = $${actParams.length + 1}`); actParams.push(parseInt(anio)); }
     const whereActividad = actConds.length ? `WHERE ${actConds.join(' AND ')}` : '';
 
     const redBusqueda = red.replace(/^(RA|RP)\s+/i, '').trim();

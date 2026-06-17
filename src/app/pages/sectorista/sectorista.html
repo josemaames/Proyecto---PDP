@@ -276,6 +276,15 @@
               📎 Gestionar documentos
             </button>
 
+            <button
+              class="btn-exportar-excel"
+              (click)="exportarExcel()"
+              title="Exportar capacitaciones de mis redes a Excel"
+              [disabled]="exportandoExcel"
+            >
+              {{ exportandoExcel ? '⏳ Generando...' : '📥 Exportar Excel' }}
+            </button>
+
             <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
           </div>
 

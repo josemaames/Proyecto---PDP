@@ -3,10 +3,10 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common';
-import { DecimalPipe } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { forkJoin, firstValueFrom } from 'rxjs';
 import { PdpDataService, Actividad, Participante } from '../../services/pdp-data.service';
+import * as ExcelJS from 'exceljs';
 
 @Component({
   selector: 'app-sectorista',
@@ -490,6 +490,144 @@ export class Sectorista implements OnInit {
   cerrarSesion() {
     localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
+  }
+
+  exportandoExcel = false;
+
+  formatFecha(iso: string | null | undefined): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const day   = d.getUTCDate();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const year  = String(d.getUTCFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  }
+
+  async exportarExcel() {
+    if (this.exportandoExcel) return;
+    this.exportandoExcel = true;
+
+    try {
+      // Trae TODAS las capacitaciones de datos_actividad para las redes del sectorista
+      const res = await firstValueFrom(
+        this.pdpData.getActividades('', this.redFiltro, '', 1, 9999)
+      );
+      const actividades = res.data;
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Sistema PDP EsSalud';
+      workbook.created = new Date();
+
+      const sheet = workbook.addWorksheet('Capacitaciones PDP', {
+        pageSetup: { orientation: 'landscape', fitToPage: true },
+      });
+
+      const AZUL    = '1F3864';
+      const NARANJA = 'C55A11';
+      const AZUL2   = '305496';
+
+      type ColDef = { header: string; width: number; color: string };
+      const columnas: ColDef[] = [
+        { header: 'CODIGO ACT.',                                                      width: 14, color: AZUL    },
+        { header: 'FECHA DE INICIO',                                                   width: 14, color: AZUL    },
+        { header: 'FECHA DE FIN',                                                      width: 14, color: AZUL    },
+        { header: 'MES DE TERMINO DE EJECUCIÓN',                                       width: 16, color: AZUL    },
+        { header: 'RED ASISTENCIAL / UNIDAD ORGANICA SOLICITANTE',                     width: 28, color: AZUL    },
+        { header: 'SERVICIO / ÁREA SOLICITANTE',                                       width: 28, color: AZUL    },
+        { header: 'NOMBRE DE LA ACTIVIDAD DE CAPACITACIÓN',                            width: 40, color: AZUL    },
+        { header: 'TOTAL NUMERO HORAS EJECUTADAS (cronológicas)',                       width: 18, color: AZUL    },
+        { header: 'NUMERO HORAS EJECUTADAS FUERA DEL HORARIO LABORAL (cronológicas)',  width: 22, color: AZUL    },
+        { header: 'FRECUENCIA DE DESARROLLO DE LA ACTIVIDAD',                          width: 18, color: AZUL    },
+        { header: 'HORA DE INICIO DE LA ACTIVIDAD',                                    width: 14, color: AZUL    },
+        { header: 'HORA DE TERMINO DE LA ACTIVIDAD',                                   width: 14, color: AZUL    },
+        { header: 'MODALIDAD',                                                          width: 16, color: AZUL    },
+        { header: 'PUBLICO',                                                            width: 16, color: AZUL    },
+        { header: 'NIVEL DE EVALUACION EJECUTADO',                                     width: 22, color: NARANJA  },
+        { header: 'OBJETIVO ESTRATEGICO VINCULADO',                                    width: 36, color: NARANJA  },
+        { header: 'TOTAL DE PARTICIPANTES (PLANILLA)',                                  width: 16, color: AZUL2   },
+        { header: 'RUC DEL PROVEEDOR ADJUDICADO',                                      width: 18, color: NARANJA  },
+        { header: 'NOMBRE DEL PROVEEDOR ADJUDICADO',                                   width: 36, color: NARANJA  },
+        { header: 'SECTOR AL QUE PERTENECE EL PROVEEDOR (PÚBLICO O PRIVADO)',          width: 20, color: AZUL    },
+        { header: 'PRESUPUESTO EJECUTADO',                                              width: 18, color: AZUL    },
+        { header: 'EJE TEMATICO',                                                       width: 24, color: AZUL    },
+      ];
+
+      sheet.columns = columnas.map(c => ({ width: c.width }));
+
+      // Fila de encabezado
+      const headerRow = sheet.addRow(columnas.map(c => c.header));
+      headerRow.height = 50;
+      headerRow.eachCell((cell, colNumber) => {
+        const col = columnas[colNumber - 1];
+        cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + col.color } };
+        cell.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 9, name: 'Calibri' };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border    = {
+          top:    { style: 'thin', color: { argb: 'FFFFFFFF' } },
+          bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+          left:   { style: 'thin', color: { argb: 'FFFFFFFF' } },
+          right:  { style: 'thin', color: { argb: 'FFFFFFFF' } },
+        };
+      });
+
+      // Filas de datos desde datos_actividad
+      actividades.forEach((a, idx) => {
+        const fondo   = idx % 2 === 0 ? 'FFFFFFFF' : 'FFD9E1F2';
+        const dataRow = sheet.addRow([
+          a.codigo_act                    ?? '',
+          this.formatFecha(a.fecha_inicio),
+          this.formatFecha(a.fecha_fin),
+          a.mes_termino           ?? '',
+          a.red_asistencial       ?? '',
+          a.servicio_area         ?? '',
+          a.nombre_actividad      ?? '',
+          a.total_horas           ?? '',
+          a.horas_fuera_horario   ?? '',
+          a.frecuencia            ?? '',
+          a.hora_inicio           ?? '',
+          a.hora_termino          ?? '',
+          a.modalidad             ?? '',
+          a.publico               ?? '',
+          a.nivel_evaluacion      ?? '',
+          a.objetivo_estrategico  ?? '',
+          a.total_participantes   ?? '',
+          a.ruc_proveedor         ?? '',
+          a.nombre_proveedor      ?? '',
+          a.sector_proveedor      ?? '',
+          a.presupuesto_ejecutado ?? '',
+          a.eje_tematico          ?? '',
+        ]);
+        dataRow.height = 40;
+        dataRow.eachCell(cell => {
+          cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: fondo } };
+          cell.font      = { size: 9, name: 'Calibri' };
+          cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+          cell.border    = {
+            top:    { style: 'thin', color: { argb: 'FFD0D7E8' } },
+            bottom: { style: 'thin', color: { argb: 'FFD0D7E8' } },
+            left:   { style: 'thin', color: { argb: 'FFD0D7E8' } },
+            right:  { style: 'thin', color: { argb: 'FFD0D7E8' } },
+          };
+        });
+      });
+
+      // Descarga
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob   = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url    = URL.createObjectURL(blob);
+      const link   = document.createElement('a');
+      const red    = this.redFiltro.split(',')[0].trim() || 'RED';
+      link.href     = url;
+      link.download = `Capacitaciones_PDP_${red}_${new Date().getFullYear()}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+    } finally {
+      this.exportandoExcel = false;
+    }
   }
 
   // BÚSQUEDA DE CAPACITACIONES

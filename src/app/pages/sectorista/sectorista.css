@@ -1146,6 +1146,26 @@
   opacity: 0.9;
 }
 
+.btn-exportar-excel {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: #1f6b35;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.btn-exportar-excel:hover {
+  background: #165228;
+}
+
+.btn-exportar-excel:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
 .modal-documentos {
   width: 900px;
   max-width: 95vw;

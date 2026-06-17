@@ -166,17 +166,19 @@ export class PdpDataService {
   }
 
   // ── Estadísticas ──────────────────────────────
-  getStats(red = '', ejeTematico = ''): Observable<Stats> {
+  getStats(red = '', ejeTematico = '', anio = ''): Observable<Stats> {
     let params = new HttpParams();
     if (red) params = params.set('red', red);
     if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
+    if (anio) params = params.set('anio', anio);
     return this.http.get<Stats>(`${this.api}/stats`, { params });
   }
 
-  getResumenRedes(redes = '', ejeTematico = ''): Observable<ResumenRed[]> {
+  getResumenRedes(redes = '', ejeTematico = '', anio = ''): Observable<ResumenRed[]> {
     let params = new HttpParams();
     if (redes) params = params.set('redes', redes);
     if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
+    if (anio) params = params.set('anio', anio);
     return this.http.get<ResumenRed[]>(`${this.api}/resumen-redes`, { params });
   }
 
@@ -260,10 +262,11 @@ export class PdpDataService {
     return this.http.get<PersonalEssalud>(`${this.api}/personal-essalud/dni/${dni}`);
   }
 
-  getDashboard(red = '', ejeTematico = ''): Observable<any> {
+  getDashboard(red = '', ejeTematico = '', anio = ''): Observable<any> {
     let params = new HttpParams();
     if (red) params = params.set('red', red);
     if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
+    if (anio) params = params.set('anio', anio);
     return this.http.get<any>(`${this.api}/dashboard`, { params });
   }
 

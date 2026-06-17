@@ -106,11 +106,16 @@ export class Dashboard implements OnInit, OnDestroy {
     this.actualizarGraficos();
   }
 
+  cambiarAnio() {
+    this.cargarDatosAdmin();
+  }
+
   actualizarGraficos() {
+    const anio = String(this.anioSeleccionado);
     forkJoin({
-      stats: this.pdpData.getStats(this.busquedaRed, this.filtroTematico),
-      resumen: this.pdpData.getResumenRedes('', this.filtroTematico),
-      dashboard: this.pdpData.getDashboard(this.busquedaRed, this.filtroTematico),
+      stats: this.pdpData.getStats(this.busquedaRed, this.filtroTematico, anio),
+      resumen: this.pdpData.getResumenRedes('', this.filtroTematico, anio),
+      dashboard: this.pdpData.getDashboard(this.busquedaRed, this.filtroTematico, anio),
     }).subscribe(({ stats, resumen, dashboard }) => {
       this.resumenRedes = resumen;
 
@@ -509,6 +514,9 @@ export class Dashboard implements OnInit, OnDestroy {
   metaParticipantes = Number(localStorage.getItem('metaParticipantes')) || 15000;
   porcentajeMeta = 0;
 
+  anioSeleccionado = 2025;
+  aniosDisponibles = [2025, 2026];
+
   mostrarModalMeta = false;
   nuevaMeta = 0;
 
@@ -847,11 +855,12 @@ export class Dashboard implements OnInit, OnDestroy {
   private cargarDatosAdmin() {
     this.cargandoKpis = true;
     this.cargandoResumen = true;
+    const anio = String(this.anioSeleccionado);
 
     forkJoin({
-      stats: this.pdpData.getStats(),
-      resumen: this.pdpData.getResumenRedes(),
-      dashboard: this.pdpData.getDashboard(),
+      stats: this.pdpData.getStats('', '', anio),
+      resumen: this.pdpData.getResumenRedes('', '', anio),
+      dashboard: this.pdpData.getDashboard('', '', anio),
       presupuesto: this.http
         .get<any[]>('http://localhost:3001/api/presupuesto-redes')
         .pipe(catchError(() => of([]))),
