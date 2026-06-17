@@ -860,11 +860,13 @@ export class Dashboard implements OnInit, OnDestroy {
       .subscribe({
         next: ({ stats, resumen, dashboard, presupuesto }) => {
           this.presupuestoRedes = presupuesto;
+          console.log('PRESUPUESTO REDES', presupuesto);
           console.log('SEXO', dashboard.participantesSexo);
           console.log('MESES', dashboard.actividadesMes);
 
           this.statsGlobal = stats;
           this.resumenRedes = resumen;
+          console.log('RESUMEN REDES', this.resumenRedes);
           this.redesDisponibles = [...new Set(resumen.map((r) => r.red))].sort();
           this.dashboardData = dashboard;
 
@@ -1212,13 +1214,65 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   actualizarCumplimientoPresupuesto(): void {
+    // Todas las redes
+    if (!this.redSeleccionada) {
+      this.presupuestoAsignado = this.presupuestoRedes.reduce(
+        (total, item) => total + Number(item.techo || 0),
+        0,
+      );
+
+      this.presupuestoEjecutado = this.resumenRedes.reduce(
+        (total, item) => total + Number(item.presupuesto || 0),
+        0,
+      );
+    } else {
+      const nombreBusqueda = this.nombreRedPresupuesto[this.redSeleccionada];
+
+      const techo = this.presupuestoRedes.find((p) => p.red === nombreBusqueda);
+
+      const ejecutado = this.resumenRedes.find((r) => r.red === this.redSeleccionada);
+
+      this.presupuestoAsignado = Number(techo?.techo || 0);
+
+      this.presupuestoEjecutado = Number(ejecutado?.presupuesto || 0);
+    }
+
     this.saldoDisponible = this.presupuestoAsignado - this.presupuestoEjecutado;
 
     this.porcentajeCumplimiento =
       this.presupuestoAsignado > 0
         ? (this.presupuestoEjecutado / this.presupuestoAsignado) * 100
         : 0;
+
+    // líder
+    const lider = [...this.resumenRedes].sort(
+      (a, b) => Number(b.presupuesto || 0) - Number(a.presupuesto || 0),
+    )[0];
+
+    this.redLider = lider?.red || '';
   }
+
+  nombreRedPresupuesto: Record<string, string> = {
+    'RP ALMENARA': 'Red Prestacional Almenara',
+    'RP REBAGLIATI': 'Red Prestacional Rebagliati',
+    'RP SABOGAL': 'Red Prestacional Sabogal',
+
+    'RA ANCASH': 'Red Asistencial Ancash',
+    'RA LA LIBERTAD': 'Red Asistencial La Libertad',
+    'RA JUNIN': 'Red Asistencial Junin',
+    'RA TACNA': 'Red Asistencial Tacna',
+  };
+
+  metaPresupuestoRed: Record<string, number> = {
+    'RP ALMENARA': 200000,
+    'RA ANCASH': 110000,
+    'RP REBAGLIATI': 400000,
+    INCOR: 35000,
+    'RA LA LIBERTAD': 160000,
+    'RA JUNIN': 45000,
+    'RP SABOGAL': 140000,
+    'RA TACNA': 90000,
+  };
 
   redSeleccionada = '';
 
@@ -1228,8 +1282,17 @@ export class Dashboard implements OnInit, OnDestroy {
   porcentajeCumplimiento = 73.8;
 
   saldoDisponible = 654680;
-
-  redes: string[] = [];
+  redLider = '';
+  redes: string[] = [
+    'RP ALMENARA',
+    'RA ANCASH',
+    'RP REBAGLIATI',
+    'INCOR',
+    'RA LA LIBERTAD',
+    'RA JUNIN',
+    'RP SABOGAL',
+    'RA TACNA',
+  ];
 
   cerrarModalMeta() {
     this.mostrarModalMeta = false;

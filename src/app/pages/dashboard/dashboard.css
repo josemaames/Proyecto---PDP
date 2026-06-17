@@ -2323,3 +2323,10 @@ tr:hover td {
   text-align: center;
   color: #6b7280;
 }
+
+.top-red {
+  margin-top: 15px;
+  text-align: center;
+  font-weight: 600;
+  color: #1e40af;
+}
