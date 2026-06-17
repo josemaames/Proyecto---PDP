@@ -492,6 +492,8 @@ export class Dashboard implements OnInit, OnDestroy {
   departamentoSeleccionado: any = null;
   redesDepartamento: any[] = [];
   chartInstance: any;
+  topEjecucion: any[] = [];
+  topEficiencia: any[] = [];
 
   coberturaNacional = {
     departamentos: 25,
@@ -1259,6 +1261,61 @@ export class Dashboard implements OnInit, OnDestroy {
     )[0];
 
     this.redLider = lider?.red || '';
+  }
+
+  getColorCumplimiento(): string {
+    if (this.porcentajeCumplimiento < 50) {
+      return '#ef4444'; // rojo
+    }
+
+    if (this.porcentajeCumplimiento < 80) {
+      return '#f59e0b'; // amarillo
+    }
+
+    if (this.porcentajeCumplimiento <= 100) {
+      return '#22c55e'; // verde
+    }
+
+    return '#2563eb'; // azul
+  }
+
+  private construirRankingPresupuesto(): void {
+    this.topEjecucion = [];
+
+    this.topEficiencia = [];
+
+    this.resumenRedes.forEach((red) => {
+      const nombreBusqueda = this.nombreRedPresupuesto[red.red];
+
+      const techo = this.presupuestoRedes.find((p) => p.red === nombreBusqueda);
+
+      if (!techo) {
+        return;
+      }
+
+      const presupuesto = Number(red.presupuesto || 0);
+      const techoRed = Number(techo.techo || 0);
+      const participantes = Number(red.participantes || 0);
+
+      const porcentaje = techoRed > 0 ? (presupuesto / techoRed) * 100 : 0;
+
+      const costo = participantes > 0 ? presupuesto / participantes : 0;
+
+      this.topEjecucion.push({
+        red: red.red,
+        porcentaje,
+      });
+
+      this.topEficiencia.push({
+        red: red.red,
+        costo,
+        participantes,
+      });
+    });
+
+    this.topEjecucion = this.topEjecucion.sort((a, b) => b.porcentaje - a.porcentaje).slice(0, 5);
+
+    this.topEficiencia = this.topEficiencia.sort((a, b) => a.costo - b.costo).slice(0, 5);
   }
 
   nombreRedPresupuesto: Record<string, string> = {

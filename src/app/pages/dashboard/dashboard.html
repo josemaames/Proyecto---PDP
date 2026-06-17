@@ -128,14 +128,9 @@
         <div class="periodo-pill">
           <span>📅</span>
 
-          <select
-            id="periodoActivo"
-            [(ngModel)]="anioSeleccionado"
-            (change)="cambiarAnio()"
-          >
-            @for (anio of aniosDisponibles; track anio) {
-              <option [value]="anio">{{ anio }}</option>
-            }
+          <select id="periodoActivo">
+            <option>2025</option>
+            <option selected>2026</option>
           </select>
         </div>
       </div>
@@ -148,18 +143,8 @@
         </p>
       </div>
 
-      @if (esAdministrador && anioSeleccionado === 2026) {
-        <div class="sin-datos-banner">
-          <div class="sin-datos-icono">📭</div>
-          <div class="sin-datos-texto">
-            <h3>Todavía no hay datos para el año 2026</h3>
-            <p>Selecciona el año <strong>2025</strong> para visualizar los indicadores y gráficos disponibles.</p>
-          </div>
-        </div>
-      }
-
       <!-- BARRA DE FILTROS -->
-      @if (esAdministrador && anioSeleccionado !== 2026) {
+      @if (esAdministrador) {
         <div class="filtro-red-bar" [class.filtro-red-activo]="busquedaRed">
           <div class="filtro-red-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -269,7 +254,7 @@
       }
 
       <!-- KPIs ADMINISTRADOR -->
-      @if (esAdministrador && anioSeleccionado !== 2026) {
+      @if (esAdministrador) {
         <div class="kpi-grid">
           @if (cargandoKpis) {
             <div class="kpi-card kpi-skel">
@@ -713,7 +698,7 @@
           </div>
         }
 
-        @if (esAdministrador && anioSeleccionado !== 2026) {
+        @if (esAdministrador) {
           <div class="graficos-container">
             <!-- Sexo -->
             <div class="dash-card grafico-box sexo-card">
@@ -825,7 +810,7 @@
         <!-- cierre @if (esAdministrador) -->
 
         <!-- Presupuesto -->
-        @if (esAdministrador && anioSeleccionado !== 2026) {
+        @if (esAdministrador) {
           <div class="graficos-container">
             <div class="dash-card grafico-box presupuesto-card">
               <h3>Presupuesto Ejecutado por Red Asistencial</h3>
@@ -842,7 +827,7 @@
           </div>
         }
         <!-- Participantes vs Presupuesto -->
-        @if (esAdministrador && anioSeleccionado !== 2026) {
+        @if (esAdministrador) {
           <div class="graficos-container">
             <div class="dash-card grafico-box eficiencia-card">
               <h3>📈 Participantes vs Presupuesto</h3>
@@ -860,7 +845,7 @@
         }
 
         <!-- Costo por Participante -->
-        @if (esAdministrador && anioSeleccionado !== 2026) {
+        @if (esAdministrador) {
           <div class="graficos-container">
             <div class="dash-card grafico-box costo-card">
               <h3>Costo por Participante por Red</h3>
@@ -878,7 +863,7 @@
         }
 
         <!-- RESUMEN POR RED ASISTENCIAL -->
-        @if (esAdministrador && anioSeleccionado !== 2026) {
+        @if (esAdministrador) {
           <div class="dash-card estadisticas-responsable-box">
             <div class="box-header">
               <h3>Resumen por Red Asistencial</h3>
@@ -980,7 +965,7 @@
         }
       </div>
       <!-- ASIGNACIÓN PRESUPUESTAL (ADMIN) -->
-      @if (esAdministrador && anioSeleccionado !== 2026 && presupuestoConEjecutado.length > 0) {
+      @if (esAdministrador && presupuestoConEjecutado.length > 0) {
         <div class="dash-card estadisticas-responsable-box" style="margin-top: 24px">
           <div class="box-header">
             <h3>💰 Asignación Presupuestal 2025</h3>
