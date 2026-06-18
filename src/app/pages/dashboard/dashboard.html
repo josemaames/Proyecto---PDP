@@ -760,9 +760,13 @@
                 ></canvas>
               }
             </div>
-
-            <!-- Cumplimiento Presupuestal -->
-            <div class="dash-card grafico-box cumplimiento-presupuesto-card">
+          </div>
+          <!-- cierre graficos-container -->
+        }
+        <!-- Cumplimiento Presupuestal -->
+        @if (esAdministrador) {
+          <div class="grafico-full-width">
+            <div class="dash-card cumplimiento-presupuesto-card">
               <h3>🎯 Cumplimiento Presupuestal por Red</h3>
 
               <div class="presupuesto-control">
@@ -805,11 +809,10 @@
               <div class="saldo-texto">Saldo: S/ {{ saldoDisponible | number: '1.0-0' }}</div>
             </div>
           </div>
-          <!-- cierre dashboard-grid -->
         }
 
         @if (esAdministrador) {
-          <div class="graficos-container">
+          <div class="grafico-full-width">
             <div class="dash-card grafico-box presupuesto-card">
               <h3>Presupuesto Ejecutado por Red Asistencial</h3>
 
