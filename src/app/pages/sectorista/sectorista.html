@@ -392,8 +392,8 @@
                       {{ s.motivo_rechazo || '—' }}
                     </td>
                     <td>
-                      @if (s.estado === 'aprobado') {
-                        <button class="btn-ver-detalle" (click)="abrirEdicion(s)">✏️ Editar</button>
+                      @if (s.estado === 'aprobado' || s.estado === 'observado') {
+                        <button class="btn-solicitar-edicion" (click)="abrirSolicitudEdicion(s)">📤 Solicitar corrección</button>
                       }
                     </td>
                   </tr>
@@ -965,4 +965,81 @@
       </div>
     </div>
   }
+
+  <!-- MODAL: SOLICITAR CORRECCIÓN AL EJECUTOR -->
+  @if (mostrarModalSolicitarEdicion) {
+    <div class="modal-busqueda-overlay" (click)="cerrarSolicitudEdicion()">
+      <div class="modal-sol-edicion" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="modal-sol-header">
+          <span class="modal-sol-titulo">📤 Solicitar corrección al ejecutor</span>
+          <button class="modal-sol-cerrar" (click)="cerrarSolicitudEdicion()">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-sol-body">
+
+          <div class="modal-sol-info">
+            <p><strong>Capacitación:</strong> {{ solicitudParaEdicion?.datos?.nombreActividad || '—' }}</p>
+            <p>Ejecutor: {{ solicitudParaEdicion?.ejecutor_nombre || '—' }}</p>
+          </div>
+
+          <p class="modal-sol-pregunta">¿Qué sección debe corregir el ejecutor?</p>
+
+          <div class="opciones-edicion">
+            <div
+              class="opcion-edicion"
+              [class.opcion-seleccionada]="seccionEdicion === 'formulario'"
+              (click)="seccionEdicion = 'formulario'"
+            >
+              <div class="opcion-icono">📋</div>
+              <div>
+                <strong>Formulario de Capacitación</strong>
+                <p>Datos de la actividad: fechas, modalidad, horas, proveedor, etc.</p>
+              </div>
+            </div>
+
+            <div
+              class="opcion-edicion"
+              [class.opcion-seleccionada]="seccionEdicion === 'participantes'"
+              (click)="seccionEdicion = 'participantes'"
+            >
+              <div class="opcion-icono">👥</div>
+              <div>
+                <strong>Registro de Participantes</strong>
+                <p>Lista de participantes registrados en la capacitación.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-sol-textarea-wrap">
+            <label>Indicaciones adicionales <span class="modal-sol-opcional">(opcional)</span></label>
+            <textarea
+              rows="3"
+              placeholder="Describe específicamente qué debe corregir el ejecutor…"
+              [(ngModel)]="mensajeEdicion"
+            ></textarea>
+          </div>
+
+          @if (errorSolicitudEdicion) {
+            <p class="modal-sol-error">{{ errorSolicitudEdicion }}</p>
+          }
+
+          <div class="modal-sol-acciones">
+            <button class="btn-cancelar-modal" (click)="cerrarSolicitudEdicion()">Cancelar</button>
+            <button
+              class="btn-sol-enviar"
+              (click)="enviarSolicitudEdicion()"
+              [disabled]="enviandoSolicitudEdicion || !seccionEdicion"
+            >
+              {{ enviandoSolicitudEdicion ? 'Enviando...' : '📤 Enviar notificación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
 </div>

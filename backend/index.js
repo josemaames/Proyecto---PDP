@@ -302,6 +302,11 @@ async function crearTablas() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_hoja_ruta_actividad ON hoja_ruta_pasos(actividad_id)`);
   console.log('✓ Tabla hoja_ruta_pasos verificada');
 
+  // Columnas de corrección en solicitudes_revision
+  await pool.query(`ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS correccion_pendiente BOOLEAN NOT NULL DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS seccion_correccion TEXT`);
+  console.log('✓ Columnas correccion_pendiente verificadas');
+
   console.log('✓ Tablas verificadas');
 }
 
@@ -334,6 +339,9 @@ async function crearIndices() {
     `CREATE INDEX IF NOT EXISTS idx_actividad_mes ON datos_actividad(mes_termino)`,
     `CREATE INDEX IF NOT EXISTS idx_actividad_servicio ON datos_actividad(servicio_area)`,
     `CREATE INDEX IF NOT EXISTS idx_participantes_sexo ON lista_participantes(sexo)`,
+
+    // Unicidad de codigo_act (necesaria para ON CONFLICT en INSERT)
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_actividad_codigo_act ON datos_actividad(codigo_act)`,
 
     // Ordenación eficiente de actividades (paginación sin filtro de red — admin)
     `CREATE INDEX IF NOT EXISTS idx_actividad_numero ON datos_actividad(numero NULLS LAST)`,
@@ -1032,7 +1040,8 @@ app.get('/api/solicitudes/mis-envios', async (req, res) => {
     const { dni } = req.query;
     if (!dni) return res.status(400).json({ error: 'dni requerido' });
     const { rows } = await pool.query(
-      `SELECT id, datos, red_asistencial, estado, motivo_rechazo, created_at, reviewed_at
+      `SELECT id, datos, red_asistencial, estado, motivo_rechazo, created_at, reviewed_at,
+              correccion_pendiente, seccion_correccion
        FROM solicitudes_revision WHERE ejecutor_dni = $1 ORDER BY created_at DESC LIMIT 50`,
       [dni]
     );
@@ -1104,7 +1113,14 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
             nivel_evaluacion, objetivo_estrategico, total_participantes,
             ruc_proveedor, nombre_proveedor, sector_proveedor,
             presupuesto_ejecutado, eje_tematico)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+         ON CONFLICT (codigo_act) DO UPDATE SET
+           fecha_inicio=$2, fecha_fin=$3, mes_termino=$4, red_asistencial=$5,
+           servicio_area=$6, nombre_actividad=$7, total_horas=$8, horas_fuera_horario=$9,
+           frecuencia=$10, hora_inicio=$11, hora_termino=$12, modalidad=$13, publico=$14,
+           nivel_evaluacion=$15, objetivo_estrategico=$16, total_participantes=$17,
+           ruc_proveedor=$18, nombre_proveedor=$19, sector_proveedor=$20,
+           presupuesto_ejecutado=$21, eje_tematico=$22`,
         [
           f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino,
           f.redAsistencial, f.servicioArea, f.nombreActividad,
@@ -1115,6 +1131,10 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
           f.presupuestoEjecutado || null, f.ejeTematico,
         ]
       );
+      // Limpiar participantes previos del mismo código antes de reinsertar (evita duplicados en re-aprobación)
+      if (f.codigoAct) {
+        await pool.query('DELETE FROM lista_participantes WHERE codigo_act=$1', [f.codigoAct]);
+      }
       // Insertar participantes en lista_participantes
       const participantes = Array.isArray(f.participantesDetalle) ? f.participantesDetalle : [];
       for (const p of participantes) {
@@ -1221,6 +1241,139 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     logEvento(`solicitud_${estado}`, logDesc, actor, revisor_rol || 'Sectorista', actividadNombre);
 
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/solicitudes/:id/solicitar-edicion  — sectorista pide al ejecutor que corrija
+app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
+  try {
+    const { seccion, mensaje, sectorista_nombre } = req.body;
+    const id = parseInt(req.params.id);
+
+    if (!['formulario', 'participantes'].includes(seccion)) {
+      return res.status(400).json({ error: 'seccion inválida' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT s.*, u.email AS ejecutor_email, u.nombre AS ejecutor_nombre_real
+       FROM solicitudes_revision s
+       LEFT JOIN usuarios_sistema u ON u.dni = s.ejecutor_dni
+       WHERE s.id = $1`,
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
+
+    const sol = rows[0];
+    const email = sol.ejecutor_email;
+    const ejecutorNombre = sol.ejecutor_nombre || sol.ejecutor_nombre_real || 'Ejecutor';
+    const actNombre = sol.datos?.nombreActividad || sol.datos?.nombre_actividad || 'Sin nombre';
+    const seccionLabel = seccion === 'formulario' ? 'Formulario de Capacitación' : 'Registro de Participantes';
+
+    // Marcar corrección pendiente en la solicitud
+    await pool.query(
+      `UPDATE solicitudes_revision SET correccion_pendiente=TRUE, seccion_correccion=$1 WHERE id=$2`,
+      [seccion, id]
+    );
+
+    if (email) {
+      const htmlEjecutor = htmlBase(
+        '#d97706',
+        `📝 Se requiere corrección — ${seccionLabel}`,
+        `<p>Estimado/a <strong>${ejecutorNombre}</strong>,</p>
+         <p>El sectorista <strong>${sectorista_nombre || 'Sectorista'}</strong> necesita que corrijas la siguiente sección de tu solicitud:</p>
+         <p style="font-size:20px;font-weight:bold;color:#005baa;text-align:center;margin:20px 0">📋 ${seccionLabel}</p>
+         <table style="width:100%;border-collapse:collapse;margin:16px 0">
+           <tr><td style="padding:8px;color:#6b7280">Capacitación:</td><td style="padding:8px;font-weight:bold">${actNombre}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${sol.red_asistencial || '-'}</td></tr>
+           ${mensaje ? `<tr><td style="padding:8px;color:#6b7280">Indicaciones:</td><td style="padding:8px;color:#d97706">${mensaje}</td></tr>` : ''}
+         </table>
+         <p>Ingresa al <strong>Sistema PDP</strong> y realiza las correcciones en la sección indicada antes de reenviar tu solicitud.</p>`
+      );
+      enviarCorreo(email, `📝 Corrección requerida: ${seccionLabel} — Sistema PDP`, htmlEjecutor);
+    }
+
+    logEvento(
+      'solicitud_correccion',
+      `${sectorista_nombre || 'Sectorista'} solicitó corrección en "${seccionLabel}" de la capacitación "${actNombre}" al ejecutor ${ejecutorNombre}`,
+      sectorista_nombre,
+      'Sectorista',
+      actNombre
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/solicitudes/:id/reenviar — ejecutor actualiza y limpia corrección pendiente
+app.put('/api/solicitudes/:id/reenviar', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { datos, ejecutor_nombre } = req.body;
+
+    const { rows } = await pool.query(
+      `UPDATE solicitudes_revision
+       SET datos=$1, estado='pendiente', correccion_pendiente=FALSE, seccion_correccion=NULL, reviewed_at=NULL, motivo_rechazo=NULL
+       WHERE id=$2 RETURNING *`,
+      [JSON.stringify(datos), id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
+
+    const actNombre = datos.nombreActividad || datos.nombre_actividad || 'Sin nombre';
+    const codigoAct = datos.codigoAct || datos.codigo_act || null;
+
+    // Si ya existe en datos_actividad, actualizar directamente para que el Excel quede al día
+    if (codigoAct) {
+      await pool.query(
+        `UPDATE datos_actividad SET
+           fecha_inicio=$2, fecha_fin=$3, mes_termino=$4, red_asistencial=$5,
+           servicio_area=$6, nombre_actividad=$7, total_horas=$8, horas_fuera_horario=$9,
+           frecuencia=$10, hora_inicio=$11, hora_termino=$12, modalidad=$13, publico=$14,
+           nivel_evaluacion=$15, objetivo_estrategico=$16, total_participantes=$17,
+           ruc_proveedor=$18, nombre_proveedor=$19, sector_proveedor=$20,
+           presupuesto_ejecutado=$21, eje_tematico=$22
+         WHERE codigo_act=$1`,
+        [
+          codigoAct,
+          datos.fechaInicio || null, datos.fechaFin || null, datos.mesTermino || null,
+          datos.redAsistencial || null, datos.servicioArea || null, datos.nombreActividad || null,
+          datos.totalHoras || null, datos.horasFueraHorario || null, datos.frecuencia || null,
+          datos.horaInicio || null, datos.horaTermino || null, datos.modalidad || null,
+          datos.publico || null, datos.nivelEvaluacion || null, datos.objetivoEstrategico || null,
+          datos.totalParticipantes || null, datos.rucProveedor || null,
+          datos.nombreProveedor || null, datos.sectorProveedor || null,
+          datos.presupuestoEjecutado || null, datos.ejeTematico || null,
+        ]
+      );
+      invalidarCache();
+    }
+
+    logEvento('solicitud_reenviada', `${ejecutor_nombre || 'Ejecutor'} reenvió la solicitud corregida "${actNombre}"`, ejecutor_nombre, 'Ejecutor', actNombre);
+
+    // Notificar sectoristas de la red
+    const red = rows[0].red_asistencial;
+    if (red) {
+      const { rows: sectoristas } = await pool.query(
+        `SELECT email FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
+        [`%${red}%`]
+      );
+      if (sectoristas.length) {
+        const html = htmlBase('#16a34a', '✅ Solicitud corregida y reenviada',
+          `<p>El ejecutor <strong>${ejecutor_nombre || 'Sin nombre'}</strong> ha reenviado una solicitud corregida.</p>
+           <table style="width:100%;border-collapse:collapse;margin:16px 0">
+             <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actNombre}</td></tr>
+             <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
+           </table>
+           <p>Ingrese al Sistema PDP para revisar la solicitud actualizada.</p>`
+        );
+        enviarCorreo(sectoristas.map(s => s.email), '✅ Solicitud corregida — Sistema PDP', html);
+      }
+    }
+
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -117,6 +117,20 @@ export class Ejecutor implements OnInit {
   cargandoEnvios = false;
   enviando = false;
 
+  // CORRECCIONES PENDIENTES
+  mostrarModalCorreccion = false;
+  solicitudCorrigiendo: any = null;
+  formularioCorreccion: any = {};
+  participantesCorreccion: any[] = [];
+  nuevoParticCorreccion = this.particVacio();
+  errorParticCorreccion = '';
+  enviandoCorreccion = false;
+  errorCorreccion = '';
+
+  get correccionesPendientes(): any[] {
+    return this.misEnvios.filter(e => e.correccion_pendiente);
+  }
+
   get totalPaginasAct(): number {
     return Math.max(1, Math.ceil(this.totalAct / this.limitAct));
   }
@@ -425,6 +439,58 @@ export class Ejecutor implements OnInit {
 
   cerrarModalParticipantes() {
     this.mostrarModalParticipantes = false;
+  }
+
+  abrirCorreccion(envio: any) {
+    this.solicitudCorrigiendo = envio;
+    this.formularioCorreccion = { ...(envio.datos || {}) };
+    this.participantesCorreccion = Array.isArray(envio.datos?.participantesDetalle)
+      ? envio.datos.participantesDetalle.map((p: any) => ({ ...p }))
+      : [];
+    this.nuevoParticCorreccion = { ...this.particVacio(), codigo_act: envio.datos?.codigoAct || '', red: this.redEjecutor };
+    this.errorParticCorreccion = '';
+    this.errorCorreccion = '';
+    this.mostrarModalCorreccion = true;
+  }
+
+  cerrarCorreccion() {
+    this.mostrarModalCorreccion = false;
+    this.solicitudCorrigiendo = null;
+  }
+
+  agregarParticCorreccion() {
+    const p = this.nuevoParticCorreccion;
+    if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
+      this.errorParticCorreccion = 'DNI/CE, Apellidos y Nombre son obligatorios.';
+      return;
+    }
+    this.errorParticCorreccion = '';
+    this.participantesCorreccion.push({ ...p });
+    this.nuevoParticCorreccion = { ...this.particVacio(), codigo_act: this.formularioCorreccion.codigoAct || '', red: this.redEjecutor };
+  }
+
+  quitarParticCorreccion(idx: number) {
+    this.participantesCorreccion.splice(idx, 1);
+  }
+
+  enviarCorreccion() {
+    this.enviandoCorreccion = true;
+    this.errorCorreccion = '';
+    const datos = { ...this.formularioCorreccion, participantesDetalle: this.participantesCorreccion };
+    this.http.put(`http://localhost:3001/api/solicitudes/${this.solicitudCorrigiendo.id}/reenviar`, {
+      datos,
+      ejecutor_nombre: this.usuario?.nombre || '',
+    }).subscribe({
+      next: () => {
+        this.enviandoCorreccion = false;
+        this.cerrarCorreccion();
+        this.cargarMisEnvios();
+      },
+      error: () => {
+        this.enviandoCorreccion = false;
+        this.errorCorreccion = 'Error al reenviar. Intente nuevamente.';
+      },
+    });
   }
 
   enviarFormulario() {

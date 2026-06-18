@@ -80,86 +80,59 @@
         </h2>
       </div>
 
-      <!-- ===== TABLA DE ACTIVIDADES REGISTRADAS ===== -->
-      <div class="card">
+      <!-- ===== ACTIVIDADES POR CORREGIR ===== -->
+      <div class="card card-correccion">
         <div class="card-section-title-row">
-          <span class="card-section-title">📋 Actividades de Capacitación Registradas</span>
-          <span class="badge-count">{{ totalAct }}</span>
+          <span class="card-section-title">✏️ Actividades de capacitación por corregir</span>
+          <span class="badge-count" [class.badge-alerta]="correccionesPendientes.length > 0">{{ correccionesPendientes.length }}</span>
         </div>
 
-        <div class="barra-acciones" style="margin-bottom: 12px">
-          <div class="campo-busqueda">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar actividad, código, red..."
-              [(ngModel)]="busquedaAct"
-              (input)="buscarAct()"
-            />
-          </div>
-        </div>
-
-        @if (cargandoAct) {
-          <div class="sin-resultados"><p>Cargando actividades...</p></div>
-        } @else if (actividades.length === 0) {
+        @if (cargandoEnvios) {
+          <div class="sin-resultados"><p>Cargando...</p></div>
+        } @else if (correccionesPendientes.length === 0) {
           <div class="sin-resultados">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="12" cy="12" r="10" />
               <line x1="8" y1="12" x2="16" y2="12" />
             </svg>
-            <p>No hay actividades registradas aún.</p>
+            <p>No hay actividades pendientes de corrección.</p>
           </div>
         } @else {
           <div class="tabla-scroll">
             <table class="tabla-part">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Código act.</th>
-                  <th>Nombre de la actividad</th>
-                  <th>Red asistencial</th>
-                  <th>Modalidad</th>
-                  <th>Fecha inicio</th>
-                  <th>Fecha fin</th>
-                  <th>Total horas</th>
-                  <th>Participantes</th>
-                  <th>Presupuesto (S/)</th>
+                  <th>Actividad</th>
+                  <th>Código</th>
+                  <th>Red</th>
+                  <th>Sección a corregir</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
-                @for (a of actividades; track a.id) {
+                @for (envio of correccionesPendientes; track envio.id) {
                   <tr>
-                    <td>{{ a.numero || '—' }}</td>
-                    <td>{{ a.codigo_act || '—' }}</td>
-                    <td>{{ a.nombre_actividad || '—' }}</td>
-                    <td>{{ a.red_asistencial || '—' }}</td>
-                    <td>{{ a.modalidad || '—' }}</td>
-                    <td>{{ a.fecha_inicio || '—' }}</td>
-                    <td>{{ a.fecha_fin || '—' }}</td>
-                    <td>{{ a.total_horas ?? '—' }}</td>
-                    <td>{{ a.total_participantes ?? '—' }}</td>
+                    <td>{{ envio.datos?.nombreActividad || '—' }}</td>
+                    <td>{{ envio.datos?.codigoAct || '—' }}</td>
+                    <td>{{ envio.red_asistencial || '—' }}</td>
                     <td>
-                      {{
-                        a.presupuesto_ejecutado != null
-                          ? (a.presupuesto_ejecutado | number: '1.2-2')
-                          : '—'
-                      }}
+                      @if (envio.seccion_correccion === 'formulario') {
+                        <span class="badge-seccion badge-formulario">📋 Formulario</span>
+                      } @else if (envio.seccion_correccion === 'participantes') {
+                        <span class="badge-seccion badge-participantes">👥 Participantes</span>
+                      } @else {
+                        <span class="badge-seccion">📄 General</span>
+                      }
+                    </td>
+                    <td><span class="badge-correccion">⚠️ Requiere corrección</span></td>
+                    <td>
+                      <button class="btn-corregir" (click)="abrirCorreccion(envio)">✏️ Corregir y reenviar</button>
                     </td>
                   </tr>
                 }
               </tbody>
             </table>
-          </div>
-
-          <div class="paginacion">
-            <button (click)="paginaActAnterior()" [disabled]="paginaAct <= 1">← Anterior</button>
-            <span>Página {{ paginaAct }} de {{ totalPaginasAct }}</span>
-            <button (click)="paginaActSiguiente()" [disabled]="paginaAct >= totalPaginasAct">
-              Siguiente →
-            </button>
           </div>
         }
       </div>
@@ -910,6 +883,180 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+}
+
+<!-- ===== MODAL: CORREGIR Y REENVIAR ===== -->
+@if (mostrarModalCorreccion && solicitudCorrigiendo) {
+  <div class="modal-partic-overlay" (click)="cerrarCorreccion()">
+    <div class="modal-partic-box" style="max-width:860px" (click)="$event.stopPropagation()">
+
+      <!-- Header naranja -->
+      <div class="modal-corr-header">
+        <div>
+          <p class="modal-corr-titulo">✏️ Corregir y reenviar solicitud</p>
+          <p class="modal-corr-sub">{{ solicitudCorrigiendo.datos?.nombreActividad }}</p>
+        </div>
+        <button class="btn-cerrar-partic" (click)="cerrarCorreccion()">✕</button>
+      </div>
+
+      <!-- Banner de aviso -->
+      <div class="modal-corr-aviso">
+        <span class="modal-corr-aviso-icono">⚠️</span>
+        <div>
+          <p class="modal-corr-aviso-titulo">El sectorista solicita corrección en:
+            @if (solicitudCorrigiendo.seccion_correccion === 'formulario') { <strong>📋 Formulario de Capacitación</strong> }
+            @else if (solicitudCorrigiendo.seccion_correccion === 'participantes') { <strong>👥 Registro de Participantes</strong> }
+            @else { <strong>General</strong> }
+          </p>
+          @if (solicitudCorrigiendo.motivo_rechazo) {
+            <p class="modal-corr-aviso-obs">Observación: {{ solicitudCorrigiendo.motivo_rechazo }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Cuerpo scrollable con fondo blanco -->
+      <div class="modal-corr-body">
+
+        <!-- FORMULARIO -->
+        @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'formulario') {
+          <p class="modal-seccion-label">📋 Datos de la capacitación</p>
+          <div class="datos-grid tres-col">
+            <div class="campo">
+              <label>Código act.</label>
+              <input type="text" [(ngModel)]="formularioCorreccion.codigoAct" />
+            </div>
+            <div class="campo">
+              <label>Fecha de inicio</label>
+              <input type="date" [(ngModel)]="formularioCorreccion.fechaInicio" />
+            </div>
+            <div class="campo">
+              <label>Fecha de finalización</label>
+              <input type="date" [(ngModel)]="formularioCorreccion.fechaFin" />
+            </div>
+            <div class="campo">
+              <label>Nombre de la actividad</label>
+              <input type="text" [(ngModel)]="formularioCorreccion.nombreActividad" />
+            </div>
+            <div class="campo">
+              <label>Total horas</label>
+              <input type="number" [(ngModel)]="formularioCorreccion.totalHoras" />
+            </div>
+            <div class="campo">
+              <label>Modalidad</label>
+              <select [(ngModel)]="formularioCorreccion.modalidad">
+                <option value="">Seleccione...</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Virtual">Virtual</option>
+                <option value="Semipresencial">Semipresencial</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Total participantes</label>
+              <input type="number" [(ngModel)]="formularioCorreccion.totalParticipantes" />
+            </div>
+            <div class="campo">
+              <label>Presupuesto ejecutado (S/)</label>
+              <input type="number" [(ngModel)]="formularioCorreccion.presupuestoEjecutado" />
+            </div>
+            <div class="campo">
+              <label>Nivel de evaluación</label>
+              <select [(ngModel)]="formularioCorreccion.nivelEvaluacion">
+                <option value="">Seleccione...</option>
+                <option value="Nivel I">Nivel I — Reacción</option>
+                <option value="Nivel II">Nivel II — Aprendizaje</option>
+                <option value="Nivel III">Nivel III — Transferencia</option>
+                <option value="Nivel IV">Nivel IV — Resultados</option>
+              </select>
+            </div>
+          </div>
+        }
+
+        <!-- PARTICIPANTES -->
+        @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'participantes') {
+          <p class="modal-seccion-label" style="margin-top:24px">👥 Participantes ({{ participantesCorreccion.length }})</p>
+
+          <div class="modal-partic-form">
+            <div class="partic-form-grid">
+              <div class="campo">
+                <label>DNI / CE <span class="req">*</span></label>
+                <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce" placeholder="DNI o carné" />
+              </div>
+              <div class="campo">
+                <label>Apellidos <span class="req">*</span></label>
+                <input type="text" [(ngModel)]="nuevoParticCorreccion.apellidos" placeholder="Apellidos" />
+              </div>
+              <div class="campo">
+                <label>Nombre <span class="req">*</span></label>
+                <input type="text" [(ngModel)]="nuevoParticCorreccion.nombre" placeholder="Nombre" />
+              </div>
+              <div class="campo">
+                <label>Sexo</label>
+                <select [(ngModel)]="nuevoParticCorreccion.sexo">
+                  <option value="">—</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label>Cargo</label>
+                <input type="text" [(ngModel)]="nuevoParticCorreccion.cargo" placeholder="Cargo" />
+              </div>
+              <div class="campo">
+                <label>Servicio / Área</label>
+                <input type="text" [(ngModel)]="nuevoParticCorreccion.servicio_area" placeholder="Área" />
+              </div>
+            </div>
+            @if (errorParticCorreccion) {
+              <p style="color:#dc2626;font-size:13px;margin:6px 0 0">{{ errorParticCorreccion }}</p>
+            }
+            <button class="btn-agregar-partic" style="margin-top:10px" (click)="agregarParticCorreccion()">+ Agregar participante</button>
+          </div>
+
+          <div class="modal-partic-tabla-wrap" style="max-height:220px">
+            @if (participantesCorreccion.length > 0) {
+              <table class="modal-partic-tabla">
+                <thead>
+                  <tr><th>DNI/CE</th><th>Apellidos</th><th>Nombre</th><th>Sexo</th><th>Cargo</th><th></th></tr>
+                </thead>
+                <tbody>
+                  @for (p of participantesCorreccion; track $index) {
+                    <tr>
+                      <td>{{ p.dni_ce }}</td>
+                      <td>{{ p.apellidos }}</td>
+                      <td>{{ p.nombre }}</td>
+                      <td>{{ p.sexo || '—' }}</td>
+                      <td>{{ p.cargo || '—' }}</td>
+                      <td><button class="btn-quitar-partic" (click)="quitarParticCorreccion($index)">✕</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <div class="partic-cargando">Aún no se han agregado participantes.</div>
+            }
+          </div>
+        }
+
+        @if (errorCorreccion) {
+          <p style="color:#dc2626;font-size:13px;margin-top:12px">{{ errorCorreccion }}</p>
+        }
+
+      </div><!-- /.modal-corr-body -->
+
+      <!-- Footer -->
+      <div class="modal-partic-footer">
+        <button class="btn-volver-modal" (click)="cerrarCorreccion()">← Cancelar</button>
+        <button
+          class="btn-enviar-modal"
+          [disabled]="enviandoCorreccion"
+          (click)="enviarCorreccion()"
+        >
+          {{ enviandoCorreccion ? '⏳ Enviando...' : '📤 Enviar corrección al Sectorista' }}
+        </button>
+      </div>
+
     </div>
   </div>
 }

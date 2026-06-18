@@ -107,6 +107,14 @@ export class Sectorista implements OnInit {
   nuevoParticipanteEdicion = this.participanteVacioEdicion();
   errorParticipanteEdicion = '';
 
+  // SOLICITAR EDICIÓN AL EJECUTOR
+  mostrarModalSolicitarEdicion = false;
+  solicitudParaEdicion: any = null;
+  seccionEdicion: 'formulario' | 'participantes' | '' = '';
+  mensajeEdicion = '';
+  enviandoSolicitudEdicion = false;
+  errorSolicitudEdicion = '';
+
   participanteVacioEdicion() {
     return {
       dni_ce: '',
@@ -300,6 +308,45 @@ export class Sectorista implements OnInit {
     this.mostrarModalEditar = false;
     this.actividadEditando = null;
     this.participantesEditando = [];
+  }
+
+  abrirSolicitudEdicion(s: any) {
+    this.solicitudParaEdicion = s;
+    this.seccionEdicion = '';
+    this.mensajeEdicion = '';
+    this.errorSolicitudEdicion = '';
+    this.mostrarModalSolicitarEdicion = true;
+  }
+
+  cerrarSolicitudEdicion() {
+    this.mostrarModalSolicitarEdicion = false;
+    this.solicitudParaEdicion = null;
+  }
+
+  enviarSolicitudEdicion() {
+    if (!this.seccionEdicion) {
+      this.errorSolicitudEdicion = 'Selecciona qué sección debe corregir el ejecutor.';
+      return;
+    }
+    this.enviandoSolicitudEdicion = true;
+    this.errorSolicitudEdicion = '';
+    this.http
+      .post(`http://localhost:3001/api/solicitudes/${this.solicitudParaEdicion.id}/solicitar-edicion`, {
+        seccion: this.seccionEdicion,
+        mensaje: this.mensajeEdicion,
+        sectorista_nombre: this.usuario.nombre,
+      })
+      .subscribe({
+        next: () => {
+          this.enviandoSolicitudEdicion = false;
+          this.cerrarSolicitudEdicion();
+          alert(`Notificación enviada al ejecutor para que corrija el ${this.seccionEdicion === 'formulario' ? 'Formulario de Capacitación' : 'Registro de Participantes'}.`);
+        },
+        error: () => {
+          this.enviandoSolicitudEdicion = false;
+          this.errorSolicitudEdicion = 'Error al enviar la notificación. Intente nuevamente.';
+        },
+      });
   }
 
   agregarParticipanteEdicion() {

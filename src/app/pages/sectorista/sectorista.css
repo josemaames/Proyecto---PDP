@@ -1278,3 +1278,204 @@
   font-size: 22px;
   cursor: pointer;
 }
+
+/* ── SOLICITAR CORRECCIÓN ──────────────────────── */
+
+.btn-solicitar-edicion {
+  background: #005baa;
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.btn-solicitar-edicion:hover {
+  background: #004080;
+}
+
+/* Modal container */
+.modal-sol-edicion {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+/* Header del modal */
+.modal-sol-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #005baa;
+  padding: 18px 22px;
+}
+
+.modal-sol-titulo {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.modal-sol-cerrar {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.modal-sol-cerrar:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* Body */
+.modal-sol-body {
+  padding: 24px;
+}
+
+.modal-sol-info {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+.modal-sol-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+}
+.modal-sol-info p:last-child {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.modal-sol-pregunta {
+  font-weight: 700;
+  color: #111827;
+  font-size: 15px;
+  margin: 0 0 14px;
+}
+
+/* Opciones */
+.opciones-edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.opcion-edicion {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+.opcion-edicion:hover {
+  border-color: #93c5fd;
+  background: #f0f7ff;
+}
+.opcion-seleccionada {
+  border-color: #005baa !important;
+  background: #eff6ff !important;
+}
+
+.opcion-icono {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.opcion-edicion strong {
+  display: block;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+.opcion-edicion p {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Textarea */
+.modal-sol-textarea-wrap {
+  margin-top: 18px;
+}
+.modal-sol-textarea-wrap label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.modal-sol-opcional {
+  font-weight: 400;
+  color: #9ca3af;
+}
+.modal-sol-textarea-wrap textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-sol-textarea-wrap textarea:focus {
+  border-color: #005baa;
+}
+
+.modal-sol-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+/* Botones de acción */
+.modal-sol-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-sol-enviar {
+  background: #005baa;
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-sol-enviar:hover:not(:disabled) {
+  background: #004080;
+}
+.btn-sol-enviar:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
