@@ -1,206 +1,149 @@
-<div class="expedientes-lista">
-  <h2>Consulta de Expedientes PDP</h2>
+<div class="hr-page">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Expediente</th>
-        <th>Capacitación</th>
-        <th>Estado</th>
-        <th>Responsable</th>
-        <th>Beneficiarios</th>
-        <th>Presupuesto</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
+  <!-- PANEL IZQUIERDO: búsqueda -->
+  <aside class="hr-aside">
+    <h3 class="aside-titulo">Capacitaciones</h3>
+    <input
+      class="hr-search"
+      type="text"
+      placeholder="Buscar por nombre o código…"
+      [(ngModel)]="busqueda"
+      (ngModelChange)="onBusqueda()"
+    />
 
-    <tbody>
-      <tr *ngFor="let item of expedientes">
-        <td>{{ item.expediente }}</td>
+    @if (buscando) {
+      <p class="hr-hint">Buscando…</p>
+    }
 
-        <td>{{ item.capacitacion }}</td>
+    <ul class="hr-lista">
+      @for (cap of resultados; track cap.id) {
+        <li
+          class="hr-item"
+          [class.activo]="capacitacionSeleccionada?.id === cap.id"
+          (click)="seleccionar(cap)"
+        >
+          <span class="hr-cod">{{ cap.codigo_act }}</span>
+          <span class="hr-nom">{{ cap.nombre_actividad }}</span>
+          <span class="hr-red">{{ cap.red_asistencial }}</span>
+        </li>
+      }
+      @if (!buscando && resultados.length === 0) {
+        <li class="hr-hint">Sin resultados</li>
+      }
+    </ul>
+  </aside>
 
-        <td>{{ item.estado }}</td>
+  <!-- PANEL DERECHO: hoja de ruta -->
+  <main class="hr-main">
 
-        <td>{{ item.responsable }}</td>
-
-        <td>{{ item.beneficiarios }}</td>
-
-        <td>S/. {{ item.presupuesto }}</td>
-
-        <td>
-          <button class="btn-ruta" (click)="verRuta(item.expediente)">Ver Ruta</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="ruta-container">
-  <h1>Hoja de Ruta PDP</h1>
-
-  <div class="expediente-card">
-    <div class="encabezado">
-      <div>
-        <h2>{{ expedienteSeleccionado?.expediente }}</h2>
-        <p>{{ expedienteSeleccionado?.capacitacion }}</p>
+    @if (!capacitacionSeleccionada) {
+      <div class="hr-empty">
+        <div class="hr-empty-icon">📋</div>
+        <p>Selecciona una capacitación de la lista para ver su hoja de ruta.</p>
       </div>
+    }
 
-      <div class="estado-actual">
-        <span>Estado Actual</span>
-        <strong>{{ expedienteSeleccionado?.estado }}</strong>
-      </div>
-    </div>
+    @if (capacitacionSeleccionada) {
 
-    <div class="avance-box">
-      <div class="avance-info">
-        <span>Avance General</span>
-        <strong>65%</strong>
-      </div>
+      <!-- ENCABEZADO -->
+      <div class="hr-card">
+        <div class="hr-enc">
+          <div>
+            <h2>{{ capacitacionSeleccionada.codigo_act }}</h2>
+            <p class="hr-enc-sub">{{ capacitacionSeleccionada.nombre_actividad }}</p>
+            <p class="hr-enc-red">{{ capacitacionSeleccionada.red_asistencial }}</p>
+          </div>
+          <div class="hr-enc-right">
+            <div class="semaforo semaforo-{{ semaforo }}">
+              @if (semaforo === 'verde') { 🟢 En tiempo }
+              @if (semaforo === 'amarillo') { 🟡 Próximo a vencer }
+              @if (semaforo === 'rojo') { 🔴 Urgente }
+              @if (semaforo === 'gris') { ⚪ Sin fecha }
+            </div>
+            @if (semaforo !== 'gris') {
+              <p class="hr-dias">{{ diasRestantes > 0 ? diasRestantes + ' días restantes' : 'Vencido' }}</p>
+            }
+            <p class="hr-estado-label">Paso actual</p>
+            <strong class="hr-estado-val">{{ pasoActual }}</strong>
+          </div>
+        </div>
 
-      <div class="barra-avance">
-        <div class="progreso"></div>
-      </div>
-    </div>
+        <!-- BARRA DE AVANCE -->
+        <div class="hr-avance-wrap">
+          <div class="hr-avance-info">
+            <span>Avance General</span>
+            <strong class="hr-pct" [class.pct-verde]="porcentajeAvance === 100">{{ porcentajeAvance }}%</strong>
+          </div>
+          <div class="hr-barra-bg">
+            <div
+              class="hr-barra-fill"
+              [class.fill-completo]="porcentajeAvance === 100"
+              [style.width.%]="porcentajeAvance"
+            ></div>
+          </div>
+        </div>
 
-    <div class="info-grid">
-      <div class="info-card">
-        <h4>Responsable Actual</h4>
-        <p>{{ expedienteSeleccionado?.responsable }}</p>
-      </div>
+        <!-- INFO GRID -->
+        <div class="hr-info-grid">
+          <div class="info-c">
+            <h4>Red Asistencial</h4>
+            <p>{{ capacitacionSeleccionada.red_asistencial || '—' }}</p>
+          </div>
+          <div class="info-c">
+            <h4>Fecha Inicio</h4>
+            <p>{{ formatFecha(capacitacionSeleccionada.fecha_inicio) }}</p>
+          </div>
+          <div class="info-c">
+            <h4>Mes Término</h4>
+            <p>{{ capacitacionSeleccionada.mes_termino || '—' }}</p>
+          </div>
+          <div class="info-c info-c-dias" [class.info-alerta-rojo]="semaforo === 'rojo'" [class.info-alerta-amarillo]="semaforo === 'amarillo'">
+            <h4>Días Restantes</h4>
+            <p>{{ semaforo !== 'gris' ? diasRestantes : '—' }}</p>
+          </div>
+        </div>
 
-      <div class="info-card">
-        <h4>Fecha Inicio</h4>
-        <p>10/01/2026</p>
-      </div>
+        <!-- TIMELINE INTERACTIVO -->
+        @if (cargandoPasos) {
+          <p class="hr-hint" style="text-align:center;padding:20px">Cargando pasos…</p>
+        }
 
-      <div class="info-card">
-        <h4>Fecha Límite</h4>
-        <p>30/06/2026</p>
-      </div>
+        @if (!cargandoPasos) {
+          <div class="hr-timeline">
+            @for (p of pasos; track p.paso; let i = $index) {
+              <div class="hr-step-wrap">
+                <button
+                  class="hr-step"
+                  [class.step-completado]="p.completado"
+                  [class.step-proceso]="!p.completado && pasoActual === p.paso"
+                  [class.step-pendiente]="!p.completado && pasoActual !== p.paso"
+                  [class.step-cargando]="guardandoPaso === p.paso"
+                  [disabled]="guardandoPaso !== null"
+                  (click)="togglePaso(p)"
+                  [title]="p.completado ? 'Desmarcar paso' : 'Marcar como completado'"
+                >
+                  @if (guardandoPaso === p.paso) { ⏳ }
+                  @else if (p.completado) { ✓ }
+                  @else if (pasoActual === p.paso) { ⏳ }
+                  @else { ○ }
+                </button>
+                <span class="hr-step-label" [class.label-activo]="pasoActual === p.paso && !p.completado">
+                  {{ p.paso }}
+                </span>
+                @if (p.completado_at) {
+                  <span class="hr-step-fecha">{{ formatFecha(p.completado_at) }}</span>
+                }
+                @if (i < pasos.length - 1) {
+                  <div class="hr-line" [class.line-done]="p.completado"></div>
+                }
+              </div>
+            }
+          </div>
+        }
 
-      <div class="info-card alerta">
-        <h4>Días Restantes</h4>
-        <p>{{ expedienteSeleccionado?.beneficiarios }} beneficiarios</p>
-      </div>
-    </div>
+      </div><!-- /.hr-card -->
 
-    <div class="timeline">
-      <div class="step completado">
-        <div class="circle">✓</div>
-        <span>Separación SGD</span>
-      </div>
+    }<!-- /@if capacitacionSeleccionada -->
 
-      <div class="line"></div>
-
-      <div class="step completado">
-        <div class="circle">✓</div>
-        <span>Elaboración TDR</span>
-      </div>
-
-      <div class="line"></div>
-
-      <div class="step completado">
-        <div class="circle">✓</div>
-        <span>Revisión TDR</span>
-      </div>
-
-      <div class="line"></div>
-
-      <div class="step completado">
-        <div class="circle">✓</div>
-        <span>Logística</span>
-      </div>
-
-      <div class="line"></div>
-
-      <div class="step proceso">
-        <div class="circle">⏳</div>
-        <span>Convocatoria</span>
-      </div>
-
-      <div class="line"></div>
-
-      <div class="step pendiente">
-        <div class="circle">○</div>
-        <span>Ejecución</span>
-      </div>
-
-      <div class="line"></div>
-
-      <div class="step pendiente">
-        <div class="circle">○</div>
-        <span>Finalizado</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="documentos-box">
-    <h3>Documentos del Expediente</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Documento</th>
-          <th>Estado</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr>
-          <td>Solicitud SGD</td>
-          <td><span class="estado-doc cargado">Cargado</span></td>
-          <td><button class="btn-ver">Ver</button></td>
-        </tr>
-
-        <tr>
-          <td>TDR</td>
-          <td><span class="estado-doc cargado">Cargado</span></td>
-          <td><button class="btn-ver">Ver</button></td>
-        </tr>
-
-        <tr>
-          <td>Informe Técnico</td>
-          <td><span class="estado-doc pendiente">Pendiente</span></td>
-          <td><button class="btn-cargar">Cargar</button></td>
-        </tr>
-
-        <tr>
-          <td>Convocatoria</td>
-          <td><span class="estado-doc cargado">Cargado</span></td>
-          <td><button class="btn-ver">Ver</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="historial-box">
-    <h3>Historial del Expediente</h3>
-
-    <div class="evento">
-      <div class="fecha">15/01/2026</div>
-      <div class="contenido">✓ Solicitud SGD registrada</div>
-    </div>
-
-    <div class="evento">
-      <div class="fecha">20/01/2026</div>
-      <div class="contenido">✓ Elaboración de TDR completada</div>
-    </div>
-
-    <div class="evento">
-      <div class="fecha">25/01/2026</div>
-      <div class="contenido">✓ TDR aprobado por Capacitación</div>
-    </div>
-
-    <div class="evento">
-      <div class="fecha">02/02/2026</div>
-      <div class="contenido">✓ Enviado a Logística</div>
-    </div>
-
-    <div class="evento pendiente-evento">
-      <div class="fecha">08/02/2026</div>
-      <div class="contenido">⏳ En proceso de Convocatoria</div>
-    </div>
-  </div>
+  </main>
 </div>

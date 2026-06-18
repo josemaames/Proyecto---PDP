@@ -289,6 +289,19 @@ async function crearTablas() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC)`);
   console.log('✓ Tabla audit_log verificada');
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS hoja_ruta_pasos (
+      id           SERIAL PRIMARY KEY,
+      actividad_id INT NOT NULL REFERENCES datos_actividad(id) ON DELETE CASCADE,
+      paso_nombre  TEXT NOT NULL,
+      completado   BOOLEAN NOT NULL DEFAULT FALSE,
+      completado_at TIMESTAMPTZ,
+      UNIQUE(actividad_id, paso_nombre)
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_hoja_ruta_actividad ON hoja_ruta_pasos(actividad_id)`);
+  console.log('✓ Tabla hoja_ruta_pasos verificada');
+
   console.log('✓ Tablas verificadas');
 }
 
@@ -611,6 +624,96 @@ app.delete('/api/actividades/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM datos_actividad WHERE id=$1', [parseInt(req.params.id)]);
     invalidarCache();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ══════════════════════════════════════════════
+// HOJA DE RUTA — pasos por capacitación
+// GET  /api/hoja-ruta/:actividad_id/pasos
+// PUT  /api/hoja-ruta/:actividad_id/pasos/:paso   body: { completado, actor_nombre }
+// ══════════════════════════════════════════════
+
+const PASOS_HOJA_RUTA = [
+  'Separación SGD',
+  'Elaboración TDR',
+  'Revisión TDR',
+  'Logística',
+  'Convocatoria',
+  'Ejecución',
+  'Finalizado',
+];
+
+app.get('/api/hoja-ruta/:actividad_id/pasos', async (req, res) => {
+  try {
+    const actId = parseInt(req.params.actividad_id);
+    const { rows } = await pool.query(
+      `SELECT paso_nombre, completado, completado_at FROM hoja_ruta_pasos WHERE actividad_id=$1`,
+      [actId]
+    );
+    const map = {};
+    rows.forEach((r) => (map[r.paso_nombre] = { completado: r.completado, completado_at: r.completado_at }));
+    const result = PASOS_HOJA_RUTA.map((p) => ({
+      paso: p,
+      completado: map[p]?.completado || false,
+      completado_at: map[p]?.completado_at || null,
+    }));
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/hoja-ruta/:actividad_id/pasos/:paso', async (req, res) => {
+  try {
+    const actId = parseInt(req.params.actividad_id);
+    const paso = decodeURIComponent(req.params.paso);
+    const { completado, actor_nombre = 'Administrador' } = req.body;
+
+    if (!PASOS_HOJA_RUTA.includes(paso)) {
+      return res.status(400).json({ error: 'Paso inválido' });
+    }
+
+    await pool.query(
+      `INSERT INTO hoja_ruta_pasos (actividad_id, paso_nombre, completado, completado_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (actividad_id, paso_nombre) DO UPDATE
+         SET completado=$3, completado_at=$4`,
+      [actId, paso, completado, completado ? new Date() : null]
+    );
+
+    // Notificar sectorista de la red si se marca como completado
+    if (completado) {
+      const { rows: act } = await pool.query(
+        `SELECT nombre_actividad, codigo_act, red_asistencial FROM datos_actividad WHERE id=$1`,
+        [actId]
+      );
+      if (act.length) {
+        const { nombre_actividad, codigo_act, red_asistencial } = act[0];
+        const { rows: sectoristas } = await pool.query(
+          `SELECT email, nombre FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
+          [`%${red_asistencial}%`]
+        );
+        if (sectoristas.length) {
+          const emails = sectoristas.map((s) => s.email);
+          const html = htmlBase('#005baa', '📋 Actualización de Hoja de Ruta PDP',
+            `<p>El administrador <strong>${actor_nombre}</strong> marcó el paso <strong>"${paso}"</strong> como completado en la siguiente capacitación:</p>
+             <table style="width:100%;border-collapse:collapse;margin:16px 0">
+               <tr><td style="padding:8px;color:#6b7280">Capacitación:</td><td style="padding:8px;font-weight:bold">${nombre_actividad}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Código:</td><td style="padding:8px">${codigo_act}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Red asistencial:</td><td style="padding:8px">${red_asistencial}</td></tr>
+               <tr><td style="padding:8px;color:#6b7280">Paso completado:</td><td style="padding:8px;color:#16a34a;font-weight:bold">✅ ${paso}</td></tr>
+             </table>
+             <p>Ingrese al Sistema PDP para ver el estado actualizado de la hoja de ruta.</p>`
+          );
+          enviarCorreo(emails, `✅ Paso "${paso}" completado — ${nombre_actividad}`, html);
+        }
+        logEvento('hoja_ruta', `${actor_nombre} marcó paso "${paso}" como ${completado ? 'completado' : 'pendiente'} en capacitación "${nombre_actividad}" [${codigo_act}]`, actor_nombre, 'Administrador', codigo_act);
+      }
+    }
+
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
