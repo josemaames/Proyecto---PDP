@@ -2473,3 +2473,24 @@ tr:hover td {
 .costo-card canvas {
   width: 100% !important;
 }
+
+.cumplimiento-presupuesto-card {
+  width: 100%;
+}
+
+.presupuesto-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin: 24px 0;
+}
+
+.progress-container {
+  height: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+}

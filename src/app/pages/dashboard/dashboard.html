@@ -763,10 +763,9 @@
           </div>
           <!-- cierre graficos-container -->
         }
-        <!-- Cumplimiento Presupuestal -->
         @if (esAdministrador) {
           <div class="grafico-full-width">
-            <div class="dash-card cumplimiento-presupuesto-card">
+            <div class="dash-card cumplimiento-presupuesto-card ancho-completo">
               <h3>🎯 Cumplimiento Presupuestal por Red</h3>
 
               <div class="presupuesto-control">
@@ -778,7 +777,7 @@
                 >
                   <option value="">Todas las Redes</option>
 
-                  @for (red of redes; track red) {
+                  @for (red of redesDisponibles; track red) {
                     <option [value]="red">
                       {{ red }}
                     </option>

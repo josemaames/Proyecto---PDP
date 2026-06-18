@@ -118,10 +118,17 @@ export class Dashboard implements OnInit, OnDestroy {
       resumen: this.pdpData.getResumenRedes('', this.filtroTematico, anio),
       dashboard: this.pdpData.getDashboard(this.busquedaRed, this.filtroTematico, anio),
     }).subscribe(({ stats, resumen, dashboard }) => {
+      console.log('TOTAL REDES API', resumen.length);
+      console.log('TOTAL REDES COMPONENTE', this.resumenRedes.length);
       this.resumenRedes = resumen;
-
+      console.log('RESUMEN API', resumen.length);
+      console.log(resumen);
+      console.log('RESUMEN REDES', this.resumenRedes.length);
+      console.log('RESUMEN FILTRADO', this.resumenRedesFiltrado.length);
+      console.log('BUSQUEDA RED', this.busquedaRed);
+      console.log('FILTRADO', this.resumenRedesFiltrado.length);
       this.construirGraficos(stats, this.resumenRedesFiltrado);
-
+      console.log('ENTRANDO A actualizarChartsDesdesDashboard', this.resumenRedes.length);
       this.actualizarChartsDesdesDashboard(dashboard);
     });
   }
@@ -198,20 +205,25 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       },
     };
-
+    console.log('ANTES DE PRESUPUESTO', this.resumenRedes.length);
+    console.log('RESUMEN REDES EN GRAFICO');
+    console.table(this.resumenRedes);
+    console.log('REDES UNICAS', [...new Set(this.resumenRedes.map((r: any) => r.red))].length);
     this.chartConfigPresupuestoRed = {
       type: 'bar',
+
       data: {
-        labels: this.resumenRedes.slice(0, 8).map((r: any) => r.red),
+        labels: this.resumenRedes.map((r: any) => r.red),
 
         datasets: [
           {
             label: 'Presupuesto (S/.)',
-            data: this.resumenRedes.slice(0, 8).map((r: any) => Number(r.presupuesto)),
+
+            data: this.resumenRedes.map((r: any) => Number(r.presupuesto)),
 
             backgroundColor: '#f59e0b',
             borderRadius: 10,
-            maxBarThickness: 40,
+            maxBarThickness: 55,
           },
         ],
       },
@@ -223,11 +235,6 @@ export class Dashboard implements OnInit, OnDestroy {
         plugins: {
           legend: {
             display: true,
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx: any) => `S/ ${ctx.parsed.y.toLocaleString()}`,
-            },
           },
         },
 
@@ -241,6 +248,8 @@ export class Dashboard implements OnInit, OnDestroy {
         },
       },
     };
+
+    console.log('LABELS GRAFICO', this.chartConfigPresupuestoRed.data.labels.length);
 
     this.chartConfigEficienciaRed = {
       type: 'scatter',
@@ -289,19 +298,15 @@ export class Dashboard implements OnInit, OnDestroy {
 
         scales: {
           x: {
-            title: {
-              display: true,
-              text: 'Participantes',
-            },
             ticks: {
-              stepSize: 100,
+              autoSkip: false,
+              maxRotation: 90,
+              minRotation: 90,
             },
           },
+
           y: {
-            title: {
-              display: true,
-              text: 'Presupuesto (S/)',
-            },
+            beginAtZero: true,
             ticks: {
               callback: (value: any) => `S/ ${Number(value).toLocaleString()}`,
             },
@@ -876,6 +881,8 @@ export class Dashboard implements OnInit, OnDestroy {
           console.log('MESES', dashboard.actividadesMes);
 
           this.statsGlobal = stats;
+          console.log('RESUMEN LLEGADO DEL API', resumen.length);
+          console.log(resumen);
           this.resumenRedes = resumen;
           console.log('RESUMEN REDES', this.resumenRedes);
           this.redesDisponibles = [...new Set(resumen.map((r) => r.red))].sort();
@@ -957,7 +964,7 @@ export class Dashboard implements OnInit, OnDestroy {
           };
           this.cargandoKpis = false;
           this.cargandoResumen = false;
-          this.construirGraficos(stats, resumen);
+          this.construirGraficos(stats, this.resumenRedesFiltrado);
 
           this.cargarMapaPeru();
 
@@ -1260,7 +1267,14 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   actualizarCumplimientoPresupuesto(): void {
-    // Todas las redes
+    const normalizar = (texto: string) =>
+      texto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
+
+    console.log('RED SELECCIONADA', this.redSeleccionada);
+
     if (!this.redSeleccionada) {
       this.presupuestoAsignado = this.presupuestoRedes.reduce(
         (total, item) => total + Number(item.techo || 0),
@@ -1272,14 +1286,22 @@ export class Dashboard implements OnInit, OnDestroy {
         0,
       );
     } else {
-      const nombreBusqueda = this.nombreRedPresupuesto[this.redSeleccionada];
+      const techo = this.presupuestoRedes.find((p) => {
+        const nombrePresupuesto = normalizar(p.red);
 
-      const techo = this.presupuestoRedes.find((p) => p.red === nombreBusqueda);
+        const nombreResumen = normalizar(
+          this.redSeleccionada.replace('RA ', '').replace('RP ', '').trim(),
+        );
+
+        return nombrePresupuesto.includes(nombreResumen);
+      });
 
       const ejecutado = this.resumenRedes.find((r) => r.red === this.redSeleccionada);
 
-      this.presupuestoAsignado = Number(techo?.techo || 0);
+      console.log('TECHO ENCONTRADO', techo);
+      console.log('EJECUTADO ENCONTRADO', ejecutado);
 
+      this.presupuestoAsignado = Number(techo?.techo || 0);
       this.presupuestoEjecutado = Number(ejecutado?.presupuesto || 0);
     }
 
@@ -1290,7 +1312,6 @@ export class Dashboard implements OnInit, OnDestroy {
         ? (this.presupuestoEjecutado / this.presupuestoAsignado) * 100
         : 0;
 
-    // líder
     const lider = [...this.resumenRedes].sort(
       (a, b) => Number(b.presupuesto || 0) - Number(a.presupuesto || 0),
     )[0];
@@ -1316,13 +1337,26 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private construirRankingPresupuesto(): void {
     this.topEjecucion = [];
-
     this.topEficiencia = [];
 
-    this.resumenRedes.forEach((red) => {
-      const nombreBusqueda = this.nombreRedPresupuesto[red.red];
+    const normalizar = (texto: string) =>
+      texto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
 
-      const techo = this.presupuestoRedes.find((p) => p.red === nombreBusqueda);
+    this.resumenRedes.forEach((red) => {
+      console.log('BUSCANDO', red.red);
+
+      const techo = this.presupuestoRedes.find((p) => {
+        const nombrePresupuesto = normalizar(p.red);
+
+        const nombreResumen = normalizar(red.red.replace('RA ', '').replace('RP ', '').trim());
+
+        return nombrePresupuesto.includes(nombreResumen);
+      });
+
+      console.log('ENCONTRO', techo);
 
       if (!techo) {
         return;
