@@ -65,10 +65,11 @@ export class Dashboard implements OnInit, OnDestroy {
     if (!t) return this.historial;
     return this.historial.filter(
       (e) =>
-        e.expediente?.toLowerCase().includes(t) ||
-        e.usuario?.toLowerCase().includes(t) ||
-        e.accion?.toLowerCase().includes(t) ||
-        e.detalle?.toLowerCase().includes(t),
+        e.descripcion?.toLowerCase().includes(t) ||
+        e.actor_nombre?.toLowerCase().includes(t) ||
+        e.actor_rol?.toLowerCase().includes(t) ||
+        e.referencia?.toLowerCase().includes(t) ||
+        e.tipo?.toLowerCase().includes(t),
     );
   }
 
@@ -1131,10 +1132,45 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
+  cargandoHistorial = false;
+
   abrirHistorial() {
-    this.historial = this.expedienteService.getHistorial();
     this.filtroHistorial = '';
     this.mostrarHistorial = true;
+    this.cargandoHistorial = true;
+
+    this.http.get<any[]>('http://localhost:3001/api/audit-log?limit=300').subscribe({
+      next: (apiLogs) => {
+        // Combinar con registros locales de expedientes (conversión al formato unificado)
+        const locales = this.expedienteService.getHistorial().map((e: any) => ({
+          id: null,
+          tipo: 'expediente_editado',
+          descripcion: `${e.usuario} ${e.accion.toLowerCase()} el expediente ${e.expediente}${e.detalle ? ' — ' + e.detalle : ''}`,
+          actor_nombre: e.usuario,
+          actor_rol: e.rol || 'Usuario',
+          referencia: e.expediente,
+          created_at: e.timestamp,
+        }));
+
+        const todos = [...apiLogs, ...locales].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        this.historial = todos;
+        this.cargandoHistorial = false;
+      },
+      error: () => {
+        // Fallback a solo locales si el backend no responde
+        this.historial = this.expedienteService.getHistorial().map((e: any) => ({
+          tipo: 'expediente_editado',
+          descripcion: `${e.usuario} ${e.accion.toLowerCase()} el expediente ${e.expediente}`,
+          actor_nombre: e.usuario,
+          actor_rol: e.rol || 'Usuario',
+          referencia: e.expediente,
+          created_at: e.timestamp,
+        }));
+        this.cargandoHistorial = false;
+      },
+    });
   }
   cerrarHistorial() {
     this.mostrarHistorial = false;

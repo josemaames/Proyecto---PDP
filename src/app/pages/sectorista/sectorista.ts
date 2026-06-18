@@ -221,9 +221,11 @@ export class Sectorista implements OnInit {
     forkJoin([
       this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=aprobado${params}`),
       this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=denegado${params}`),
+      this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=observado${params}`),
+      this.http.get<any[]>(`http://localhost:3001/api/solicitudes?estado=excluido${params}`),
     ]).subscribe({
-      next: ([aprobadas, denegadas]) => {
-        this.historial = [...aprobadas, ...denegadas].sort(
+      next: ([aprobadas, denegadas, observadas, excluidas]) => {
+        this.historial = [...aprobadas, ...denegadas, ...observadas, ...excluidas].sort(
           (a, b) => new Date(b.reviewed_at).getTime() - new Date(a.reviewed_at).getTime(),
         );
         this.cargandoHistorial = false;
@@ -340,7 +342,9 @@ export class Sectorista implements OnInit {
     const payload: Actividad = {
       ...this.actividadEditando,
       total_participantes: this.participantesEditando.length,
-    };
+      actor_nombre: this.usuario.nombre,
+      actor_rol: this.usuario.rol,
+    } as any;
     this.pdpData.actualizarActividad(this.actividadEditando.id, payload).subscribe({
       next: () => {
         this.guardandoEdicion = false;
@@ -431,7 +435,11 @@ export class Sectorista implements OnInit {
   aprobarSolicitud(s: any) {
     this.procesandoRevision = true;
     this.http
-      .put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, { estado: 'aprobado' })
+      .put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, {
+        estado: 'aprobado',
+        revisor_nombre: this.usuario.nombre,
+        revisor_rol: this.usuario.rol,
+      })
       .subscribe({
         next: () => {
           this.procesandoRevision = false;
@@ -462,13 +470,37 @@ export class Sectorista implements OnInit {
     this.procesandoRevision = true;
     this.http
       .put(`http://localhost:3001/api/solicitudes/${this.solicitudADenegar.id}/revisar`, {
-        estado: 'denegado',
-        motivo_rechazo: this.motivoRechazo.trim() || 'Sin motivo especificado',
+        estado: 'observado',
+        motivo_rechazo: this.motivoRechazo.trim() || 'Sin observación especificada',
+        revisor_nombre: this.usuario.nombre,
+        revisor_rol: this.usuario.rol,
       })
       .subscribe({
         next: () => {
           this.procesandoRevision = false;
           this.cerrarModalRechazo();
+          this.solicitudDetalle = null;
+          this.cargarSolicitudes();
+          this.cargarHistorial();
+        },
+        error: () => {
+          this.procesandoRevision = false;
+        },
+      });
+  }
+
+  excluirSolicitud(s: any) {
+    if (!confirm(`¿Excluir la solicitud "${s.datos?.nombreActividad || 'esta actividad'}"?\n\nSe notificará al ejecutor por correo.`)) return;
+    this.procesandoRevision = true;
+    this.http
+      .put(`http://localhost:3001/api/solicitudes/${s.id}/revisar`, {
+        estado: 'excluido',
+        revisor_nombre: this.usuario.nombre,
+        revisor_rol: this.usuario.rol,
+      })
+      .subscribe({
+        next: () => {
+          this.procesandoRevision = false;
           this.solicitudDetalle = null;
           this.cargarSolicitudes();
           this.cargarHistorial();

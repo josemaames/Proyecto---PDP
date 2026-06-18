@@ -480,6 +480,10 @@ tr:hover td {
 
   width: 100%;
   max-width: 700px;
+}
+
+.hist-modal-wide {
+  max-width: 1000px;
 
   max-height: 90vh;
 
@@ -686,6 +690,24 @@ tr:hover td {
   font-weight: 700;
   white-space: nowrap;
 }
+
+.badge-tipo-hist {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #f3f4f6;
+  color: #374151;
+}
+.tipo-solicitud-enviada  { background: #dbeafe; color: #1d4ed8; }
+.tipo-solicitud-aprobado { background: #dcfce7; color: #15803d; }
+.tipo-solicitud-observado{ background: #fef3c7; color: #b45309; }
+.tipo-solicitud-excluido { background: #f3f4f6; color: #374151; }
+.tipo-usuario            { background: #ede9fe; color: #6d28d9; }
+.tipo-capacitacion       { background: #e0f2fe; color: #0369a1; }
+.tipo-expediente         { background: #fce7f3; color: #be185d; }
 
 .accion-agrego {
   background: #dcfce7;

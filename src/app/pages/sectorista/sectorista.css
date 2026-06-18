@@ -918,6 +918,26 @@
   white-space: nowrap;
 }
 
+.badge-observado {
+  background: #fef3c7;
+  color: #d97706;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.badge-excluido {
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
 .btn-refrescar {
   background: none;
   border: 1.5px solid #cbd5e1;
@@ -1015,6 +1035,44 @@
   background: #b91c1c;
 }
 .btn-denegar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-observar {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #d97706;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-observar:hover:not(:disabled) {
+  background: #b45309;
+}
+.btn-observar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-excluir {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #4b5563;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-excluir:hover:not(:disabled) {
+  background: #374151;
+}
+.btn-excluir:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

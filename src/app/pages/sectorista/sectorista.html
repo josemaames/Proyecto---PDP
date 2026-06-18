@@ -37,24 +37,6 @@
         </svg>
         <span>Expedientes</span>
       </div>
-      <div class="menu-item" (click)="irA('/personal-pdp')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        <span>Personal</span>
-      </div>
-      <div class="menu-item" (click)="irA('/lista-participantes')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        <span>Participantes</span>
-      </div>
       <div class="menu-item" [class.activo]="seccionActiva === 'sindicatos'" (click)="cambiarSeccion('sindicatos')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M17 20h5v-1a4 4 0 0 0-4-4h-1" />
@@ -131,11 +113,18 @@
                         ✅ Aprobar
                       </button>
                       <button
-                        class="btn-denegar"
+                        class="btn-observar"
                         (click)="abrirModalRechazo(s)"
                         [disabled]="procesandoRevision"
                       >
-                        ❌ Denegar
+                        🔍 Observar
+                      </button>
+                      <button
+                        class="btn-excluir"
+                        (click)="excluirSolicitud(s)"
+                        [disabled]="procesandoRevision"
+                      >
+                        🚫 Excluir
                       </button>
                     </td>
                   </tr>
@@ -391,11 +380,15 @@
                     <td>
                       @if (s.estado === 'aprobado') {
                         <span class="badge-aprobado">✅ Aprobado</span>
+                      } @else if (s.estado === 'observado') {
+                        <span class="badge-observado">🔍 Observado</span>
+                      } @else if (s.estado === 'excluido') {
+                        <span class="badge-excluido">🚫 Excluido</span>
                       } @else {
                         <span class="badge-denegado">❌ Denegado</span>
                       }
                     </td>
-                    <td style="color: #dc2626; font-size: 0.85rem">
+                    <td style="font-size: 0.85rem" [style.color]="s.estado === 'observado' ? '#d97706' : '#dc2626'">
                       {{ s.motivo_rechazo || '—' }}
                     </td>
                     <td>
@@ -765,26 +758,27 @@
     </main>
   </div>
 
-  <!-- MODAL DE RECHAZO -->
+  <!-- MODAL OBSERVAR -->
   @if (mostrarModalRechazo) {
     <div class="modal-busqueda-overlay" (click)="cerrarModalRechazo()">
       <div class="modal-rechazo" (click)="$event.stopPropagation()">
-        <h3>❌ Denegar solicitud</h3>
+        <h3>🔍 Observar solicitud</h3>
         <p class="modal-rechazo-actividad">{{ solicitudADenegar?.datos?.nombreActividad }}</p>
-        <label>Motivo del rechazo (opcional)</label>
+        <label>Motivo de la observación (opcional)</label>
         <textarea
           rows="4"
           [(ngModel)]="motivoRechazo"
-          placeholder="Indique el motivo para que el ejecutor pueda corregirlo..."
+          placeholder="Indique la observación para que el ejecutor pueda corregirla..."
         ></textarea>
         <div class="modal-rechazo-acciones">
           <button class="btn-cancelar-modal" (click)="cerrarModalRechazo()">Cancelar</button>
           <button
             class="btn-confirmar-rechazo"
+            style="background: #d97706"
             (click)="confirmarRechazo()"
             [disabled]="procesandoRevision"
           >
-            {{ procesandoRevision ? 'Procesando...' : 'Confirmar rechazo' }}
+            {{ procesandoRevision ? 'Procesando...' : '🔍 Confirmar observación' }}
           </button>
         </div>
       </div>

@@ -97,6 +97,8 @@ console.log('Config DB ->', {
 // Email — Servicio de Mensajería Wiracocha
 // ──────────────────────────────────────────────
 const smtpPort = parseInt(process.env.SMTP_PORT) || 25;
+const smtpFrom = process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@essalud.gob.pe';
+
 const mailerTransport = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'wiracocha.essalud',
   port: smtpPort,
@@ -114,7 +116,7 @@ async function enviarCorreo(destinatarios, asunto, html) {
   if (!to) return;
   try {
     await mailerTransport.sendMail({
-      from: '"Sistema PDP EsSalud" <no-reply@essalud.gob.pe>',
+      from: `"Sistema PDP EsSalud" <${smtpFrom}>`,
       to,
       subject: asunto,
       html,
@@ -273,7 +275,32 @@ async function crearTablas() {
   `);
   console.log('✓ Tabla documentos verificada');
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id           SERIAL PRIMARY KEY,
+      tipo         TEXT NOT NULL,
+      descripcion  TEXT NOT NULL,
+      actor_nombre TEXT,
+      actor_rol    TEXT,
+      referencia   TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC)`);
+  console.log('✓ Tabla audit_log verificada');
+
   console.log('✓ Tablas verificadas');
+}
+
+async function logEvento(tipo, descripcion, actor_nombre = null, actor_rol = null, referencia = null) {
+  try {
+    await pool.query(
+      `INSERT INTO audit_log (tipo, descripcion, actor_nombre, actor_rol, referencia) VALUES ($1,$2,$3,$4,$5)`,
+      [tipo, descripcion, actor_nombre, actor_rol, referencia]
+    );
+  } catch (e) {
+    console.error('logEvento error:', e.message);
+  }
 }
 
 async function crearIndices() {
@@ -546,7 +573,7 @@ app.post('/api/actividades', async (req, res) => {
 
 app.put('/api/actividades/:id', async (req, res) => {
   try {
-    const f = req.body;
+    const { actor_nombre, actor_rol, ...f } = req.body;
     const { rows } = await pool.query(
       `UPDATE datos_actividad SET
          codigo_act=$1, fecha_inicio=$2, fecha_fin=$3, mes_termino=$4,
@@ -573,6 +600,7 @@ app.put('/api/actividades/:id', async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
     invalidarCache();
+    logEvento('capacitacion_editada', `${actor_nombre || 'Usuario'} editó la capacitación "${f.nombre_actividad}" [${f.codigo_act}]`, actor_nombre, actor_rol || 'Sectorista', f.codigo_act);
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -860,6 +888,15 @@ app.post('/api/solicitudes', async (req, res) => {
     );
     res.status(201).json(rows[0]);
 
+    const actNombre = datos.nombreActividad || datos.nombre_actividad || 'Sin nombre';
+    logEvento(
+      'solicitud_enviada',
+      `${ejecutor_nombre || 'Ejecutor'} envió solicitud de capacitación "${actNombre}" — ${red || 'Sin red'}, a la espera de revisión del sectorista`,
+      ejecutor_nombre,
+      'Ejecutor',
+      actNombre
+    );
+
     // Notificar a sectoristas de la red (sin bloquear la respuesta)
     if (red) {
       const { rows: sectoristas } = await pool.query(
@@ -942,9 +979,9 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
 
 app.put('/api/solicitudes/:id/revisar', async (req, res) => {
   try {
-    const { estado, motivo_rechazo } = req.body;
-    if (!['aprobado', 'denegado'].includes(estado)) {
-      return res.status(400).json({ error: 'estado debe ser aprobado o denegado' });
+    const { estado, motivo_rechazo, revisor_nombre, revisor_rol } = req.body;
+    if (!['aprobado', 'observado', 'excluido', 'denegado'].includes(estado)) {
+      return res.status(400).json({ error: 'estado no válido' });
     }
     const { rows } = await pool.query(
       `UPDATE solicitudes_revision
@@ -1005,9 +1042,18 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
 
     // Notificar al ejecutor y a los administradores
     const solicitud = rows[0];
-    const esAprobado = estado === 'aprobado';
+    const esAprobado  = estado === 'aprobado';
+    const esObservado = estado === 'observado';
+    const esExcluido  = estado === 'excluido';
     const actividadNombre = solicitud.datos?.nombreActividad || solicitud.datos?.nombre_actividad || '-';
     const red = solicitud.red_asistencial || '-';
+
+    // Configuración visual por estado
+    const cfg = esAprobado
+      ? { color: '#16a34a', icono: '✅', etiqueta: 'APROBADA' }
+      : esObservado
+        ? { color: '#d97706', icono: '🔍', etiqueta: 'OBSERVADA' }
+        : { color: '#dc2626', icono: '🚫', etiqueta: 'EXCLUIDA' };
 
     const [{ rows: ejecutores }, { rows: admins }] = await Promise.all([
       pool.query(
@@ -1020,31 +1066,23 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     ]);
 
     if (ejecutores.length) {
-      const htmlEjecutor = esAprobado
-        ? htmlBase(
-            '#16a34a',
-            '✅ Solicitud Aprobada',
-            `<p>Estimado/a <strong>${ejecutores[0].nombre}</strong>,</p>
-             <p>Su solicitud ha sido <strong style="color:#16a34a">APROBADA</strong> y registrada en el sistema.</p>
-             <table style="width:100%;border-collapse:collapse;margin:16px 0">
-               <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
-               <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
-             </table>`
-          )
-        : htmlBase(
-            '#dc2626',
-            '❌ Solicitud Denegada',
-            `<p>Estimado/a <strong>${ejecutores[0].nombre}</strong>,</p>
-             <p>Su solicitud ha sido <strong style="color:#dc2626">DENEGADA</strong>.</p>
-             <table style="width:100%;border-collapse:collapse;margin:16px 0">
-               <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
-               <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
-               <tr><td style="padding:8px;color:#6b7280">Motivo:</td><td style="padding:8px;color:#dc2626">${motivo_rechazo || 'No especificado'}</td></tr>
-             </table>`
-          );
+      const filaMotivo = esObservado
+        ? `<tr><td style="padding:8px;color:#6b7280">Observación:</td><td style="padding:8px;color:#d97706">${motivo_rechazo || 'Sin detalle'}</td></tr>`
+        : '';
+      const htmlEjecutor = htmlBase(
+        cfg.color,
+        `${cfg.icono} Solicitud ${cfg.etiqueta}`,
+        `<p>Estimado/a <strong>${ejecutores[0].nombre}</strong>,</p>
+         <p>Su solicitud ha sido <strong style="color:${cfg.color}">${cfg.etiqueta}</strong>${esObservado ? '. Por favor revise la observación y corrija su solicitud.' : esExcluido ? '. Ha sido excluida del proceso.' : ' y registrada en el sistema.'}.</p>
+         <table style="width:100%;border-collapse:collapse;margin:16px 0">
+           <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
+           ${filaMotivo}
+         </table>`
+      );
       enviarCorreo(
         ejecutores[0].email,
-        esAprobado ? '✅ Solicitud aprobada — Sistema PDP' : '❌ Solicitud denegada — Sistema PDP',
+        `${cfg.icono} Solicitud ${cfg.etiqueta.toLowerCase()} — Sistema PDP`,
         htmlEjecutor
       );
     }
@@ -1052,22 +1090,32 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     if (admins.length) {
       const htmlAdmin = htmlBase(
         '#005baa',
-        `${esAprobado ? '✅' : '❌'} Solicitud ${estado.toUpperCase()}`,
+        `${cfg.icono} Solicitud ${estado.toUpperCase()}`,
         `<p>Un sectorista tomó una decisión sobre una solicitud de capacitación.</p>
          <table style="width:100%;border-collapse:collapse;margin:16px 0">
-           <tr><td style="padding:8px;color:#6b7280">Estado:</td><td style="padding:8px;font-weight:bold;color:${esAprobado ? '#16a34a' : '#dc2626'}">${estado.toUpperCase()}</td></tr>
+           <tr><td style="padding:8px;color:#6b7280">Estado:</td><td style="padding:8px;font-weight:bold;color:${cfg.color}">${cfg.etiqueta}</td></tr>
            <tr><td style="padding:8px;color:#6b7280">Ejecutor:</td><td style="padding:8px">${solicitud.ejecutor_nombre || '-'}</td></tr>
            <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px">${actividadNombre}</td></tr>
            <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
-           ${!esAprobado ? `<tr><td style="padding:8px;color:#6b7280">Motivo:</td><td style="padding:8px;color:#dc2626">${motivo_rechazo || '-'}</td></tr>` : ''}
+           ${esObservado ? `<tr><td style="padding:8px;color:#6b7280">Observación:</td><td style="padding:8px;color:#d97706">${motivo_rechazo || '-'}</td></tr>` : ''}
          </table>`
       );
       enviarCorreo(
         admins.map((a) => a.email),
-        `${esAprobado ? '✅' : '❌'} Solicitud ${estado} — Sistema PDP`,
+        `${cfg.icono} Solicitud ${estado} — Sistema PDP`,
         htmlAdmin
       );
     }
+
+    // Audit log de la revisión
+    const actor = revisor_nombre || 'Sectorista';
+    const ejecutorNombre = solicitud.ejecutor_nombre || 'el ejecutor';
+    const logDesc = esAprobado
+      ? `${actor} aprobó la solicitud "${actividadNombre}" de ${ejecutorNombre} — Red: ${red}`
+      : esObservado
+        ? `${actor} observó la solicitud "${actividadNombre}" de ${ejecutorNombre}${motivo_rechazo ? ` — Observación: ${motivo_rechazo}` : ''}`
+        : `${actor} excluyó la solicitud "${actividadNombre}" de ${ejecutorNombre} — Red: ${red}`;
+    logEvento(`solicitud_${estado}`, logDesc, actor, revisor_rol || 'Sectorista', actividadNombre);
 
     res.json(rows[0]);
   } catch (err) {
@@ -1121,13 +1169,14 @@ app.get('/api/usuarios', async (req, res) => {
 
 app.post('/api/usuarios', async (req, res) => {
   try {
-    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla, email } = req.body;
+    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla, email, actor_nombre, actor_rol } = req.body;
     if (!dni || !nombre || !password || !rol) return res.status(400).json({ error: 'dni, nombre, password y rol son requeridos' });
     const { rows } = await pool.query(
       `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
       [dni, nombre, password, rol, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '', email || '']
     );
+    logEvento('usuario_creado', `${actor_nombre || 'Administrador'} creó el usuario ${nombre} (${rol})`, actor_nombre, actor_rol || 'Administrador', nombre);
     res.status(201).json(rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Ya existe un usuario con ese DNI.' });
@@ -1137,6 +1186,7 @@ app.post('/api/usuarios', async (req, res) => {
 
 app.put('/api/usuarios/:dni', async (req, res) => {
   try {
+    const { actor_nombre, actor_rol } = req.body;
     const campos = ['nombre','password','rol','cargo','estado','sedes','numero_plantilla','email'];
     const sets = [], params = [];
     let idx = 1;
@@ -1153,7 +1203,25 @@ app.put('/api/usuarios/:dni', async (req, res) => {
       params
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    logEvento('usuario_editado', `${actor_nombre || 'Administrador'} editó el usuario ${rows[0].nombre} (${rows[0].rol})`, actor_nombre, actor_rol || 'Administrador', rows[0].nombre);
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// AUDIT LOG
+// ──────────────────────────────────────────────
+app.get('/api/audit-log', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 200, 500);
+    const { rows } = await pool.query(
+      `SELECT id, tipo, descripcion, actor_nombre, actor_rol, referencia, created_at
+       FROM audit_log ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

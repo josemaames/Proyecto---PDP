@@ -1043,17 +1043,15 @@
 <!-- ===== MODAL HISTORIAL ===== -->
 @if (mostrarHistorial) {
   <div class="hist-overlay" (click)="cerrarHistorial()">
-    <div class="hist-modal" (click)="$event.stopPropagation()">
+    <div class="hist-modal hist-modal-wide" (click)="$event.stopPropagation()">
       <div class="hist-header">
         <div class="hist-titulo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-
-          <h3>Historial de Ediciones — Expedientes PDP</h3>
+          <h3>Historial de Actividad — Sistema PDP</h3>
         </div>
-
         <button class="hist-cerrar" (click)="cerrarHistorial()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -1067,95 +1065,76 @@
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-
         <input
           type="text"
           [(ngModel)]="filtroHistorial"
-          placeholder="Filtrar por expediente, usuario, acción o detalle..."
+          placeholder="Filtrar por usuario, rol, tipo de acción o descripción..."
         />
       </div>
 
       <div class="hist-cuerpo">
-        @if (historial.length === 0) {
+        @if (cargandoHistorial) {
+          <div class="hist-vacio"><p>Cargando historial...</p></div>
+        } @else if (historial.length === 0) {
           <div class="hist-vacio">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              width="52"
-              height="52"
-            >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-
-            <p>Aún no hay ediciones registradas.</p>
-            <small>Las acciones sobre expedientes aparecerán aquí.</small>
+            <p>Aún no hay actividad registrada.</p>
+            <small>Aquí aparecerán solicitudes, revisiones, ediciones de usuarios y capacitaciones.</small>
           </div>
         } @else if (historialFiltrado.length === 0) {
-          <div class="hist-vacio">
-            <p>No se encontraron registros con ese filtro.</p>
-          </div>
+          <div class="hist-vacio"><p>No se encontraron registros con ese filtro.</p></div>
         } @else {
           <table class="hist-tabla">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Hora</th>
+                <th>Fecha y hora</th>
                 <th>Usuario</th>
                 <th>Rol</th>
-                <th>Acción</th>
-                <th>Expediente</th>
-                <th>Detalle</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
               </tr>
             </thead>
-
             <tbody>
-              @for (e of historialFiltrado; track e.timestamp) {
+              @for (e of historialFiltrado; track $index) {
                 <tr>
-                  <td class="hist-fecha">
-                    {{ e.fecha }}
+                  <td class="hist-fecha" style="white-space: nowrap; font-size: 0.82rem">
+                    {{ e.created_at | date: 'dd/MM/yyyy' }}<br>
+                    <span class="hist-hora">{{ e.created_at | date: 'HH:mm:ss' }}</span>
                   </td>
-
-                  <td class="hist-hora">
-                    {{ e.hora }}
-                  </td>
-
                   <td class="hist-usuario">
                     <div class="usuario-chip">
-                      <span class="usuario-avatar-mini">
-                        {{ e.usuario?.charAt(0) }}
-                      </span>
-
-                      {{ e.usuario }}
+                      <span class="usuario-avatar-mini">{{ e.actor_nombre?.charAt(0) || '?' }}</span>
+                      {{ e.actor_nombre || '—' }}
                     </div>
                   </td>
-
                   <td>
-                    <span class="badge-rol-hist">
-                      {{ e.rol }}
-                    </span>
+                    <span class="badge-rol-hist">{{ e.actor_rol || '—' }}</span>
                   </td>
-
                   <td>
-                    <span
-                      class="badge-accion"
-                      [class.accion-agrego]="e.accion === 'Agregó'"
-                      [class.accion-edito]="e.accion === 'Editó'"
-                      [class.accion-elimino]="e.accion === 'Eliminó'"
+                    <span class="badge-tipo-hist"
+                      [class.tipo-solicitud-enviada]="e.tipo === 'solicitud_enviada'"
+                      [class.tipo-solicitud-aprobado]="e.tipo === 'solicitud_aprobado'"
+                      [class.tipo-solicitud-observado]="e.tipo === 'solicitud_observado'"
+                      [class.tipo-solicitud-excluido]="e.tipo === 'solicitud_excluido'"
+                      [class.tipo-usuario]="e.tipo === 'usuario_creado' || e.tipo === 'usuario_editado'"
+                      [class.tipo-capacitacion]="e.tipo === 'capacitacion_editada'"
+                      [class.tipo-expediente]="e.tipo === 'expediente_editado'"
                     >
-                      {{ e.accion }}
+                      @if (e.tipo === 'solicitud_enviada') { 📤 Solicitud enviada }
+                      @else if (e.tipo === 'solicitud_aprobado') { ✅ Aprobado }
+                      @else if (e.tipo === 'solicitud_observado') { 🔍 Observado }
+                      @else if (e.tipo === 'solicitud_excluido') { 🚫 Excluido }
+                      @else if (e.tipo === 'usuario_creado') { 👤 Usuario creado }
+                      @else if (e.tipo === 'usuario_editado') { ✏️ Usuario editado }
+                      @else if (e.tipo === 'capacitacion_editada') { 🎓 Capacitación editada }
+                      @else if (e.tipo === 'expediente_editado') { 📁 Expediente }
+                      @else { {{ e.tipo }} }
                     </span>
                   </td>
-
-                  <td class="hist-cod">
-                    {{ e.expediente }}
-                  </td>
-
-                  <td class="hist-detalle">
-                    {{ e.detalle }}
-                  </td>
+                  <td class="hist-detalle">{{ e.descripcion }}</td>
                 </tr>
               }
             </tbody>
@@ -1164,8 +1143,7 @@
       </div>
 
       <div class="hist-footer">
-        <span class="hist-total"> {{ historialFiltrado.length }} registro(s) </span>
-
+        <span class="hist-total">{{ historialFiltrado.length }} registro(s)</span>
         <button class="hist-btn-cerrar" (click)="cerrarHistorial()">Cerrar</button>
       </div>
     </div>
