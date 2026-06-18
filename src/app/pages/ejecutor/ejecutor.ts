@@ -476,7 +476,11 @@ export class Ejecutor implements OnInit {
   enviarCorreccion() {
     this.enviandoCorreccion = true;
     this.errorCorreccion = '';
-    const datos = { ...this.formularioCorreccion, participantesDetalle: this.participantesCorreccion };
+    const datos = {
+      ...this.formularioCorreccion,
+      participantesDetalle: this.participantesCorreccion,
+      totalParticipantes: this.participantesCorreccion.length,
+    };
     this.http.put(`http://localhost:3001/api/solicitudes/${this.solicitudCorrigiendo.id}/reenviar`, {
       datos,
       ejecutor_nombre: this.usuario?.nombre || '',

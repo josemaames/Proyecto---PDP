@@ -1343,7 +1343,7 @@ app.put('/api/solicitudes/:id/reenviar', async (req, res) => {
           datos.totalHoras || null, datos.horasFueraHorario || null, datos.frecuencia || null,
           datos.horaInicio || null, datos.horaTermino || null, datos.modalidad || null,
           datos.publico || null, datos.nivelEvaluacion || null, datos.objetivoEstrategico || null,
-          datos.totalParticipantes || null, datos.rucProveedor || null,
+          (Array.isArray(datos.participantesDetalle) ? datos.participantesDetalle.length : null) || datos.totalParticipantes || null, datos.rucProveedor || null,
           datos.nombreProveedor || null, datos.sectorProveedor || null,
           datos.presupuestoEjecutado || null, datos.ejeTematico || null,
         ]
