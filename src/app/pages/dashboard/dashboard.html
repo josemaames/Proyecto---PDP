@@ -807,9 +807,7 @@
           </div>
           <!-- cierre dashboard-grid -->
         }
-        <!-- cierre @if (esAdministrador) -->
 
-        <!-- Presupuesto -->
         @if (esAdministrador) {
           <div class="graficos-container">
             <div class="dash-card grafico-box presupuesto-card">
@@ -828,17 +826,19 @@
         }
         <!-- Participantes vs Presupuesto -->
         @if (esAdministrador) {
-          <div class="graficos-container">
-            <div class="dash-card grafico-box eficiencia-card">
+          <div class="grafico-full-width">
+            <div class="dash-card grafico-box eficiencia-card ancho-completo">
               <h3>📈 Participantes vs Presupuesto</h3>
 
               @if (chartConfigEficienciaRed) {
-                <canvas
-                  baseChart
-                  [type]="chartConfigEficienciaRed.type"
-                  [data]="chartConfigEficienciaRed.data"
-                  [options]="chartConfigEficienciaRed.options"
-                ></canvas>
+                <div class="chart-wrapper">
+                  <canvas
+                    baseChart
+                    [type]="chartConfigEficienciaRed.type"
+                    [data]="chartConfigEficienciaRed.data"
+                    [options]="chartConfigEficienciaRed.options"
+                  ></canvas>
+                </div>
               }
             </div>
           </div>
@@ -846,7 +846,7 @@
 
         <!-- Costo por Participante -->
         @if (esAdministrador) {
-          <div class="graficos-container">
+          <div class="grafico-full-width">
             <div class="dash-card grafico-box costo-card">
               <h3>Costo por Participante por Red</h3>
 
@@ -1077,12 +1077,22 @@
           <div class="hist-vacio"><p>Cargando historial...</p></div>
         } @else if (historial.length === 0) {
           <div class="hist-vacio">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              width="52"
+              height="52"
+            >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
             <p>Aún no hay actividad registrada.</p>
-            <small>Aquí aparecerán solicitudes, revisiones, ediciones de usuarios y capacitaciones.</small>
+            <small
+              >Aquí aparecerán solicitudes, revisiones, ediciones de usuarios y
+              capacitaciones.</small
+            >
           </div>
         } @else if (historialFiltrado.length === 0) {
           <div class="hist-vacio"><p>No se encontraron registros con ese filtro.</p></div>
@@ -1101,12 +1111,14 @@
               @for (e of historialFiltrado; track $index) {
                 <tr>
                   <td class="hist-fecha" style="white-space: nowrap; font-size: 0.82rem">
-                    {{ e.created_at | date: 'dd/MM/yyyy' }}<br>
+                    {{ e.created_at | date: 'dd/MM/yyyy' }}<br />
                     <span class="hist-hora">{{ e.created_at | date: 'HH:mm:ss' }}</span>
                   </td>
                   <td class="hist-usuario">
                     <div class="usuario-chip">
-                      <span class="usuario-avatar-mini">{{ e.actor_nombre?.charAt(0) || '?' }}</span>
+                      <span class="usuario-avatar-mini">{{
+                        e.actor_nombre?.charAt(0) || '?'
+                      }}</span>
                       {{ e.actor_nombre || '—' }}
                     </div>
                   </td>
@@ -1114,24 +1126,37 @@
                     <span class="badge-rol-hist">{{ e.actor_rol || '—' }}</span>
                   </td>
                   <td>
-                    <span class="badge-tipo-hist"
+                    <span
+                      class="badge-tipo-hist"
                       [class.tipo-solicitud-enviada]="e.tipo === 'solicitud_enviada'"
                       [class.tipo-solicitud-aprobado]="e.tipo === 'solicitud_aprobado'"
                       [class.tipo-solicitud-observado]="e.tipo === 'solicitud_observado'"
                       [class.tipo-solicitud-excluido]="e.tipo === 'solicitud_excluido'"
-                      [class.tipo-usuario]="e.tipo === 'usuario_creado' || e.tipo === 'usuario_editado'"
+                      [class.tipo-usuario]="
+                        e.tipo === 'usuario_creado' || e.tipo === 'usuario_editado'
+                      "
                       [class.tipo-capacitacion]="e.tipo === 'capacitacion_editada'"
                       [class.tipo-expediente]="e.tipo === 'expediente_editado'"
                     >
-                      @if (e.tipo === 'solicitud_enviada') { 📤 Solicitud enviada }
-                      @else if (e.tipo === 'solicitud_aprobado') { ✅ Aprobado }
-                      @else if (e.tipo === 'solicitud_observado') { 🔍 Observado }
-                      @else if (e.tipo === 'solicitud_excluido') { 🚫 Excluido }
-                      @else if (e.tipo === 'usuario_creado') { 👤 Usuario creado }
-                      @else if (e.tipo === 'usuario_editado') { ✏️ Usuario editado }
-                      @else if (e.tipo === 'capacitacion_editada') { 🎓 Capacitación editada }
-                      @else if (e.tipo === 'expediente_editado') { 📁 Expediente }
-                      @else { {{ e.tipo }} }
+                      @if (e.tipo === 'solicitud_enviada') {
+                        📤 Solicitud enviada
+                      } @else if (e.tipo === 'solicitud_aprobado') {
+                        ✅ Aprobado
+                      } @else if (e.tipo === 'solicitud_observado') {
+                        🔍 Observado
+                      } @else if (e.tipo === 'solicitud_excluido') {
+                        🚫 Excluido
+                      } @else if (e.tipo === 'usuario_creado') {
+                        👤 Usuario creado
+                      } @else if (e.tipo === 'usuario_editado') {
+                        ✏️ Usuario editado
+                      } @else if (e.tipo === 'capacitacion_editada') {
+                        🎓 Capacitación editada
+                      } @else if (e.tipo === 'expediente_editado') {
+                        📁 Expediente
+                      } @else {
+                        {{ e.tipo }}
+                      }
                     </span>
                   </td>
                   <td class="hist-detalle">{{ e.descripcion }}</td>

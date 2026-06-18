@@ -701,13 +701,34 @@ tr:hover td {
   background: #f3f4f6;
   color: #374151;
 }
-.tipo-solicitud-enviada  { background: #dbeafe; color: #1d4ed8; }
-.tipo-solicitud-aprobado { background: #dcfce7; color: #15803d; }
-.tipo-solicitud-observado{ background: #fef3c7; color: #b45309; }
-.tipo-solicitud-excluido { background: #f3f4f6; color: #374151; }
-.tipo-usuario            { background: #ede9fe; color: #6d28d9; }
-.tipo-capacitacion       { background: #e0f2fe; color: #0369a1; }
-.tipo-expediente         { background: #fce7f3; color: #be185d; }
+.tipo-solicitud-enviada {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.tipo-solicitud-aprobado {
+  background: #dcfce7;
+  color: #15803d;
+}
+.tipo-solicitud-observado {
+  background: #fef3c7;
+  color: #b45309;
+}
+.tipo-solicitud-excluido {
+  background: #f3f4f6;
+  color: #374151;
+}
+.tipo-usuario {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.tipo-capacitacion {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.tipo-expediente {
+  background: #fce7f3;
+  color: #be185d;
+}
 
 .accion-agrego {
   background: #dcfce7;
@@ -1447,13 +1468,6 @@ tr:hover td {
   margin-bottom: 25px;
 }
 
-.resumen-ejecutivo {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
 .meta-ejecutiva {
   background: #fff;
   border-radius: 20px;
@@ -2166,14 +2180,16 @@ tr:hover td {
 }
 
 .grafico-full-width {
+  grid-column: 1 / -1;
   width: 100%;
-  margin-bottom: 24px;
+}
+
+.grafico-full-width .dash-card {
+  width: 100%;
 }
 
 .grafico-full-width canvas {
-  width: 100% !important;
-  height: 420px !important;
-  max-height: none !important;
+  height: 500px !important;
 }
 
 .estadisticas-responsable-box {
@@ -2428,4 +2444,32 @@ tr:hover td {
   color: #64748b;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+.ancho-completo {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 330px;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 600px !important;
+}
+
+.eficiencia-card h3 {
+  margin-bottom: 20px;
+}
+
+.costo-card {
+  width: 100%;
+}
+
+.costo-card canvas {
+  width: 100% !important;
 }

@@ -175,28 +175,24 @@ export class Dashboard implements OnInit, OnDestroy {
       },
 
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
 
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-
         scales: {
           x: {
-            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Participantes',
+            },
             ticks: {
-              callback: (value: any) => value.toLocaleString(),
+              stepSize: 100,
             },
           },
+
           y: {
-            ticks: {
-              font: {
-                size: 12,
-              },
+            title: {
+              display: true,
+              text: 'Presupuesto (S/)',
             },
           },
         },
@@ -260,9 +256,9 @@ export class Dashboard implements OnInit, OnDestroy {
               red: r.red,
             })),
 
-            backgroundColor: '#2563eb',
-            pointRadius: 8,
-            pointHoverRadius: 10,
+            backgroundColor: 'rgba(37, 99, 235, 0.75)',
+            pointRadius: 6,
+            pointHoverRadius: 8,
           },
         ],
       },
@@ -297,6 +293,9 @@ export class Dashboard implements OnInit, OnDestroy {
               display: true,
               text: 'Participantes',
             },
+            ticks: {
+              stepSize: 100,
+            },
           },
           y: {
             title: {
@@ -329,7 +328,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
             backgroundColor: '#8b5cf6',
             borderRadius: 10,
-            maxBarThickness: 40,
+            maxBarThickness: 60,
           },
         ],
       },
@@ -1153,7 +1152,7 @@ export class Dashboard implements OnInit, OnDestroy {
         }));
 
         const todos = [...apiLogs, ...locales].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
         this.historial = todos;
         this.cargandoHistorial = false;
