@@ -127,11 +127,14 @@
 
         <div class="periodo-pill">
           <span>📅</span>
-
-          <select id="periodoActivo">
-            <option>2025</option>
-            <option selected>2026</option>
+          <select id="periodoActivo"
+            [(ngModel)]="anioSeleccionado"
+            (change)="cambiarAnio()">
+            @for (a of aniosDisponibles; track a) {
+              <option [value]="a">{{ a }}</option>
+            }
           </select>
+          <button class="btn-buscar-periodo" (click)="cambiarAnio()">Buscar</button>
         </div>
       </div>
 

@@ -962,3 +962,129 @@
   padding: 24px 28px;
   background: #fff;
 }
+
+/* ── AUTOCOMPLETE PARTICIPANTES ── */
+.partic-campo-dni label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ac-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.ac-buscando { background: #e0f2fe; color: #0369a1; }
+.ac-ok       { background: #dcfce7; color: #15803d; }
+.ac-no       { background: #fee2e2; color: #dc2626; }
+
+/* ── RESUMEN PRESUPUESTARIO ── */
+.presup-resumen {
+  background: #f8faff;
+  border: 1px solid #cfe2ff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 4px;
+}
+.presup-fila-top {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.presup-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 140px;
+}
+.presup-etiqueta {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+.presup-valor {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.presup-azul   { color: #1d4ed8; }
+.presup-naranja { color: #d97706; }
+.presup-verde  { color: #15803d; }
+.presup-rojo   { color: #dc2626; }
+.presup-red-nombre {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+.presup-aviso {
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Barra de progreso */
+.presup-barra-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.presup-barra-fondo {
+  position: relative;
+  flex: 1;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.presup-barra-gastado {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: #1d4ed8;
+  border-radius: 999px 0 0 999px;
+  transition: width 0.4s ease;
+}
+.presup-barra-actual {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: #f59e0b;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+.presup-pct {
+  font-size: 12px;
+  color: #4b5563;
+  white-space: nowrap;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+/* Leyenda */
+.presup-leyenda {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.presup-ley-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+.presup-ley-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-gastado { background: #1d4ed8; }
+.dot-actual  { background: #f59e0b; }

@@ -2143,6 +2143,21 @@ tr:hover td {
   cursor: pointer;
 }
 
+.btn-buscar-periodo {
+  background: #1f4ea3;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-buscar-periodo:hover {
+  background: #163b80;
+}
+
 .btn-editar-meta {
   margin-top: 12px;
   padding: 8px 14px;

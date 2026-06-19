@@ -805,6 +805,19 @@ app.get('/api/personal-essalud/dni/:dni', async (req, res) => {
   }
 });
 
+// Buscar personal por código de planilla (para autocompletar)
+app.get('/api/personal-essalud/planilla/:cod', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT * FROM personal WHERE cod_planilla = $1 LIMIT 1`, [
+      req.params.cod,
+    ]);
+    if (!rows.length) return res.status(404).json({ error: 'Código no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ══════════════════════════════════════════════
 // RESUMEN POR RED ASISTENCIAL (agrupado en BD)
 // GET /api/resumen-redes?redes=Red1,Red2

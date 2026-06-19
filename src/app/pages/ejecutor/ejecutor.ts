@@ -44,6 +44,17 @@ export class Ejecutor implements OnInit {
   redEjecutor = '';
 
   presupuestoRed = 0;
+  presupuestoGastado = 0;
+
+  get saldoRestante(): number {
+    return this.presupuestoRed - this.presupuestoGastado - (Number(this.formulario.presupuestoEjecutado) || 0);
+  }
+
+  get porcentajeUsado(): number {
+    if (!this.presupuestoRed) return 0;
+    const usado = this.presupuestoGastado + (Number(this.formulario.presupuestoEjecutado) || 0);
+    return Math.min((usado / this.presupuestoRed) * 100, 100);
+  }
 
   // COMPROBANTE DE PAGO
   comprobantes: any[] = [];
@@ -95,6 +106,10 @@ export class Ejecutor implements OnInit {
   participantesSeleccionados: any[] = [];
   nuevoPartic = this.particVacio();
   errorPartic = '';
+  estadoAC: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' = 'idle';
+  estadoACCorr: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' = 'idle';
+  private dniTimer: any;
+  private planillaTimer: any;
 
   particVacio() {
     return {
@@ -190,8 +205,18 @@ export class Ejecutor implements OnInit {
 
   private cargarPresupuestoRed() {
     const red = (this.redEjecutor || '').toUpperCase().trim();
-
     this.presupuestoRed = this.PRESUPUESTOS_RED[red] ?? 0;
+
+    if (!red) return;
+    this.http.get<any[]>(`http://localhost:3001/api/resumen-redes?redes=${encodeURIComponent(red)}`).subscribe({
+      next: (rows) => {
+        const fila = rows.find(r =>
+          (r.red || '').toUpperCase().includes(red) || red.includes((r.red || '').toUpperCase())
+        );
+        this.presupuestoGastado = fila ? Number(fila.presupuesto) : 0;
+      },
+      error: () => { this.presupuestoGastado = 0; },
+    });
   }
 
   // COMPROBANTE DE PAGO
@@ -405,6 +430,7 @@ export class Ejecutor implements OnInit {
   private continuarASeleccionParticipantes() {
     this.participantesSeleccionados = [];
     this.errorPartic = '';
+    this.estadoAC = 'idle';
     this.nuevoPartic = {
       ...this.particVacio(),
       codigo_act: this.formulario.codigoAct,
@@ -424,6 +450,7 @@ export class Ejecutor implements OnInit {
       return;
     }
     this.errorPartic = '';
+    this.estadoAC = 'idle';
     this.participantesSeleccionados.push({ ...p });
     // Mantener código y red fijos para el siguiente participante
     this.nuevoPartic = {
@@ -450,6 +477,7 @@ export class Ejecutor implements OnInit {
     this.nuevoParticCorreccion = { ...this.particVacio(), codigo_act: envio.datos?.codigoAct || '', red: this.redEjecutor };
     this.errorParticCorreccion = '';
     this.errorCorreccion = '';
+    this.estadoACCorr = 'idle';
     this.mostrarModalCorreccion = true;
   }
 
@@ -465,12 +493,72 @@ export class Ejecutor implements OnInit {
       return;
     }
     this.errorParticCorreccion = '';
+    this.estadoACCorr = 'idle';
     this.participantesCorreccion.push({ ...p });
     this.nuevoParticCorreccion = { ...this.particVacio(), codigo_act: this.formularioCorreccion.codigoAct || '', red: this.redEjecutor };
   }
 
   quitarParticCorreccion(idx: number) {
     this.participantesCorreccion.splice(idx, 1);
+  }
+
+  // ── AUTOCOMPLETE PARTICIPANTES ────────────────────────────────────────────
+
+  private llenarDesdePersonal(p: any, target: 'nuevo' | 'correccion') {
+    const obj = target === 'nuevo' ? this.nuevoPartic : this.nuevoParticCorreccion;
+    obj.apellidos       = p.apellidos        || '';
+    obj.nombre          = p.nombre           || '';
+    obj.sexo            = p.sexo             || '';
+    obj.sub_programa    = p.sub_programa     || '';
+    obj.servicio_area   = p.servicio_area    || '';
+    obj.cargo           = p.cargo            || '';
+    obj.regimen_laboral = p.regimen_laboral  || '';
+    if (!obj.cod_planilla) obj.cod_planilla  = p.cod_planilla || '';
+    if (!obj.dni_ce)       obj.dni_ce        = p.dni_ce       || '';
+  }
+
+  autocompletarPorDni(dni: string, target: 'nuevo' | 'correccion' = 'nuevo') {
+    clearTimeout(this.dniTimer);
+    if (target === 'nuevo')      this.estadoAC     = 'idle';
+    else                         this.estadoACCorr = 'idle';
+    if (dni.trim().length < 8) return;
+    if (target === 'nuevo')      this.estadoAC     = 'buscando';
+    else                         this.estadoACCorr = 'buscando';
+    this.dniTimer = setTimeout(() => {
+      this.http.get(`http://localhost:3001/api/personal-essalud/dni/${dni.trim()}`).subscribe({
+        next: (p: any) => {
+          this.llenarDesdePersonal(p, target);
+          if (target === 'nuevo') this.estadoAC = 'encontrado';
+          else                    this.estadoACCorr = 'encontrado';
+        },
+        error: () => {
+          if (target === 'nuevo') this.estadoAC = 'no_encontrado';
+          else                    this.estadoACCorr = 'no_encontrado';
+        },
+      });
+    }, 400);
+  }
+
+  autocompletarPorPlanilla(cod: string, target: 'nuevo' | 'correccion' = 'nuevo') {
+    clearTimeout(this.planillaTimer);
+    if (target === 'nuevo')      this.estadoAC     = 'idle';
+    else                         this.estadoACCorr = 'idle';
+    if (cod.trim().length < 3) return;
+    if (target === 'nuevo')      this.estadoAC     = 'buscando';
+    else                         this.estadoACCorr = 'buscando';
+    this.planillaTimer = setTimeout(() => {
+      this.http.get(`http://localhost:3001/api/personal-essalud/planilla/${cod.trim()}`).subscribe({
+        next: (p: any) => {
+          this.llenarDesdePersonal(p, target);
+          if (target === 'nuevo') this.estadoAC = 'encontrado';
+          else                    this.estadoACCorr = 'encontrado';
+        },
+        error: () => {
+          if (target === 'nuevo') this.estadoAC = 'no_encontrado';
+          else                    this.estadoACCorr = 'no_encontrado';
+        },
+      });
+    }, 400);
   }
 
   enviarCorreccion() {
