@@ -2222,12 +2222,12 @@ tr:hover td {
 
 /* Actividades debajo de Top Redes */
 .actividades-card {
-  grid-column: span 2;
+  grid-column: span 3;
 }
 
 .graficos-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
   gap: 24px;
 }
 
@@ -2236,7 +2236,7 @@ tr:hover td {
 .top-redes {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
 }
 
 .top-redes-header {
@@ -2508,4 +2508,12 @@ tr:hover td {
 
 .progress-fill {
   height: 100%;
+}
+.graficos-container {
+  grid-template-columns: 300px 700px 300px;
+}
+
+.top-redes-card {
+  grid-column: 2 / 4;
+  border: 2px;
 }
