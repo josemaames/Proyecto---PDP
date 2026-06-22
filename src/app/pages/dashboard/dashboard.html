@@ -882,12 +882,15 @@
               <h3>Presupuesto Ejecutado por Red Asistencial</h3>
 
               @if (chartConfigPresupuestoRed) {
-                <canvas
-                  baseChart
-                  [type]="chartConfigPresupuestoRed.type"
-                  [data]="chartConfigPresupuestoRed.data"
-                  [options]="chartConfigPresupuestoRed.options"
-                ></canvas>
+                <div class="chart-scroll">
+                  <canvas
+                    baseChart
+                    [type]="chartConfigPresupuestoRed.type"
+                    [data]="chartConfigPresupuestoRed.data"
+                    [options]="chartConfigPresupuestoRed.options"
+                    [style.min-width.px]="chartConfigPresupuestoRed.data.labels.length * 50"
+                  ></canvas>
+                </div>
               }
             </div>
           </div>
