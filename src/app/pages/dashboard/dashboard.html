@@ -172,7 +172,11 @@
           </div>
 
           <div class="dash-card redes-departamento-card">
-            <h3>🏥 Redes del Departamento</h3>
+            <div class="top-redes-header">
+              <div>
+                <div class="titulo-top">🏥 Redes del Departamento</div>
+              </div>
+            </div>
 
             @if (redesDepartamento.length > 0) {
               @for (red of redesDepartamento; track red.red; let i = $index) {
@@ -412,7 +416,11 @@
         <!-- MAPA -->
 
         <div class="dash-card mapa-peru-card">
-          <h3>🗺️ Distribución Nacional PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🗺️ Distribución Nacional PDP</div>
+            </div>
+          </div>
 
           <div
             echarts
@@ -425,7 +433,11 @@
         <!-- DETALLE -->
 
         <div class="dash-card departamento-detalle-card">
-          <h3>📍 Departamento Seleccionado</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">📍 Departamento Seleccionado</div>
+            </div>
+          </div>
 
           @if (departamentoSeleccionado?.nombre) {
             <div class="detalle-header">
@@ -495,7 +507,11 @@
         <!-- TOP -->
 
         <div class="dash-card top-departamentos-card">
-          <h3>🏆 Top Departamentos PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🏆 Top Departamentos PDP</div>
+            </div>
+          </div>
 
           @for (dep of topDepartamentos; track dep.name) {
             <div class="ranking-item">
@@ -526,7 +542,11 @@
         <!-- COBERTURA -->
 
         <div class="dash-card cobertura-card">
-          <h3>🌎 Cobertura Nacional PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🌎 Cobertura Nacional PDP</div>
+            </div>
+          </div>
 
           <div class="cobertura-grid">
             <div class="cobertura-item">
@@ -797,7 +817,11 @@
 
             <!-- Modalidad -->
             <div class="dash-card modalidad-card">
-              <h3>Distribución por Modalidad</h3>
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">📊 Distribución por Modalidad</div>
+                </div>
+              </div>
 
               @for (item of modalidadesResumen; track item.nombre) {
                 <div class="modalidad-item">
@@ -832,8 +856,11 @@
         @if (esAdministrador) {
           <div class="grafico-full-width">
             <div class="dash-card cumplimiento-presupuesto-card ancho-completo">
-              <h3>🎯 Cumplimiento Presupuestal por Red</h3>
-
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">🎯 Cumplimiento Presupuestal por Red</div>
+                </div>
+              </div>
               <div class="presupuesto-control">
                 <label>Red Asistencial</label>
 
