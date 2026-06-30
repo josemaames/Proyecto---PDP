@@ -814,6 +814,7 @@
 .btn-agregar-partic:hover:not(:disabled) { background: #163d85; }
 .btn-agregar-partic:disabled { opacity: .4; cursor: default; }
 
+
 /* Tabla de ingresados */
 .modal-partic-tabla-wrap { overflow-y: auto; flex: 1; padding: 0 28px 8px; }
 .modal-partic-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }

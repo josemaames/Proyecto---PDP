@@ -146,7 +146,7 @@ pool
   .connect()
   .then(() => {
     console.log('✓ Conectado a PostgreSQL');
-    crearTablas().then(crearIndices);
+    crearTablas().then(crearIndices).then(crearConstraints);
   })
   .catch((err) => console.error('✗ Error de conexión:', err));
 
@@ -367,6 +367,85 @@ async function crearIndices() {
   console.log('✓ Índices verificados');
 }
 
+async function crearConstraints() {
+  // ── Limpieza de huérfanos antes de aplicar FKs ──────────────────────────
+
+  // Participantes cuyo codigo_act no existe en datos_actividad
+  const { rowCount: r1 } = await pool.query(`
+    DELETE FROM lista_participantes
+    WHERE codigo_act IS NOT NULL
+      AND codigo_act NOT IN (SELECT codigo_act FROM datos_actividad)
+  `);
+  if (r1 > 0) console.log(`✓ Eliminados ${r1} participantes sin actividad (huérfanos)`);
+
+  // Comprobantes: no se eliminan huérfanos porque pueden subirse antes de que
+  // la actividad sea aprobada por el sectorista.
+
+  // Participantes cuyo dni_ce no existe en personal → se pone NULL en lugar de borrar
+  const { rowCount: r3 } = await pool.query(`
+    UPDATE lista_participantes
+    SET dni_ce = NULL
+    WHERE dni_ce IS NOT NULL
+      AND dni_ce NOT IN (SELECT dni_ce FROM personal)
+  `);
+  if (r3 > 0) console.log(`✓ Nullificados ${r3} dni_ce sin registro en personal`);
+
+  // ── Aplicar constraints ─────────────────────────────────────────────────
+
+  const pasos = [
+    // UNIQUE en personal.dni_ce (requerido para ser referenciado como FK)
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'personal_dni_ce_unique') THEN
+         ALTER TABLE personal ADD CONSTRAINT personal_dni_ce_unique UNIQUE (dni_ce);
+       END IF;
+     END $$`,
+
+    // FK: lista_participantes.codigo_act → datos_actividad.codigo_act
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_actividad') THEN
+         ALTER TABLE lista_participantes
+           ADD CONSTRAINT fk_participantes_actividad
+           FOREIGN KEY (codigo_act) REFERENCES datos_actividad(codigo_act) ON DELETE CASCADE;
+       END IF;
+     END $$`,
+
+    // FK: lista_participantes.dni_ce → personal.dni_ce
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_personal') THEN
+         ALTER TABLE lista_participantes
+           ADD CONSTRAINT fk_participantes_personal
+           FOREIGN KEY (dni_ce) REFERENCES personal(dni_ce) ON DELETE SET NULL;
+       END IF;
+     END $$`,
+
+    // Eliminar FK documentos→datos_actividad: el comprobante se sube antes de
+    // que la actividad exista en datos_actividad (flujo ejecutor → sectorista).
+    `DO $$ BEGIN
+       IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_documentos_actividad') THEN
+         ALTER TABLE documentos DROP CONSTRAINT fk_documentos_actividad;
+       END IF;
+     END $$`,
+
+    // FK: solicitudes_revision.ejecutor_dni → usuarios_sistema.dni
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solicitudes_ejecutor') THEN
+         ALTER TABLE solicitudes_revision
+           ADD CONSTRAINT fk_solicitudes_ejecutor
+           FOREIGN KEY (ejecutor_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
+       END IF;
+     END $$`,
+  ];
+
+  for (const sql of pasos) {
+    try {
+      await pool.query(sql);
+    } catch (err) {
+      console.warn('⚠ Constraint omitida:', err.message.split('\n')[0]);
+    }
+  }
+  console.log('✓ Constraints verificadas');
+}
+
 // ══════════════════════════════════════════════
 // PARTICIPANTES
 // GET  /api/participantes?q=&codigo_act=&page=1&limit=50
@@ -468,6 +547,7 @@ app.delete('/api/participantes/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ══════════════════════════════════════════════
 // ACTIVIDADES

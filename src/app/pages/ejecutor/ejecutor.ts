@@ -111,6 +111,7 @@ export class Ejecutor implements OnInit {
   private dniTimer: any;
   private planillaTimer: any;
 
+
   particVacio() {
     return {
       codigo_act: '',
