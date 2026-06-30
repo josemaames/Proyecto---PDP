@@ -239,6 +239,14 @@ export class Dashboard implements OnInit, OnDestroy {
         },
 
         scales: {
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 45,
+              minRotation: 45,
+            },
+          },
+
           y: {
             beginAtZero: true,
             ticks: {
@@ -300,8 +308,8 @@ export class Dashboard implements OnInit, OnDestroy {
           x: {
             ticks: {
               autoSkip: false,
-              maxRotation: 90,
-              minRotation: 90,
+              maxRotation: 0,
+              minRotation: 0,
             },
           },
 

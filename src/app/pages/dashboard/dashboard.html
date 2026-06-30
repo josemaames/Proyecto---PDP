@@ -127,9 +127,7 @@
 
         <div class="periodo-pill">
           <span>📅</span>
-          <select id="periodoActivo"
-            [(ngModel)]="anioSeleccionado"
-            (change)="cambiarAnio()">
+          <select id="periodoActivo" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
             @for (a of aniosDisponibles; track a) {
               <option [value]="a">{{ a }}</option>
             }
@@ -174,7 +172,11 @@
           </div>
 
           <div class="dash-card redes-departamento-card">
-            <h3>🏥 Redes del Departamento</h3>
+            <div class="top-redes-header">
+              <div>
+                <div class="titulo-top">🏥 Redes del Departamento</div>
+              </div>
+            </div>
 
             @if (redesDepartamento.length > 0) {
               @for (red of redesDepartamento; track red.red; let i = $index) {
@@ -414,7 +416,11 @@
         <!-- MAPA -->
 
         <div class="dash-card mapa-peru-card">
-          <h3>🗺️ Distribución Nacional PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🗺️ Distribución Nacional PDP</div>
+            </div>
+          </div>
 
           <div
             echarts
@@ -427,7 +433,11 @@
         <!-- DETALLE -->
 
         <div class="dash-card departamento-detalle-card">
-          <h3>📍 Departamento Seleccionado</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">📍 Departamento Seleccionado</div>
+            </div>
+          </div>
 
           @if (departamentoSeleccionado?.nombre) {
             <div class="detalle-header">
@@ -497,7 +507,11 @@
         <!-- TOP -->
 
         <div class="dash-card top-departamentos-card">
-          <h3>🏆 Top Departamentos PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🏆 Top Departamentos PDP</div>
+            </div>
+          </div>
 
           @for (dep of topDepartamentos; track dep.name) {
             <div class="ranking-item">
@@ -528,7 +542,11 @@
         <!-- COBERTURA -->
 
         <div class="dash-card cobertura-card">
-          <h3>🌎 Cobertura Nacional PDP</h3>
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">🌎 Cobertura Nacional PDP</div>
+            </div>
+          </div>
 
           <div class="cobertura-grid">
             <div class="cobertura-item">
@@ -617,29 +635,31 @@
 
       <div class="resumen-ejecutivo">
         <!-- META -->
+        <!-- META -->
         <div class="meta-ejecutiva">
-          <div class="meta-header-card">
-            <div class="kpi-icono">🎯</div>
+          <div class="meta-header">
+            <div class="meta-icono">🎯</div>
 
             <div>
-              <div class="kpi-titulo">Meta Cumplida</div>
-              <div class="meta-numero">{{ porcentajeMeta }}%</div>
+              <div class="meta-titulo">Meta Cumplida</div>
+              <div class="meta-subtitulo">Participantes capacitados</div>
             </div>
           </div>
+
+          <div class="meta-valor">{{ porcentajeMeta }}%</div>
 
           <div class="meta-barra">
             <div class="meta-fill" [style.width.%]="porcentajeMeta"></div>
           </div>
 
-          <div class="meta-detalle">
-            {{ totalParticipantes | number }}
-            de
-            {{ metaParticipantes | number }}
-            participantes
+          <div class="meta-info">
+            <span>{{ totalParticipantes | number }} participantes</span>
+            <span>Meta: {{ metaParticipantes | number }}</span>
           </div>
 
           <button class="btn-editar-meta" (click)="abrirModalMeta()">✏️ Editar Meta</button>
 
+          <!-- Modal -->
           <div class="modal-backdrop" *ngIf="mostrarModalMeta">
             <div class="modal-meta">
               <h3>Editar Meta de Participantes</h3>
@@ -649,6 +669,8 @@
               <input type="number" [(ngModel)]="nuevaMeta" min="1" class="input-meta" />
 
               <div class="modal-actions">
+                <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
+
                 <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
               </div>
             </div>
@@ -658,43 +680,104 @@
         <!-- TOP REDES -->
         @if (resumenRedesOrdenado.length > 0) {
           <div class="top-redes">
-            <div class="top-redes-header">🏆 Top Redes Asistenciales</div>
+            <div class="top-redes-header">
+              <div>
+                <div class="titulo-top">🏆 Top Redes Asistenciales</div>
+                <div class="subtitulo-top">Redes con mayor participación</div>
+              </div>
+            </div>
 
             @if (resumenRedesOrdenado[0]) {
               <div class="top-red-card oro">
-                <div class="medalla">🥇</div>
-                <div>
-                  <h4>{{ resumenRedesOrdenado[0].red }}</h4>
-                  <span>
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla">🥇</div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[0].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[0].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
                     {{ resumenRedesOrdenado[0].participantes | number }}
-                    participantes
-                  </span>
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div class="mini-fill oro-fill" style="width: 100%"></div>
                 </div>
               </div>
             }
 
             @if (resumenRedesOrdenado[1]) {
               <div class="top-red-card plata">
-                <div class="medalla">🥈</div>
-                <div>
-                  <h4>{{ resumenRedesOrdenado[1].red }}</h4>
-                  <span>
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla">🥈</div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[1].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[1].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
                     {{ resumenRedesOrdenado[1].participantes | number }}
-                    participantes
-                  </span>
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div
+                    class="mini-fill plata-fill"
+                    [style.width.%]="
+                      (resumenRedesOrdenado[1].participantes /
+                        resumenRedesOrdenado[0].participantes) *
+                      100
+                    "
+                  ></div>
                 </div>
               </div>
             }
 
             @if (resumenRedesOrdenado[2]) {
               <div class="top-red-card bronce">
-                <div class="medalla">🥉</div>
-                <div>
-                  <h4>{{ resumenRedesOrdenado[2].red }}</h4>
-                  <span>
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla">🥉</div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[2].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[2].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
                     {{ resumenRedesOrdenado[2].participantes | number }}
-                    participantes
-                  </span>
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div
+                    class="mini-fill bronce-fill"
+                    [style.width.%]="
+                      (resumenRedesOrdenado[2].participantes /
+                        resumenRedesOrdenado[0].participantes) *
+                      100
+                    "
+                  ></div>
                 </div>
               </div>
             }
@@ -734,7 +817,11 @@
 
             <!-- Modalidad -->
             <div class="dash-card modalidad-card">
-              <h3>Distribución por Modalidad</h3>
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">📊 Distribución por Modalidad</div>
+                </div>
+              </div>
 
               @for (item of modalidadesResumen; track item.nombre) {
                 <div class="modalidad-item">
@@ -769,8 +856,11 @@
         @if (esAdministrador) {
           <div class="grafico-full-width">
             <div class="dash-card cumplimiento-presupuesto-card ancho-completo">
-              <h3>🎯 Cumplimiento Presupuestal por Red</h3>
-
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">🎯 Cumplimiento Presupuestal por Red</div>
+                </div>
+              </div>
               <div class="presupuesto-control">
                 <label>Red Asistencial</label>
 
@@ -819,12 +909,15 @@
               <h3>Presupuesto Ejecutado por Red Asistencial</h3>
 
               @if (chartConfigPresupuestoRed) {
-                <canvas
-                  baseChart
-                  [type]="chartConfigPresupuestoRed.type"
-                  [data]="chartConfigPresupuestoRed.data"
-                  [options]="chartConfigPresupuestoRed.options"
-                ></canvas>
+                <div class="chart-scroll">
+                  <canvas
+                    baseChart
+                    [type]="chartConfigPresupuestoRed.type"
+                    [data]="chartConfigPresupuestoRed.data"
+                    [options]="chartConfigPresupuestoRed.options"
+                    [style.min-width.px]="chartConfigPresupuestoRed.data.labels.length * 50"
+                  ></canvas>
+                </div>
               }
             </div>
           </div>
