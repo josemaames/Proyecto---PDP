@@ -1,1115 +1,1157 @@
 <div class="app-layout">
-  <!-- ===== NAVBAR ===== -->
-  <nav class="app-nav">
-    <div class="nav-izq">
-      <button class="nav-hamburger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
-      <div class="nav-brand">
-        <div class="nav-brand-title">Sistema de Gestión PDP</div>
-        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
-      </div>
-    </div>
-    <div class="nav-der">
-      <span class="nav-fecha">{{ fechaHoy }}</span>
-      <button class="nav-avatar">{{ inicialUsuario }}</button>
-    </div>
-  </nav>
+ <!-- ===== NAVBAR ===== -->
+ <nav class="app-nav">
+ <div class="nav-izq">
+ <button class="nav-hamburger">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <line x1="3" y1="6" x2="21" y2="6" />
+ <line x1="3" y1="12" x2="21" y2="12" />
+ <line x1="3" y1="18" x2="21" y2="18" />
+ </svg>
+ </button>
+ <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+ <div class="nav-brand">
+ <div class="nav-brand-title">Sistema de Gestión PDP</div>
+ <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
+ </div>
+ </div>
+ <div class="nav-der">
+ <span class="nav-fecha">{{ fechaHoy }}</span>
+ <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
 
-  <div class="perfil-superior">
-    <nav class="menu-superior">
-      <div class="menu-item activo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 10.5L12 3l9 7.5" />
-          <path d="M5 9.5V21h14V9.5" />
-        </svg>
-        <span>Inicio</span>
-      </div>
-      <div class="menu-item" (click)="irA('/expedientes')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
-        <span>Expedientes</span>
-      </div>
-      <div class="menu-item" (click)="irA('/personal-pdp')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        <span>Personal</span>
-      </div>
-      <div class="menu-item" (click)="irA('/lista-participantes')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        <span>Participantes</span>
-      </div>
-      <div class="menu-item cerrar" (click)="cerrarSesion()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-        <span>Salir</span>
-      </div>
-    </nav>
-  </div>
-
-  <div class="app-cuerpo">
-    <aside class="sidebar"></aside>
-
-    <!-- ===== CONTENIDO ===== -->
-    <main class="app-contenido">
-      <div class="contenido-encabezado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-        <h2>
-          Formulario de Información estadística mensual de acciones de capacitación ejecutadas
-        </h2>
-      </div>
-
-      <!-- ===== ACTIVIDADES POR CORREGIR ===== -->
-      <div class="card card-correccion">
-        <div class="card-section-title-row">
-          <span class="card-section-title">✏️ Actividades de capacitación por corregir</span>
-          <span class="badge-count" [class.badge-alerta]="correccionesPendientes.length > 0">{{ correccionesPendientes.length }}</span>
-        </div>
-
-        @if (cargandoEnvios) {
-          <div class="sin-resultados"><p>Cargando...</p></div>
-        } @else if (correccionesPendientes.length === 0) {
-          <div class="sin-resultados">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-            </svg>
-            <p>No hay actividades pendientes de corrección.</p>
-          </div>
-        } @else {
-          <div class="tabla-scroll">
-            <table class="tabla-part">
-              <thead>
-                <tr>
-                  <th>Actividad</th>
-                  <th>Código</th>
-                  <th>Red</th>
-                  <th>Sección a corregir</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (envio of correccionesPendientes; track envio.id) {
-                  <tr>
-                    <td>{{ envio.datos?.nombreActividad || '—' }}</td>
-                    <td>{{ envio.datos?.codigoAct || '—' }}</td>
-                    <td>{{ envio.red_asistencial || '—' }}</td>
-                    <td>
-                      @if (envio.seccion_correccion === 'formulario') {
-                        <span class="badge-seccion badge-formulario">📋 Formulario</span>
-                      } @else if (envio.seccion_correccion === 'participantes') {
-                        <span class="badge-seccion badge-participantes">👥 Participantes</span>
-                      } @else {
-                        <span class="badge-seccion">📄 General</span>
-                      }
-                    </td>
-                    <td><span class="badge-correccion">⚠️ Requiere corrección</span></td>
-                    <td>
-                      <button class="btn-corregir" (click)="abrirCorreccion(envio)">✏️ Corregir y reenviar</button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </div>
-
-      <!-- INFORMACIÓN GENERAL -->
-      <div class="card">
-        <div class="card-section-title">📋 Información General</div>
-        <div class="datos-grid tres-col">
-          <div class="campo">
-            <label>Código act.</label>
-            <input
-              type="text"
-              placeholder="Ej: CAP-2024-001"
-              [(ngModel)]="formulario.codigoAct"
-              (blur)="cargarComprobantes()"
-            />
-          </div>
-          <div class="campo">
-            <label>Fecha de inicio</label>
-            <input type="date" [(ngModel)]="formulario.fechaInicio" />
-          </div>
-          <div class="campo">
-            <label>Fecha de finalización</label>
-            <input
-              type="date"
-              [ngModel]="formulario.fechaFin"
-              (ngModelChange)="formulario.fechaFin = $event; actualizarMesTermino()"
-            />
-          </div>
-          <div class="campo">
-            <label>Mes de término de ejecución</label>
-            <select [(ngModel)]="formulario.mesTermino">
-              <option value="">Seleccione...</option>
-              <option value="Enero">Enero</option>
-              <option value="Febrero">Febrero</option>
-              <option value="Marzo">Marzo</option>
-              <option value="Abril">Abril</option>
-              <option value="Mayo">Mayo</option>
-              <option value="Junio">Junio</option>
-              <option value="Julio">Julio</option>
-              <option value="Agosto">Agosto</option>
-              <option value="Septiembre">Septiembre</option>
-              <option value="Octubre">Octubre</option>
-              <option value="Noviembre">Noviembre</option>
-              <option value="Diciembre">Diciembre</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Red asistencial / Unidad orgánica solicitante</label>
-            <select [(ngModel)]="formulario.redAsistencial" disabled>
-              <option value="">Seleccione...</option>
-              <option value="RA ALMENARA">RA ALMENARA</option>
-              <option value="RA AREQUIPA">RA AREQUIPA</option>
-              <option value="RA CAJAMARCA">RA CAJAMARCA</option>
-              <option value="RA CUSCO">RA CUSCO</option>
-              <option value="RA ICA">RA ICA</option>
-              <option value="RA JUNIN">RA JUNIN</option>
-              <option value="RA LA LIBERTAD">RA LA LIBERTAD</option>
-              <option value="RA LAMBAYEQUE">RA LAMBAYEQUE</option>
-              <option value="RA PIURA">RA PIURA</option>
-              <option value="RA REBAGLIATI">RA REBAGLIATI</option>
-              <option value="RA SABOGAL">RA SABOGAL</option>
-              <option value="RA TACNA">RA TACNA</option>
-              <option value="RP REBAGLIATI">RP REBAGLIATI</option>
-              <option value="SEDE CENTRAL">SEDE CENTRAL</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Servicio / Área solicitante</label>
-            <input
-              type="text"
-              placeholder="Ej: Recursos Humanos"
-              [(ngModel)]="formulario.servicioArea"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- DATOS DE LA ACTIVIDAD -->
-      <div class="card">
-        <div class="card-section-title">🎓 Datos de la Actividad</div>
-        <div class="campo" style="margin-bottom: 18px">
-          <label>Nombre de la acción de formación laboral</label>
-          <input
-            type="text"
-            placeholder="Ej: Gestión Documental Electrónica"
-            [(ngModel)]="formulario.nombreActividad"
-          />
-        </div>
-        <div class="datos-grid tres-col">
-          <div class="campo">
-            <label>Total número horas ejecutadas (cronológicas)</label>
-            <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.totalHoras" />
-          </div>
-          <div class="campo">
-            <label>Horas ejecutadas fuera del horario laboral (cronológicas)</label>
-            <input
-              type="number"
-              min="0"
-              placeholder="0"
-              [(ngModel)]="formulario.horasFueraHorario"
-            />
-          </div>
-          <div class="campo">
-            <label>Frecuencia de desarrollo de la actividad</label>
-            <input
-              type="text"
-              placeholder="Ej: Única, Diaria, Semanal"
-              [(ngModel)]="formulario.frecuencia"
-            />
-          </div>
-          <div class="campo">
-            <label>Hora de inicio de la actividad</label>
-            <input type="time" [(ngModel)]="formulario.horaInicio" />
-          </div>
-          <div class="campo">
-            <label>Hora de término de la actividad</label>
-            <input type="time" [(ngModel)]="formulario.horaTermino" />
-          </div>
-          <div class="campo">
-            <label>Modalidad</label>
-            <select [(ngModel)]="formulario.modalidad">
-              <option value="">Seleccione...</option>
-              <option value="Presencial">Presencial</option>
-              <option value="Virtual">Virtual</option>
-              <option value="Semipresencial">Semipresencial</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Público</label>
-            <select [(ngModel)]="formulario.publico">
-              <option value="">Seleccione...</option>
-              <option value="Asistencial">Asistencial</option>
-              <option value="Administrativo">Administrativo</option>
-              <option value="Mixto">Mixto</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Nivel de evaluación ejecutado</label>
-            <select [(ngModel)]="formulario.nivelEvaluacion">
-              <option value="">Seleccione...</option>
-              <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
-              <option value="Reación y aprendizaje (Conocimientos y habilidades)">
-                Reación y aprendizaje (Conocimientos y habilidades)
-              </option>
-              <option value="Reacción, aprendizaje y acción">Reacción, aprendizaje y acción</option>
-              <option value="Reacción, aprendizaje y aplicación">
-                Reacción, aprendizaje y aplicación
-              </option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Total de participantes (planilla)</label>
-            <input
-              type="number"
-              min="0"
-              placeholder="0"
-              [(ngModel)]="formulario.totalParticipantes"
-            />
-          </div>
-        </div>
-        <div class="datos-grid dos-col" style="margin-top: 18px">
-          <div class="campo">
-            <label>Eje temático</label>
-            <select [(ngModel)]="formulario.ejeTematico">
-              <option value="" disabled>Seleccione un eje temático</option>
-              <option value="Atención Especializada">Atención Especializada</option>
-              <option value="Atención primaria">Atención primaria</option>
-              <option value="Control interno o auditoría">Control interno o auditoría</option>
-              <option value="Ética, integridad, lucha contra la corrupción">
-                Ética, integridad, lucha contra la corrupción
-              </option>
-              <option value="Gestión institucional">Gestión institucional</option>
-              <option value="Salud Mental">Salud Mental</option>
-              <option value="Otros">Otros</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label>Objetivo estratégico vinculado</label>
-            <select [(ngModel)]="formulario.objetivoEstrategico">
-              <option value="">Seleccione...</option>
-              <option
-                value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos"
-              >
-                OE1 – Proteger financieramente las prestaciones
-              </option>
-              <option
-                value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades"
-              >
-                OE2 – Brindar acceso oportuno a prestaciones integrales
-              </option>
-              <option
-                value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución"
-              >
-                OE3 – Impulsar la transformación digital
-              </option>
-              <option
-                value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud"
-              >
-                OEI.05 – Promover la identidad y desarrollo de servidores
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- PROVEEDOR -->
-      <div class="card">
-        <div class="card-section-title">🏢 Proveedor Adjudicado</div>
-        <div class="datos-grid tres-col">
-          <div class="campo">
-            <label>RUC del proveedor adjudicado</label>
-            <div class="input-btn-row">
-              <input
-                type="text"
-                placeholder="20123456789"
-                [(ngModel)]="formulario.rucProveedor"
-                maxlength="11"
-              />
-              <button class="btn-buscar-ruc" (click)="buscarRuc()" [disabled]="buscandoRuc">
-                {{ buscandoRuc ? 'Buscando…' : '🔍 Buscar' }}
-              </button>
-            </div>
-            @if (errorRuc) {
-              <small class="error-ruc">{{ errorRuc }}</small>
-            }
-          </div>
-          <div class="campo">
-            <label>Nombre del proveedor adjudicado</label>
-            <input
-              type="text"
-              placeholder="Se completará al buscar el RUC"
-              [(ngModel)]="formulario.nombreProveedor"
-            />
-          </div>
-          <div class="campo">
-            <label>Sector al que pertenece el proveedor</label>
-            <select [(ngModel)]="formulario.sectorProveedor">
-              <option value="">Seleccione...</option>
-              <option value="Público">Público</option>
-              <option value="Privado">Privado</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- PRESUPUESTO -->
-      <!-- PRESUPUESTO -->
-      <div class="card">
-        <div class="card-section-title">💰 Presupuesto</div>
-
-        <!-- Resumen presupuestario -->
-        <div class="presup-resumen">
-          <!-- Fila superior: asignado / gastado / saldo -->
-          <div class="presup-fila-top">
-            <div class="presup-bloque">
-              <span class="presup-etiqueta">Asignado a la red</span>
-              <span class="presup-valor presup-azul">S/ {{ presupuestoRed | number: '1.2-2' }}</span>
-              <span class="presup-red-nombre">{{ redEjecutor }}</span>
-            </div>
-            <div class="presup-bloque">
-              <span class="presup-etiqueta">Ya ejecutado (aprobado)</span>
-              <span class="presup-valor presup-naranja">S/ {{ presupuestoGastado | number: '1.2-2' }}</span>
-            </div>
-            <div class="presup-bloque">
-              <span class="presup-etiqueta">Saldo disponible</span>
-              <span class="presup-valor" [class.presup-verde]="saldoRestante >= 0" [class.presup-rojo]="saldoRestante < 0">
-                S/ {{ saldoRestante | number: '1.2-2' }}
-              </span>
-              @if (saldoRestante < 0) {
-                <span class="presup-aviso">⚠️ Presupuesto excedido</span>
-              }
-            </div>
-          </div>
-
-          <!-- Barra de progreso -->
-          <div class="presup-barra-wrap">
-            <div class="presup-barra-fondo">
-              <!-- Gastado anteriormente (azul oscuro) -->
-              <div class="presup-barra-gastado"
-                [style.width.%]="presupuestoRed ? (presupuestoGastado / presupuestoRed * 100 | number: '1.0-1') : 0">
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
               </div>
-              <!-- Lo que se está ingresando ahora (naranja) -->
-              @if ((formulario.presupuestoEjecutado || 0) > 0) {
-                <div class="presup-barra-actual"
-                  [style.width.%]="presupuestoRed ? ((formulario.presupuestoEjecutado || 0) / presupuestoRed * 100 | number: '1.0-1') : 0"
-                  [style.left.%]="presupuestoRed ? (presupuestoGastado / presupuestoRed * 100 | number: '1.0-1') : 0">
-                </div>
-              }
             </div>
-            <span class="presup-pct">{{ porcentajeUsado | number: '1.0-1' }}% utilizado</span>
-          </div>
 
-          <!-- Leyenda -->
-          <div class="presup-leyenda">
-            <span class="presup-ley-item"><span class="presup-ley-dot dot-gastado"></span>Ejecutado anteriormente</span>
-            <span class="presup-ley-item"><span class="presup-ley-dot dot-actual"></span>Esta actividad</span>
-          </div>
-        </div>
-
-        <div class="campo" style="max-width: 320px; margin-top: 20px">
-          <label>Presupuesto ejecutado en esta actividad (S/)</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            [(ngModel)]="formulario.presupuestoEjecutado"
-          />
-        </div>
-
-        <div class="campo" style="margin-top: 16px">
-          <label>Comprobante de pago (PDF, Word, Excel o imagen)</label>
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
-            <input
-              id="comprobanteInput"
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
-              (change)="onArchivoComprobante($event)"
-            />
-          </div>
-          @if (archivoComprobante) {
-            <p style="color: #2563eb; font-size: 0.8rem; margin-top: 6px">
-              📎 {{ archivoComprobante.name }} — se subirá al presionar "Siguiente"
-            </p>
-          }
-          @if (subiendoComprobante) {
-            <p style="color: #2563eb; font-size: 0.85rem; margin-top: 6px">
-              Subiendo comprobante...
-            </p>
-          }
-          @if (errorComprobante) {
-            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
-              {{ errorComprobante }}
-            </p>
-          }
-
-          @if (comprobantes.length > 0) {
-            <div style="margin-top: 12px">
-              @for (doc of comprobantes; track doc.id) {
-                <div
-                  style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 8px 12px;
-                    background: #f8fafc;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    margin-bottom: 6px;
-                  "
-                >
-                  <span style="font-size: 0.85rem">📄 {{ doc.nombre_archivo }}</span>
-                  <button
-                    type="button"
-                    class="btn-denegar"
-                    style="padding: 4px 10px; font-size: 0.8rem"
-                    (click)="eliminarComprobante(doc)"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              }
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
             </div>
-          }
-        </div>
-      </div>
 
-      @if (errorFormulario) {
-        <div class="error-formulario-ej">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="18"
-            height="18"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <div>
-            <strong>{{ errorFormulario }}</strong>
-            <ul>
-              @for (campo of camposInvalidos; track campo) {
-                <li>{{ campo }}</li>
-              }
-            </ul>
-          </div>
-        </div>
-      }
-
-      <button class="btn-guardar" (click)="abrirSeleccionParticipantes()">Siguiente →</button>
-
-      <!-- MIS ENVÍOS -->
-      <div class="mis-envios-section card" style="margin-top: 28px">
-        <div class="card-section-title-row">
-          <span class="card-section-title">📬 Mis Envíos</span>
-          <button class="btn-refrescar" (click)="cargarMisEnvios()" title="Actualizar">↻</button>
-        </div>
-
-        @if (cargandoEnvios) {
-          <div class="sin-resultados"><p>Cargando...</p></div>
-        } @else if (misEnvios.length === 0) {
-          <div class="sin-resultados"><p>Aún no has enviado ningún formulario.</p></div>
-        } @else {
-          <div class="tabla-scroll">
-            <table class="tabla-part">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Actividad</th>
-                  <th>Red asistencial</th>
-                  <th>Estado</th>
-                  <th>Motivo rechazo</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (e of misEnvios; track e.id) {
-                  <tr>
-                    <td>{{ e.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-                    <td>{{ e.datos?.nombreActividad || '—' }}</td>
-                    <td>{{ e.datos?.redAsistencial || '—' }}</td>
-                    <td>
-                      <span class="badge-envio" [class]="'envio-' + e.estado">
-                        {{
-                          e.estado === 'pendiente'
-                            ? '⏳ Pendiente'
-                            : e.estado === 'aprobado'
-                              ? '✅ Aprobado'
-                              : '❌ Denegado'
-                        }}
-                      </span>
-                    </td>
-                    <td>{{ e.motivo_rechazo || '—' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
         }
       </div>
-    </main>
-  </div>
+ </div>
+ </nav>
+
+ <div class="perfil-superior">
+ <nav class="menu-superior">
+ <div class="menu-item activo">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M3 10.5L12 3l9 7.5" />
+ <path d="M5 9.5V21h14V9.5" />
+ </svg>
+ <span>Inicio</span>
+ </div>
+ <div class="menu-item" (click)="irA('/expedientes')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ </svg>
+ <span>Expedientes</span>
+ </div>
+ <div class="menu-item" (click)="irA('/personal-pdp')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+ <circle cx="9" cy="7" r="4" />
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+ <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+ </svg>
+ <span>Personal</span>
+ </div>
+ <div class="menu-item" (click)="irA('/lista-participantes')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+ <circle cx="9" cy="7" r="4" />
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+ <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+ </svg>
+ <span>Participantes</span>
+ </div>
+ <div class="menu-item cerrar" (click)="cerrarSesion()">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+ <polyline points="16 17 21 12 16 7" />
+ <line x1="21" y1="12" x2="9" y2="12" />
+ </svg>
+ <span>Salir</span>
+ </div>
+ </nav>
+ </div>
+
+ <div class="app-cuerpo">
+ <aside class="sidebar"></aside>
+
+ <!-- ===== CONTENIDO ===== -->
+ <main class="app-contenido">
+ <div class="contenido-encabezado">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+ </svg>
+ <h2>
+ Formulario de Información estadística mensual de acciones de capacitación ejecutadas
+ </h2>
+ </div>
+
+ <!-- ===== ACTIVIDADES POR CORREGIR ===== -->
+ <div class="card card-correccion">
+ <div class="card-section-title-row">
+ <span class="card-section-title"> Actividades de capacitación por corregir</span>
+ <span class="badge-count" [class.badge-alerta]="correccionesPendientes.length > 0">{{ correccionesPendientes.length }}</span>
+ </div>
+
+ @if (cargandoEnvios) {
+ <div class="sin-resultados"><p>Cargando...</p></div>
+ } @else if (correccionesPendientes.length === 0) {
+ <div class="sin-resultados">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+ <circle cx="12" cy="12" r="10" />
+ <line x1="8" y1="12" x2="16" y2="12" />
+ </svg>
+ <p>No hay actividades pendientes de corrección.</p>
+ </div>
+ } @else {
+ <div class="tabla-scroll">
+ <table class="tabla-part">
+ <thead>
+ <tr>
+ <th>Actividad</th>
+ <th>Código</th>
+ <th>Red</th>
+ <th>Sección a corregir</th>
+ <th>Estado</th>
+ <th>Acción</th>
+ </tr>
+ </thead>
+ <tbody>
+ @for (envio of correccionesPendientes; track envio.id) {
+ <tr>
+ <td>{{ envio.datos?.nombreActividad || '—' }}</td>
+ <td>{{ envio.datos?.codigoAct || '—' }}</td>
+ <td>{{ envio.red_asistencial || '—' }}</td>
+ <td>
+ @if (envio.seccion_correccion === 'formulario') {
+ <span class="badge-seccion badge-formulario"> Formulario</span>
+ } @else if (envio.seccion_correccion === 'participantes') {
+ <span class="badge-seccion badge-participantes"> Participantes</span>
+ } @else {
+ <span class="badge-seccion"> General</span>
+ }
+ </td>
+ <td><span class="badge-correccion"> Requiere corrección</span></td>
+ <td>
+ <button class="btn-corregir" (click)="abrirCorreccion(envio)"> Corregir y reenviar</button>
+ </td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ </div>
+ }
+ </div>
+
+ <!-- INFORMACIÓN GENERAL -->
+ <div class="card">
+ <div class="card-section-title"> Información General</div>
+ <div class="datos-grid tres-col">
+ <div class="campo">
+ <label>Código act.</label>
+ <input
+ type="text"
+ placeholder="Ej: CAP-2024-001"
+ [(ngModel)]="formulario.codigoAct"
+ (blur)="cargarComprobantes()"
+ />
+ </div>
+ <div class="campo">
+ <label>Fecha de inicio</label>
+ <input type="date" [(ngModel)]="formulario.fechaInicio" />
+ </div>
+ <div class="campo">
+ <label>Fecha de finalización</label>
+ <input
+ type="date"
+ [ngModel]="formulario.fechaFin"
+ (ngModelChange)="formulario.fechaFin = $event; actualizarMesTermino()"
+ />
+ </div>
+ <div class="campo">
+ <label>Mes de término de ejecución</label>
+ <select [(ngModel)]="formulario.mesTermino">
+ <option value="">Seleccione...</option>
+ <option value="Enero">Enero</option>
+ <option value="Febrero">Febrero</option>
+ <option value="Marzo">Marzo</option>
+ <option value="Abril">Abril</option>
+ <option value="Mayo">Mayo</option>
+ <option value="Junio">Junio</option>
+ <option value="Julio">Julio</option>
+ <option value="Agosto">Agosto</option>
+ <option value="Septiembre">Septiembre</option>
+ <option value="Octubre">Octubre</option>
+ <option value="Noviembre">Noviembre</option>
+ <option value="Diciembre">Diciembre</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Red asistencial / Unidad orgánica solicitante</label>
+ <select [(ngModel)]="formulario.redAsistencial" disabled>
+ <option value="">Seleccione...</option>
+ <option value="RA ALMENARA">RA ALMENARA</option>
+ <option value="RA AREQUIPA">RA AREQUIPA</option>
+ <option value="RA CAJAMARCA">RA CAJAMARCA</option>
+ <option value="RA CUSCO">RA CUSCO</option>
+ <option value="RA ICA">RA ICA</option>
+ <option value="RA JUNIN">RA JUNIN</option>
+ <option value="RA LA LIBERTAD">RA LA LIBERTAD</option>
+ <option value="RA LAMBAYEQUE">RA LAMBAYEQUE</option>
+ <option value="RA PIURA">RA PIURA</option>
+ <option value="RA REBAGLIATI">RA REBAGLIATI</option>
+ <option value="RA SABOGAL">RA SABOGAL</option>
+ <option value="RA TACNA">RA TACNA</option>
+ <option value="RP REBAGLIATI">RP REBAGLIATI</option>
+ <option value="SEDE CENTRAL">SEDE CENTRAL</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Servicio / Área solicitante</label>
+ <input
+ type="text"
+ placeholder="Ej: Recursos Humanos"
+ [(ngModel)]="formulario.servicioArea"
+ />
+ </div>
+ </div>
+ </div>
+
+ <!-- DATOS DE LA ACTIVIDAD -->
+ <div class="card">
+ <div class="card-section-title"> Datos de la Actividad</div>
+ <div class="campo" style="margin-bottom: 18px">
+ <label>Nombre de la acción de formación laboral</label>
+ <input
+ type="text"
+ placeholder="Ej: Gestión Documental Electrónica"
+ [(ngModel)]="formulario.nombreActividad"
+ />
+ </div>
+ <div class="datos-grid tres-col">
+ <div class="campo">
+ <label>Total número horas ejecutadas (cronológicas)</label>
+ <input type="number" min="0" placeholder="0" [(ngModel)]="formulario.totalHoras" />
+ </div>
+ <div class="campo">
+ <label>Horas ejecutadas fuera del horario laboral (cronológicas)</label>
+ <input
+ type="number"
+ min="0"
+ placeholder="0"
+ [(ngModel)]="formulario.horasFueraHorario"
+ />
+ </div>
+ <div class="campo">
+ <label>Frecuencia de desarrollo de la actividad</label>
+ <input
+ type="text"
+ placeholder="Ej: Única, Diaria, Semanal"
+ [(ngModel)]="formulario.frecuencia"
+ />
+ </div>
+ <div class="campo">
+ <label>Hora de inicio de la actividad</label>
+ <input type="time" [(ngModel)]="formulario.horaInicio" />
+ </div>
+ <div class="campo">
+ <label>Hora de término de la actividad</label>
+ <input type="time" [(ngModel)]="formulario.horaTermino" />
+ </div>
+ <div class="campo">
+ <label>Modalidad</label>
+ <select [(ngModel)]="formulario.modalidad">
+ <option value="">Seleccione...</option>
+ <option value="Presencial">Presencial</option>
+ <option value="Virtual">Virtual</option>
+ <option value="Semipresencial">Semipresencial</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Público</label>
+ <select [(ngModel)]="formulario.publico">
+ <option value="">Seleccione...</option>
+ <option value="Asistencial">Asistencial</option>
+ <option value="Administrativo">Administrativo</option>
+ <option value="Mixto">Mixto</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Nivel de evaluación ejecutado</label>
+ <select [(ngModel)]="formulario.nivelEvaluacion">
+ <option value="">Seleccione...</option>
+ <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
+ <option value="Reación y aprendizaje (Conocimientos y habilidades)">
+ Reación y aprendizaje (Conocimientos y habilidades)
+ </option>
+ <option value="Reacción, aprendizaje y acción">Reacción, aprendizaje y acción</option>
+ <option value="Reacción, aprendizaje y aplicación">
+ Reacción, aprendizaje y aplicación
+ </option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Total de participantes (planilla)</label>
+ <input
+ type="number"
+ min="0"
+ placeholder="0"
+ [(ngModel)]="formulario.totalParticipantes"
+ />
+ </div>
+ </div>
+ <div class="datos-grid dos-col" style="margin-top: 18px">
+ <div class="campo">
+ <label>Eje temático</label>
+ <select [(ngModel)]="formulario.ejeTematico">
+ <option value="" disabled>Seleccione un eje temático</option>
+ <option value="Atención Especializada">Atención Especializada</option>
+ <option value="Atención primaria">Atención primaria</option>
+ <option value="Control interno o auditoría">Control interno o auditoría</option>
+ <option value="Ética, integridad, lucha contra la corrupción">
+ Ética, integridad, lucha contra la corrupción
+ </option>
+ <option value="Gestión institucional">Gestión institucional</option>
+ <option value="Salud Mental">Salud Mental</option>
+ <option value="Otros">Otros</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Objetivo estratégico vinculado</label>
+ <select [(ngModel)]="formulario.objetivoEstrategico">
+ <option value="">Seleccione...</option>
+ <option
+ value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos"
+ >
+ OE1 – Proteger financieramente las prestaciones
+ </option>
+ <option
+ value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades"
+ >
+ OE2 – Brindar acceso oportuno a prestaciones integrales
+ </option>
+ <option
+ value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución"
+ >
+ OE3 – Impulsar la transformación digital
+ </option>
+ <option
+ value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud"
+ >
+ OEI.05 – Promover la identidad y desarrollo de servidores
+ </option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <!-- PROVEEDOR -->
+ <div class="card">
+ <div class="proveedor-header">
+ <div class="card-section-title"> Proveedor Adjudicado</div>
+ <button
+ class="btn-extranjero"
+ [class.activo]="capacitacionExtranjero"
+ (click)="toggleExtranjero()"
+ type="button"
+ >
+ Capacitación en el extranjero
+ </button>
+ </div>
+ <div class="datos-grid tres-col">
+ <div class="campo">
+ <label>RUC del proveedor adjudicado</label>
+ @if (capacitacionExtranjero) {
+ <div class="ruc-deshabilitado">
+ <span>No aplica (proveedor extranjero)</span>
+ </div>
+ } @else {
+ <div class="input-btn-row">
+ <input
+ type="text"
+ placeholder="20123456789"
+ [(ngModel)]="formulario.rucProveedor"
+ maxlength="11"
+ />
+ <button class="btn-buscar-ruc" (click)="buscarRuc()" [disabled]="buscandoRuc">
+ {{ buscandoRuc ? 'Buscando…' : ' Buscar' }}
+ </button>
+ </div>
+ @if (errorRuc) {
+ <small class="error-ruc">{{ errorRuc }}</small>
+ }
+ }
+ </div>
+ <div class="campo">
+ <label>Nombre del proveedor adjudicado</label>
+ <input
+ type="text"
+ placeholder="Se completará al buscar el RUC"
+ [(ngModel)]="formulario.nombreProveedor"
+ />
+ </div>
+ <div class="campo">
+ <label>Sector al que pertenece el proveedor</label>
+ <select [(ngModel)]="formulario.sectorProveedor">
+ <option value="">Seleccione...</option>
+ <option value="Público">Público</option>
+ <option value="Privado">Privado</option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <!-- PRESUPUESTO -->
+ <!-- PRESUPUESTO -->
+ <div class="card">
+ <div class="card-section-title"> Presupuesto</div>
+
+ <!-- Resumen presupuestario -->
+ <div class="presup-resumen">
+ <!-- Fila superior: asignado / gastado / saldo -->
+ <div class="presup-fila-top">
+ <div class="presup-bloque">
+ <span class="presup-etiqueta">Asignado a la red</span>
+ <span class="presup-valor presup-azul">S/ {{ presupuestoRed | number: '1.2-2' }}</span>
+ <span class="presup-red-nombre">{{ redEjecutor }}</span>
+ </div>
+ <div class="presup-bloque">
+ <span class="presup-etiqueta">Ya ejecutado (aprobado)</span>
+ <span class="presup-valor presup-naranja">S/ {{ presupuestoGastado | number: '1.2-2' }}</span>
+ </div>
+ <div class="presup-bloque">
+ <span class="presup-etiqueta">Saldo disponible</span>
+ <span class="presup-valor" [class.presup-verde]="saldoRestante >= 0" [class.presup-rojo]="saldoRestante < 0">
+ S/ {{ saldoRestante | number: '1.2-2' }}
+ </span>
+ @if (saldoRestante < 0) {
+ <span class="presup-aviso"> Presupuesto excedido</span>
+ }
+ </div>
+ </div>
+
+ <!-- Barra de progreso -->
+ <div class="presup-barra-wrap">
+ <div class="presup-barra-fondo">
+ <!-- Gastado anteriormente (azul oscuro) -->
+ <div class="presup-barra-gastado"
+ [style.width.%]="presupuestoRed ? (presupuestoGastado / presupuestoRed * 100 | number: '1.0-1') : 0">
+ </div>
+ <!-- Lo que se está ingresando ahora (naranja) -->
+ @if ((formulario.presupuestoEjecutado || 0) > 0) {
+ <div class="presup-barra-actual"
+ [style.width.%]="presupuestoRed ? ((formulario.presupuestoEjecutado || 0) / presupuestoRed * 100 | number: '1.0-1') : 0"
+ [style.left.%]="presupuestoRed ? (presupuestoGastado / presupuestoRed * 100 | number: '1.0-1') : 0">
+ </div>
+ }
+ </div>
+ <span class="presup-pct">{{ porcentajeUsado | number: '1.0-1' }}% utilizado</span>
+ </div>
+
+ <!-- Leyenda -->
+ <div class="presup-leyenda">
+ <span class="presup-ley-item"><span class="presup-ley-dot dot-gastado"></span>Ejecutado anteriormente</span>
+ <span class="presup-ley-item"><span class="presup-ley-dot dot-actual"></span>Esta actividad</span>
+ </div>
+ </div>
+
+ <div class="campo" style="max-width: 320px; margin-top: 20px">
+ <label>Presupuesto ejecutado en esta actividad (S/)</label>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ placeholder="0.00"
+ [(ngModel)]="formulario.presupuestoEjecutado"
+ />
+ </div>
+
+ <div class="campo" style="margin-top: 16px">
+ <label>Comprobante de pago (PDF, Word, Excel o imagen)</label>
+ <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+ <input
+ id="comprobanteInput"
+ type="file"
+ accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+ (change)="onArchivoComprobante($event)"
+ />
+ </div>
+ @if (archivoComprobante) {
+ <p style="color: #2563eb; font-size: 0.8rem; margin-top: 6px">
+ {{ archivoComprobante.name }} — se subirá al presionar "Siguiente"
+ </p>
+ }
+ @if (subiendoComprobante) {
+ <p style="color: #2563eb; font-size: 0.85rem; margin-top: 6px">
+ Subiendo comprobante...
+ </p>
+ }
+ @if (errorComprobante) {
+ <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
+ {{ errorComprobante }}
+ </p>
+ }
+
+ @if (comprobantes.length > 0) {
+ <div style="margin-top: 12px">
+ @for (doc of comprobantes; track doc.id) {
+ <div
+ style="
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: 8px 12px;
+ background: #f8fafc;
+ border: 1px solid #e2e8f0;
+ border-radius: 8px;
+ margin-bottom: 6px;
+ "
+ >
+ <span style="font-size: 0.85rem"> {{ doc.nombre_archivo }}</span>
+ <button
+ type="button"
+ class="btn-denegar"
+ style="padding: 4px 10px; font-size: 0.8rem"
+ (click)="eliminarComprobante(doc)"
+ >
+ Eliminar
+ </button>
+ </div>
+ }
+ </div>
+ }
+ </div>
+ </div>
+
+ @if (errorFormulario) {
+ <div class="error-formulario-ej">
+ <svg
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2"
+ width="18"
+ height="18"
+ >
+ <circle cx="12" cy="12" r="10" />
+ <line x1="12" y1="8" x2="12" y2="12" />
+ <line x1="12" y1="16" x2="12.01" y2="16" />
+ </svg>
+ <div>
+ <strong>{{ errorFormulario }}</strong>
+ <ul>
+ @for (campo of camposInvalidos; track campo) {
+ <li>{{ campo }}</li>
+ }
+ </ul>
+ </div>
+ </div>
+ }
+
+ <button class="btn-guardar" (click)="abrirSeleccionParticipantes()">Siguiente →</button>
+
+ <!-- MIS ENVÍOS -->
+ <div class="mis-envios-section card" style="margin-top: 28px">
+ <div class="card-section-title-row">
+ <span class="card-section-title"> Mis Envíos</span>
+ <button class="btn-refrescar" (click)="cargarMisEnvios()" title="Actualizar">↻</button>
+ </div>
+
+ @if (cargandoEnvios) {
+ <div class="sin-resultados"><p>Cargando...</p></div>
+ } @else if (misEnvios.length === 0) {
+ <div class="sin-resultados"><p>Aún no has enviado ningún formulario.</p></div>
+ } @else {
+ <div class="tabla-scroll">
+ <table class="tabla-part">
+ <thead>
+ <tr>
+ <th>Fecha</th>
+ <th>Actividad</th>
+ <th>Red asistencial</th>
+ <th>Estado</th>
+ <th>Motivo rechazo</th>
+ </tr>
+ </thead>
+ <tbody>
+ @for (e of misEnvios; track e.id) {
+ <tr>
+ <td>{{ e.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+ <td>{{ e.datos?.nombreActividad || '—' }}</td>
+ <td>{{ e.datos?.redAsistencial || '—' }}</td>
+ <td>
+ <span class="badge-envio" [class]="'envio-' + e.estado">
+ {{
+ e.estado === 'pendiente'
+ ? '⏳ Pendiente'
+ : e.estado === 'aprobado'
+ ? ' Aprobado'
+ : ' Denegado'
+ }}
+ </span>
+ </td>
+ <td>{{ e.motivo_rechazo || '—' }}</td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ </div>
+ }
+ </div>
+ </main>
+ </div>
 </div>
 
 @if (mostrarBusqueda) {
-  <div class="modal-busqueda-overlay" (click)="cerrarBusqueda()">
-    <div class="modal-busqueda" (click)="$event.stopPropagation()">
-      <div class="modal-busqueda-header">
-        <div class="modal-busqueda-titulo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <h3>Búsqueda de Expedientes</h3>
-        </div>
-        <button class="modal-cerrar" (click)="cerrarBusqueda()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
+ <div class="modal-busqueda-overlay" (click)="cerrarBusqueda()">
+ <div class="modal-busqueda" (click)="$event.stopPropagation()">
+ <div class="modal-busqueda-header">
+ <div class="modal-busqueda-titulo">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="11" cy="11" r="8" />
+ <line x1="21" y1="21" x2="16.65" y2="16.65" />
+ </svg>
+ <h3>Búsqueda de Expedientes</h3>
+ </div>
+ <button class="modal-cerrar" (click)="cerrarBusqueda()">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+ <line x1="18" y1="6" x2="6" y2="18" />
+ <line x1="6" y1="6" x2="18" y2="18" />
+ </svg>
+ </button>
+ </div>
 
-      <div class="modal-busqueda-buscador">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          type="text"
-          placeholder="Buscar por código, capacitación, responsable o estado..."
-          [(ngModel)]="textoBusqueda"
-          autofocus
-        />
-      </div>
+ <div class="modal-busqueda-buscador">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="11" cy="11" r="8" />
+ <line x1="21" y1="21" x2="16.65" y2="16.65" />
+ </svg>
+ <input
+ type="text"
+ placeholder="Buscar por código, capacitación, responsable o estado..."
+ [(ngModel)]="textoBusqueda"
+ autofocus
+ />
+ </div>
 
-      <div class="modal-busqueda-resultados">
-        @if (expedientesFiltrados.length === 0) {
-          <div class="modal-sin-resultados">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              width="48"
-              height="48"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <p>No se encontraron expedientes</p>
-          </div>
-        } @else {
-          <table class="tabla-expedientes-modal">
-            <thead>
-              <tr>
-                <th>Expediente</th>
-                <th>Capacitación</th>
-                <th>Estado</th>
-                <th>Semáforo</th>
-                <th>Responsable</th>
-                <th>Beneficiarios</th>
-                <th>Presupuesto (S/)</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (exp of expedientesFiltrados; track exp.expediente) {
-                <tr
-                  (click)="verDetalleExpediente(exp)"
-                  [class.fila-seleccionada]="expedienteDetalle?.expediente === exp.expediente"
-                >
-                  <td class="cod-expediente">{{ exp.expediente }}</td>
-                  <td>{{ exp.capacitacion }}</td>
-                  <td>
-                    <span
-                      class="badge-estado-exp"
-                      [class]="'estado-' + exp.estado.toLowerCase().replace(' ', '-')"
-                    >
-                      {{ exp.estado }}
-                    </span>
-                  </td>
-                  <td><span class="semaforo-dot" [class]="exp.semaforo"></span></td>
-                  <td>{{ exp.responsable }}</td>
-                  <td class="centrado">{{ exp.beneficiarios }}</td>
-                  <td class="centrado">{{ exp.presupuesto | number: '1.0-0' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+ <div class="modal-busqueda-resultados">
+ @if (expedientesFiltrados.length === 0) {
+ <div class="modal-sin-resultados">
+ <svg
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="1.5"
+ width="48"
+ height="48"
+ >
+ <circle cx="11" cy="11" r="8" />
+ <line x1="21" y1="21" x2="16.65" y2="16.65" />
+ </svg>
+ <p>No se encontraron expedientes</p>
+ </div>
+ } @else {
+ <table class="tabla-expedientes-modal">
+ <thead>
+ <tr>
+ <th>Expediente</th>
+ <th>Capacitación</th>
+ <th>Estado</th>
+ <th>Semáforo</th>
+ <th>Responsable</th>
+ <th>Beneficiarios</th>
+ <th>Presupuesto (S/)</th>
+ </tr>
+ </thead>
+ <tbody>
+ @for (exp of expedientesFiltrados; track exp.expediente) {
+ <tr
+ (click)="verDetalleExpediente(exp)"
+ [class.fila-seleccionada]="expedienteDetalle?.expediente === exp.expediente"
+ >
+ <td class="cod-expediente">{{ exp.expediente }}</td>
+ <td>{{ exp.capacitacion }}</td>
+ <td>
+ <span
+ class="badge-estado-exp"
+ [class]="'estado-' + exp.estado.toLowerCase().replace(' ', '-')"
+ >
+ {{ exp.estado }}
+ </span>
+ </td>
+ <td><span class="semaforo-dot" [class]="exp.semaforo"></span></td>
+ <td>{{ exp.responsable }}</td>
+ <td class="centrado">{{ exp.beneficiarios }}</td>
+ <td class="centrado">{{ exp.presupuesto | number: '1.0-0' }}</td>
+ </tr>
+ }
+ </tbody>
+ </table>
 
-          @if (expedienteDetalle) {
-            <div class="detalle-exp-panel">
-              <h4>Detalle: {{ expedienteDetalle.expediente }}</h4>
-              <div class="detalle-exp-grid">
-                <div class="detalle-exp-item">
-                  <span>Capacitación</span><strong>{{ expedienteDetalle.capacitacion }}</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Responsable</span><strong>{{ expedienteDetalle.responsable }}</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Estado</span><strong>{{ expedienteDetalle.estado }}</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Beneficiarios</span><strong>{{ expedienteDetalle.beneficiarios }}</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Presupuesto</span
-                  ><strong>S/ {{ expedienteDetalle.presupuesto | number: '1.0-0' }}</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Horas lectivas</span><strong>{{ expedienteDetalle.horasLectivas }}h</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Horas cronológicas</span
-                  ><strong>{{ expedienteDetalle.horasCronologicas }}h</strong>
-                </div>
-                <div class="detalle-exp-item">
-                  <span>Semáforo</span>
-                  <strong
-                    ><span class="semaforo-dot" [class]="expedienteDetalle.semaforo"></span>
-                    {{ expedienteDetalle.semaforo }}</strong
-                  >
-                </div>
-              </div>
-            </div>
-          }
-        }
-      </div>
+ @if (expedienteDetalle) {
+ <div class="detalle-exp-panel">
+ <h4>Detalle: {{ expedienteDetalle.expediente }}</h4>
+ <div class="detalle-exp-grid">
+ <div class="detalle-exp-item">
+ <span>Capacitación</span><strong>{{ expedienteDetalle.capacitacion }}</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Responsable</span><strong>{{ expedienteDetalle.responsable }}</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Estado</span><strong>{{ expedienteDetalle.estado }}</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Beneficiarios</span><strong>{{ expedienteDetalle.beneficiarios }}</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Presupuesto</span
+ ><strong>S/ {{ expedienteDetalle.presupuesto | number: '1.0-0' }}</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Horas lectivas</span><strong>{{ expedienteDetalle.horasLectivas }}h</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Horas cronológicas</span
+ ><strong>{{ expedienteDetalle.horasCronologicas }}h</strong>
+ </div>
+ <div class="detalle-exp-item">
+ <span>Semáforo</span>
+ <strong
+ ><span class="semaforo-dot" [class]="expedienteDetalle.semaforo"></span>
+ {{ expedienteDetalle.semaforo }}</strong
+ >
+ </div>
+ </div>
+ </div>
+ }
+ }
+ </div>
 
-      <div class="modal-busqueda-footer">
-        <span class="modal-total"
-          >{{ expedientesFiltrados.length }} expediente(s) encontrado(s)</span
-        >
-        <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
-      </div>
-    </div>
-  </div>
+ <div class="modal-busqueda-footer">
+ <span class="modal-total"
+ >{{ expedientesFiltrados.length }} expediente(s) encontrado(s)</span
+ >
+ <button class="btn-cerrar-modal" (click)="cerrarBusqueda()">Cerrar</button>
+ </div>
+ </div>
+ </div>
 }
 
 <!-- MODAL INGRESO DE PARTICIPANTES -->
 @if (mostrarModalParticipantes) {
-  <div class="modal-partic-overlay">
-    <div class="modal-partic-box">
-      <div class="modal-partic-header">
-        <div>
-          <h2 class="modal-partic-titulo">Registrar Participantes</h2>
-          <p class="modal-partic-sub">{{ formulario.nombreActividad || 'Actividad' }}</p>
-        </div>
-        <div class="modal-partic-contador">
-          <span
-            [class.contador-ok]="
-              participantesSeleccionados.length === formulario.totalParticipantes
-            "
-            [class.contador-warn]="
-              participantesSeleccionados.length < formulario.totalParticipantes
-            "
-          >
-            {{ participantesSeleccionados.length }} /
-            {{ formulario.totalParticipantes }} registrados
-          </span>
-        </div>
-      </div>
+ <div class="modal-partic-overlay">
+ <div class="modal-partic-box">
+ <div class="modal-partic-header">
+ <div>
+ <h2 class="modal-partic-titulo">Registrar Participantes</h2>
+ <p class="modal-partic-sub">{{ formulario.nombreActividad || 'Actividad' }}</p>
+ </div>
+ <div class="modal-partic-contador">
+ <span
+ [class.contador-ok]="
+ participantesSeleccionados.length === formulario.totalParticipantes
+ "
+ [class.contador-warn]="
+ participantesSeleccionados.length < formulario.totalParticipantes
+ "
+ >
+ {{ participantesSeleccionados.length }} /
+ {{ formulario.totalParticipantes }} registrados
+ </span>
+ </div>
+ </div>
 
-      <!-- Formulario para agregar un participante -->
-      <div class="modal-partic-form">
-        <div class="partic-form-grid">
-          <div class="partic-campo">
-            <label>Código Act.</label>
-            <input type="text" [value]="nuevoPartic.codigo_act" disabled class="input-bloqueado" />
-          </div>
-          <div class="partic-campo">
-            <label>Red Asistencial</label>
-            <input type="text" [value]="nuevoPartic.red" disabled class="input-bloqueado" />
-          </div>
-          <div class="partic-campo partic-campo-dni">
-            <label>
-              DNI / CE *
-              @if (estadoAC === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
-              @if (estadoAC === 'encontrado') { <span class="ac-badge ac-ok">✓ encontrado</span> }
-              @if (estadoAC === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
-            </label>
-            <input
-              type="text"
-              placeholder="Ej: 12345678"
-              [(ngModel)]="nuevoPartic.dni_ce"
-              (input)="autocompletarPorDni(nuevoPartic.dni_ce, 'nuevo')"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Cód. Planilla</label>
-            <input
-              type="text"
-              placeholder="Cód. planilla"
-              [(ngModel)]="nuevoPartic.cod_planilla"
-              (input)="autocompletarPorPlanilla(nuevoPartic.cod_planilla, 'nuevo')"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Apellidos *</label>
-            <input
-              type="text"
-              placeholder="Apellido Paterno Materno"
-              [(ngModel)]="nuevoPartic.apellidos"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Nombre *</label>
-            <input
-              type="text"
-              placeholder="Nombres"
-              [(ngModel)]="nuevoPartic.nombre"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Sexo</label>
-            <select [(ngModel)]="nuevoPartic.sexo">
-              <option value="">—</option>
-              <option value="M">Masculino</option>
-              <option value="F">Femenino</option>
-            </select>
-          </div>
-          <div class="partic-campo">
-            <label>Sub-Programa</label>
-            <input
-              type="text"
-              placeholder="Sub-Programa"
-              [(ngModel)]="nuevoPartic.sub_programa"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Servicio / Área (Actividad)</label>
-            <input
-              type="text"
-              placeholder="Servicio o área"
-              [(ngModel)]="nuevoPartic.servicio_area"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Cargo</label>
-            <input
-              type="text"
-              placeholder="Ej: Médico"
-              [(ngModel)]="nuevoPartic.cargo"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-          <div class="partic-campo">
-            <label>Régimen laboral</label>
-            <input
-              type="text"
-              placeholder="Ej: 728, CAS"
-              [(ngModel)]="nuevoPartic.regimen_laboral"
-              (keyup.enter)="agregarParticipante()"
-            />
-          </div>
-        </div>
-        @if (errorPartic) {
-          <p class="partic-error">{{ errorPartic }}</p>
-        }
-        <button
-          class="btn-agregar-partic"
-          (click)="agregarParticipante()"
-          [disabled]="participantesSeleccionados.length >= formulario.totalParticipantes"
-        >
-          + Agregar participante
-        </button>
-      </div>
+ <!-- Formulario para agregar un participante -->
+ <div class="modal-partic-form">
+ <div class="partic-form-grid">
+ <div class="partic-campo">
+ <label>Código Act.</label>
+ <input type="text" [value]="nuevoPartic.codigo_act" disabled class="input-bloqueado" />
+ </div>
+ <div class="partic-campo">
+ <label>Red Asistencial</label>
+ <input type="text" [value]="nuevoPartic.red" disabled class="input-bloqueado" />
+ </div>
+ <div class="partic-campo partic-campo-dni">
+ <label>
+ DNI / CE *
+ @if (estadoAC === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
+ @if (estadoAC === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
+ @if (estadoAC === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
+ </label>
+ <input
+ type="text"
+ placeholder="Ej: 12345678"
+ [(ngModel)]="nuevoPartic.dni_ce"
+ (input)="autocompletarPorDni(nuevoPartic.dni_ce, 'nuevo')"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Cód. Planilla</label>
+ <input
+ type="text"
+ placeholder="Cód. planilla"
+ [(ngModel)]="nuevoPartic.cod_planilla"
+ (input)="autocompletarPorPlanilla(nuevoPartic.cod_planilla, 'nuevo')"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Apellidos *</label>
+ <input
+ type="text"
+ placeholder="Apellido Paterno Materno"
+ [(ngModel)]="nuevoPartic.apellidos"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Nombre *</label>
+ <input
+ type="text"
+ placeholder="Nombres"
+ [(ngModel)]="nuevoPartic.nombre"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Sexo</label>
+ <select [(ngModel)]="nuevoPartic.sexo">
+ <option value="">—</option>
+ <option value="M">Masculino</option>
+ <option value="F">Femenino</option>
+ </select>
+ </div>
+ <div class="partic-campo">
+ <label>Sub-Programa</label>
+ <input
+ type="text"
+ placeholder="Sub-Programa"
+ [(ngModel)]="nuevoPartic.sub_programa"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Servicio / Área (Actividad)</label>
+ <input
+ type="text"
+ placeholder="Servicio o área"
+ [(ngModel)]="nuevoPartic.servicio_area"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Cargo</label>
+ <input
+ type="text"
+ placeholder="Ej: Médico"
+ [(ngModel)]="nuevoPartic.cargo"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ <div class="partic-campo">
+ <label>Régimen laboral</label>
+ <input
+ type="text"
+ placeholder="Ej: 728, CAS"
+ [(ngModel)]="nuevoPartic.regimen_laboral"
+ (keyup.enter)="agregarParticipante()"
+ />
+ </div>
+ </div>
+ @if (errorPartic) {
+ <p class="partic-error">{{ errorPartic }}</p>
+ }
+ <button
+ class="btn-agregar-partic"
+ (click)="agregarParticipante()"
+ [disabled]="participantesSeleccionados.length >= formulario.totalParticipantes"
+ >
+ + Agregar participante
+ </button>
+ </div>
 
-      <!-- Tabla de participantes ya ingresados -->
-      @if (participantesSeleccionados.length > 0) {
-        <div class="modal-partic-tabla-wrap">
-          <table class="modal-partic-tabla">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Cód. Act.</th>
-                <th>Red</th>
-                <th>DNI / CE</th>
-                <th>Cód. Planilla</th>
-                <th>Apellidos y Nombre</th>
-                <th>Sexo</th>
-                <th>Sub-Prog.</th>
-                <th>Servicio / Área</th>
-                <th>Cargo</th>
-                <th>Régimen</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (p of participantesSeleccionados; track $index) {
-                <tr>
-                  <td>{{ $index + 1 }}</td>
-                  <td>{{ p.codigo_act || '—' }}</td>
-                  <td>{{ p.red || '—' }}</td>
-                  <td>{{ p.dni_ce }}</td>
-                  <td>{{ p.cod_planilla || '—' }}</td>
-                  <td>{{ p.apellidos }} {{ p.nombre }}</td>
-                  <td>{{ p.sexo || '—' }}</td>
-                  <td>{{ p.sub_programa || '—' }}</td>
-                  <td>{{ p.servicio_area || '—' }}</td>
-                  <td>{{ p.cargo || '—' }}</td>
-                  <td>{{ p.regimen_laboral || '—' }}</td>
-                  <td>
-                    <button class="btn-quitar-partic" (click)="quitarParticipante($index)">
-                      ✕
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <div class="partic-cargando">Aún no se han agregado participantes.</div>
-      }
+ <!-- Tabla de participantes ya ingresados -->
+ @if (participantesSeleccionados.length > 0) {
+ <div class="modal-partic-tabla-wrap">
+ <table class="modal-partic-tabla">
+ <thead>
+ <tr>
+ <th>#</th>
+ <th>Cód. Act.</th>
+ <th>Red</th>
+ <th>DNI / CE</th>
+ <th>Cód. Planilla</th>
+ <th>Apellidos y Nombre</th>
+ <th>Sexo</th>
+ <th>Sub-Prog.</th>
+ <th>Servicio / Área</th>
+ <th>Cargo</th>
+ <th>Régimen</th>
+ <th></th>
+ </tr>
+ </thead>
+ <tbody>
+ @for (p of participantesSeleccionados; track $index) {
+ <tr>
+ <td>{{ $index + 1 }}</td>
+ <td>{{ p.codigo_act || '—' }}</td>
+ <td>{{ p.red || '—' }}</td>
+ <td>{{ p.dni_ce }}</td>
+ <td>{{ p.cod_planilla || '—' }}</td>
+ <td>{{ p.apellidos }} {{ p.nombre }}</td>
+ <td>{{ p.sexo || '—' }}</td>
+ <td>{{ p.sub_programa || '—' }}</td>
+ <td>{{ p.servicio_area || '—' }}</td>
+ <td>{{ p.cargo || '—' }}</td>
+ <td>{{ p.regimen_laboral || '—' }}</td>
+ <td>
+ <button class="btn-quitar-partic" (click)="quitarParticipante($index)">
+ 
+ </button>
+ </td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ </div>
+ } @else {
+ <div class="partic-cargando">Aún no se han agregado participantes.</div>
+ }
 
-      <div class="modal-partic-footer">
-        <button class="btn-volver-modal" (click)="cerrarModalParticipantes()">← Volver</button>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
-          @if (
-            participantesSeleccionados.length > 0 &&
-            participantesSeleccionados.length < formulario.totalParticipantes
-          ) {
-            <span class="partic-aviso">
-              ⚠ Lleva {{ participantesSeleccionados.length }} de
-              {{ formulario.totalParticipantes }}. Asegúrese de hacer clic en "+ Agregar" antes de
-              enviar.
-            </span>
-          }
-          <button
-            class="btn-enviar-modal"
-            [disabled]="participantesSeleccionados.length === 0 || enviando"
-            (click)="enviarFormulario()"
-          >
-            {{ enviando ? '⏳ Enviando...' : '📤 Enviar al Sectorista' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+ <div class="modal-partic-footer">
+ <button class="btn-volver-modal" (click)="cerrarModalParticipantes()">← Volver</button>
+ <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+ @if (
+ participantesSeleccionados.length > 0 &&
+ participantesSeleccionados.length < formulario.totalParticipantes
+ ) {
+ <span class="partic-aviso">
+ Lleva {{ participantesSeleccionados.length }} de
+ {{ formulario.totalParticipantes }}. Asegúrese de hacer clic en "+ Agregar" antes de
+ enviar.
+ </span>
+ }
+ <button
+ class="btn-enviar-modal"
+ [disabled]="participantesSeleccionados.length === 0 || enviando"
+ (click)="enviarFormulario()"
+ >
+ {{ enviando ? '⏳ Enviando...' : ' Enviar al Sectorista' }}
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
 }
 
 <!-- ===== MODAL: CORREGIR Y REENVIAR ===== -->
 @if (mostrarModalCorreccion && solicitudCorrigiendo) {
-  <div class="modal-partic-overlay" (click)="cerrarCorreccion()">
-    <div class="modal-partic-box" style="max-width:860px" (click)="$event.stopPropagation()">
+ <div class="modal-partic-overlay" (click)="cerrarCorreccion()">
+ <div class="modal-partic-box" style="max-width:860px" (click)="$event.stopPropagation()">
 
-      <!-- Header naranja -->
-      <div class="modal-corr-header">
-        <div>
-          <p class="modal-corr-titulo">✏️ Corregir y reenviar solicitud</p>
-          <p class="modal-corr-sub">{{ solicitudCorrigiendo.datos?.nombreActividad }}</p>
-        </div>
-        <button class="btn-cerrar-partic" (click)="cerrarCorreccion()">✕</button>
-      </div>
+ <!-- Header naranja -->
+ <div class="modal-corr-header">
+ <div>
+ <p class="modal-corr-titulo"> Corregir y reenviar solicitud</p>
+ <p class="modal-corr-sub">{{ solicitudCorrigiendo.datos?.nombreActividad }}</p>
+ </div>
+ <button class="btn-cerrar-partic" (click)="cerrarCorreccion()"></button>
+ </div>
 
-      <!-- Banner de aviso -->
-      <div class="modal-corr-aviso">
-        <span class="modal-corr-aviso-icono">⚠️</span>
-        <div>
-          <p class="modal-corr-aviso-titulo">El sectorista solicita corrección en:
-            @if (solicitudCorrigiendo.seccion_correccion === 'formulario') { <strong>📋 Formulario de Capacitación</strong> }
-            @else if (solicitudCorrigiendo.seccion_correccion === 'participantes') { <strong>👥 Registro de Participantes</strong> }
-            @else { <strong>General</strong> }
-          </p>
-          @if (solicitudCorrigiendo.motivo_rechazo) {
-            <p class="modal-corr-aviso-obs">Observación: {{ solicitudCorrigiendo.motivo_rechazo }}</p>
-          }
-        </div>
-      </div>
+ <!-- Banner de aviso -->
+ <div class="modal-corr-aviso">
+ <span class="modal-corr-aviso-icono"></span>
+ <div>
+ <p class="modal-corr-aviso-titulo">El sectorista solicita corrección en:
+ @if (solicitudCorrigiendo.seccion_correccion === 'formulario') { <strong> Formulario de Capacitación</strong> }
+ @else if (solicitudCorrigiendo.seccion_correccion === 'participantes') { <strong> Registro de Participantes</strong> }
+ @else { <strong>General</strong> }
+ </p>
+ @if (solicitudCorrigiendo.motivo_rechazo) {
+ <p class="modal-corr-aviso-obs">Observación: {{ solicitudCorrigiendo.motivo_rechazo }}</p>
+ }
+ </div>
+ </div>
 
-      <!-- Cuerpo scrollable con fondo blanco -->
-      <div class="modal-corr-body">
+ <!-- Cuerpo scrollable con fondo blanco -->
+ <div class="modal-corr-body">
 
-        <!-- FORMULARIO -->
-        @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'formulario') {
-          <p class="modal-seccion-label">📋 Datos de la capacitación</p>
-          <div class="datos-grid tres-col">
-            <div class="campo">
-              <label>Código act.</label>
-              <input type="text" [(ngModel)]="formularioCorreccion.codigoAct" />
-            </div>
-            <div class="campo">
-              <label>Fecha de inicio</label>
-              <input type="date" [(ngModel)]="formularioCorreccion.fechaInicio" />
-            </div>
-            <div class="campo">
-              <label>Fecha de finalización</label>
-              <input type="date" [(ngModel)]="formularioCorreccion.fechaFin" />
-            </div>
-            <div class="campo">
-              <label>Nombre de la actividad</label>
-              <input type="text" [(ngModel)]="formularioCorreccion.nombreActividad" />
-            </div>
-            <div class="campo">
-              <label>Total horas</label>
-              <input type="number" [(ngModel)]="formularioCorreccion.totalHoras" />
-            </div>
-            <div class="campo">
-              <label>Modalidad</label>
-              <select [(ngModel)]="formularioCorreccion.modalidad">
-                <option value="">Seleccione...</option>
-                <option value="Presencial">Presencial</option>
-                <option value="Virtual">Virtual</option>
-                <option value="Semipresencial">Semipresencial</option>
-              </select>
-            </div>
-            <div class="campo">
-              <label>Total participantes</label>
-              <input type="number" [(ngModel)]="formularioCorreccion.totalParticipantes" />
-            </div>
-            <div class="campo">
-              <label>Presupuesto ejecutado (S/)</label>
-              <input type="number" [(ngModel)]="formularioCorreccion.presupuestoEjecutado" />
-            </div>
-            <div class="campo">
-              <label>Nivel de evaluación</label>
-              <select [(ngModel)]="formularioCorreccion.nivelEvaluacion">
-                <option value="">Seleccione...</option>
-                <option value="Nivel I">Nivel I — Reacción</option>
-                <option value="Nivel II">Nivel II — Aprendizaje</option>
-                <option value="Nivel III">Nivel III — Transferencia</option>
-                <option value="Nivel IV">Nivel IV — Resultados</option>
-              </select>
-            </div>
-          </div>
-        }
+ <!-- FORMULARIO -->
+ @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'formulario') {
+ <p class="modal-seccion-label"> Datos de la capacitación</p>
+ <div class="datos-grid tres-col">
+ <div class="campo">
+ <label>Código act.</label>
+ <input type="text" [(ngModel)]="formularioCorreccion.codigoAct" />
+ </div>
+ <div class="campo">
+ <label>Fecha de inicio</label>
+ <input type="date" [(ngModel)]="formularioCorreccion.fechaInicio" />
+ </div>
+ <div class="campo">
+ <label>Fecha de finalización</label>
+ <input type="date" [(ngModel)]="formularioCorreccion.fechaFin" />
+ </div>
+ <div class="campo">
+ <label>Nombre de la actividad</label>
+ <input type="text" [(ngModel)]="formularioCorreccion.nombreActividad" />
+ </div>
+ <div class="campo">
+ <label>Total horas</label>
+ <input type="number" [(ngModel)]="formularioCorreccion.totalHoras" />
+ </div>
+ <div class="campo">
+ <label>Modalidad</label>
+ <select [(ngModel)]="formularioCorreccion.modalidad">
+ <option value="">Seleccione...</option>
+ <option value="Presencial">Presencial</option>
+ <option value="Virtual">Virtual</option>
+ <option value="Semipresencial">Semipresencial</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Total participantes</label>
+ <input type="number" [(ngModel)]="formularioCorreccion.totalParticipantes" />
+ </div>
+ <div class="campo">
+ <label>Presupuesto ejecutado (S/)</label>
+ <input type="number" [(ngModel)]="formularioCorreccion.presupuestoEjecutado" />
+ </div>
+ <div class="campo">
+ <label>Nivel de evaluación</label>
+ <select [(ngModel)]="formularioCorreccion.nivelEvaluacion">
+ <option value="">Seleccione...</option>
+ <option value="Nivel I">Nivel I — Reacción</option>
+ <option value="Nivel II">Nivel II — Aprendizaje</option>
+ <option value="Nivel III">Nivel III — Transferencia</option>
+ <option value="Nivel IV">Nivel IV — Resultados</option>
+ </select>
+ </div>
+ </div>
+ }
 
-        <!-- PARTICIPANTES -->
-        @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'participantes') {
-          <p class="modal-seccion-label" style="margin-top:24px">👥 Participantes ({{ participantesCorreccion.length }})</p>
+ <!-- PARTICIPANTES -->
+ @if (!solicitudCorrigiendo.seccion_correccion || solicitudCorrigiendo.seccion_correccion === 'participantes') {
+ <p class="modal-seccion-label" style="margin-top:24px"> Participantes ({{ participantesCorreccion.length }})</p>
 
-          <div class="modal-partic-form">
-            <div class="partic-form-grid">
-              <div class="campo partic-campo-dni">
-                <label>
-                  DNI / CE <span class="req">*</span>
-                  @if (estadoACCorr === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
-                  @if (estadoACCorr === 'encontrado') { <span class="ac-badge ac-ok">✓ encontrado</span> }
-                  @if (estadoACCorr === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
-                </label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce"
-                  placeholder="DNI o carné"
-                  (input)="autocompletarPorDni(nuevoParticCorreccion.dni_ce, 'correccion')" />
-              </div>
-              <div class="campo">
-                <label>Cód. Planilla</label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.cod_planilla"
-                  placeholder="Cód. planilla"
-                  (input)="autocompletarPorPlanilla(nuevoParticCorreccion.cod_planilla, 'correccion')" />
-              </div>
-              <div class="campo">
-                <label>Apellidos <span class="req">*</span></label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.apellidos" placeholder="Apellidos" />
-              </div>
-              <div class="campo">
-                <label>Nombre <span class="req">*</span></label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.nombre" placeholder="Nombre" />
-              </div>
-              <div class="campo">
-                <label>Sexo</label>
-                <select [(ngModel)]="nuevoParticCorreccion.sexo">
-                  <option value="">—</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                </select>
-              </div>
-              <div class="campo">
-                <label>Cargo</label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.cargo" placeholder="Cargo" />
-              </div>
-              <div class="campo">
-                <label>Servicio / Área</label>
-                <input type="text" [(ngModel)]="nuevoParticCorreccion.servicio_area" placeholder="Área" />
-              </div>
-            </div>
-            @if (errorParticCorreccion) {
-              <p style="color:#dc2626;font-size:13px;margin:6px 0 0">{{ errorParticCorreccion }}</p>
-            }
-            <button class="btn-agregar-partic" style="margin-top:10px" (click)="agregarParticCorreccion()">+ Agregar participante</button>
-          </div>
+ <div class="modal-partic-form">
+ <div class="partic-form-grid">
+ <div class="campo partic-campo-dni">
+ <label>
+ DNI / CE <span class="req">*</span>
+ @if (estadoACCorr === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
+ @if (estadoACCorr === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
+ @if (estadoACCorr === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
+ </label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce"
+ placeholder="DNI o carné"
+ (input)="autocompletarPorDni(nuevoParticCorreccion.dni_ce, 'correccion')" />
+ </div>
+ <div class="campo">
+ <label>Cód. Planilla</label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.cod_planilla"
+ placeholder="Cód. planilla"
+ (input)="autocompletarPorPlanilla(nuevoParticCorreccion.cod_planilla, 'correccion')" />
+ </div>
+ <div class="campo">
+ <label>Apellidos <span class="req">*</span></label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.apellidos" placeholder="Apellidos" />
+ </div>
+ <div class="campo">
+ <label>Nombre <span class="req">*</span></label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.nombre" placeholder="Nombre" />
+ </div>
+ <div class="campo">
+ <label>Sexo</label>
+ <select [(ngModel)]="nuevoParticCorreccion.sexo">
+ <option value="">—</option>
+ <option value="M">Masculino</option>
+ <option value="F">Femenino</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Cargo</label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.cargo" placeholder="Cargo" />
+ </div>
+ <div class="campo">
+ <label>Servicio / Área</label>
+ <input type="text" [(ngModel)]="nuevoParticCorreccion.servicio_area" placeholder="Área" />
+ </div>
+ </div>
+ @if (errorParticCorreccion) {
+ <p style="color:#dc2626;font-size:13px;margin:6px 0 0">{{ errorParticCorreccion }}</p>
+ }
+ <button class="btn-agregar-partic" style="margin-top:10px" (click)="agregarParticCorreccion()">+ Agregar participante</button>
+ </div>
 
-          <div class="modal-partic-tabla-wrap" style="max-height:220px">
-            @if (participantesCorreccion.length > 0) {
-              <table class="modal-partic-tabla">
-                <thead>
-                  <tr><th>DNI/CE</th><th>Apellidos</th><th>Nombre</th><th>Sexo</th><th>Cargo</th><th></th></tr>
-                </thead>
-                <tbody>
-                  @for (p of participantesCorreccion; track $index) {
-                    <tr>
-                      <td>{{ p.dni_ce }}</td>
-                      <td>{{ p.apellidos }}</td>
-                      <td>{{ p.nombre }}</td>
-                      <td>{{ p.sexo || '—' }}</td>
-                      <td>{{ p.cargo || '—' }}</td>
-                      <td><button class="btn-quitar-partic" (click)="quitarParticCorreccion($index)">✕</button></td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            } @else {
-              <div class="partic-cargando">Aún no se han agregado participantes.</div>
-            }
-          </div>
-        }
+ <div class="modal-partic-tabla-wrap" style="max-height:220px">
+ @if (participantesCorreccion.length > 0) {
+ <table class="modal-partic-tabla">
+ <thead>
+ <tr><th>DNI/CE</th><th>Apellidos</th><th>Nombre</th><th>Sexo</th><th>Cargo</th><th></th></tr>
+ </thead>
+ <tbody>
+ @for (p of participantesCorreccion; track $index) {
+ <tr>
+ <td>{{ p.dni_ce }}</td>
+ <td>{{ p.apellidos }}</td>
+ <td>{{ p.nombre }}</td>
+ <td>{{ p.sexo || '—' }}</td>
+ <td>{{ p.cargo || '—' }}</td>
+ <td><button class="btn-quitar-partic" (click)="quitarParticCorreccion($index)"></button></td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ } @else {
+ <div class="partic-cargando">Aún no se han agregado participantes.</div>
+ }
+ </div>
+ }
 
-        @if (errorCorreccion) {
-          <p style="color:#dc2626;font-size:13px;margin-top:12px">{{ errorCorreccion }}</p>
-        }
+ @if (errorCorreccion) {
+ <p style="color:#dc2626;font-size:13px;margin-top:12px">{{ errorCorreccion }}</p>
+ }
 
-      </div><!-- /.modal-corr-body -->
+ </div><!-- /.modal-corr-body -->
 
-      <!-- Footer -->
-      <div class="modal-partic-footer">
-        <button class="btn-volver-modal" (click)="cerrarCorreccion()">← Cancelar</button>
-        <button
-          class="btn-enviar-modal"
-          [disabled]="enviandoCorreccion"
-          (click)="enviarCorreccion()"
-        >
-          {{ enviandoCorreccion ? '⏳ Enviando...' : '📤 Enviar corrección al Sectorista' }}
-        </button>
-      </div>
+ <!-- Footer -->
+ <div class="modal-partic-footer">
+ <button class="btn-volver-modal" (click)="cerrarCorreccion()">← Cancelar</button>
+ <button
+ class="btn-enviar-modal"
+ [disabled]="enviandoCorreccion"
+ (click)="enviarCorreccion()"
+ >
+ {{ enviandoCorreccion ? '⏳ Enviando...' : ' Enviar corrección al Sectorista' }}
+ </button>
+ </div>
 
-    </div>
-  </div>
+ </div>
+ </div>
 }
 
 <div></div>

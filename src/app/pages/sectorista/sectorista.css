@@ -80,6 +80,54 @@
   letter-spacing: -0.5px;
 }
 
+.presupuesto-linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.presupuesto-etq {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+.presupuesto-ejec {
+  font-size: 14px;
+  font-weight: 700;
+  color: #b45309;
+}
+.presupuesto-saldo {
+  font-size: 15px;
+  font-weight: 800;
+  color: #15803d;
+}
+.presupuesto-saldo.saldo-negativo {
+  color: #dc2626;
+}
+.presupuesto-barra-bg {
+  margin-top: 10px;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.presupuesto-barra-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.presupuesto-barra-fill.barra-excedida {
+  background: #dc2626;
+}
+.presupuesto-pct {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #6b7280;
+  text-align: right;
+}
+
 /* CARDS */
 
 .card {
@@ -1402,6 +1450,27 @@
   line-height: 1;
   flex-shrink: 0;
   padding-top: 2px;
+}
+.opcion-icono svg {
+  width: 26px;
+  height: 26px;
+  stroke: #2b4c9b;
+}
+
+.filtro-red-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filtro-red-select {
+  padding: 6px 10px;
+  border: 1px solid #d0dbe6;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #334155;
+  background: #fff;
+  cursor: pointer;
+  max-width: 240px;
 }
 
 .opcion-edicion strong {

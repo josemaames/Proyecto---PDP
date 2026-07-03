@@ -1,325 +1,351 @@
 <div class="app-layout">
-  <!-- ===== NAVBAR ===== -->
-  <nav class="app-nav">
-    <div class="nav-izq">
-      <button class="nav-hamburger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
-    </div>
-    <div class="nav-der">
-      <span class="nav-fecha">{{ fechaHoy }}</span>
-      <button class="nav-avatar">{{ inicialUsuario }}</button>
-    </div>
-  </nav>
+ <!-- ===== NAVBAR ===== -->
+ <nav class="app-nav">
+ <div class="nav-izq">
+ <button class="nav-hamburger">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <line x1="3" y1="6" x2="21" y2="6" />
+ <line x1="3" y1="12" x2="21" y2="12" />
+ <line x1="3" y1="18" x2="21" y2="18" />
+ </svg>
+ </button>
+ <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+ </div>
+ <div class="nav-der">
+ <span class="nav-fecha">{{ fechaHoy }}</span>
+ <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
 
-  <div class="app-cuerpo">
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar">
-      <div class="sidebar-perfil">
-        <p class="bienvenido-label">Bienvenido</p>
-        <div class="perfil-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </div>
-        <p class="perfil-nombre">{{ usuario?.nombre }}</p>
-        <p class="perfil-correo">{{ usuario?.correo || usuario?.tipo }}</p>
-        <div class="perfil-acciones">
-          <button class="perfil-icon-btn" title="Cambiar contraseña">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </button>
-          <button class="perfil-icon-btn" title="Editar perfil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <nav class="sidebar-nav">
-        <div class="menu-item" (click)="irA('/ejecutor')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          Diagnóstico DNC
-        </div>
-
-        <div class="menu-item activo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          Lista de Participantes
-        </div>
-
-        <div class="menu-item" (click)="irA('/personal-pdp')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          Personal
-        </div>
-
-        <div class="menu-item" (click)="irA('/busqueda-expediente')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          Búsqueda de Expediente
-        </div>
-
-        <div class="menu-item" (click)="irA('/documentos')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-          Documentos
-        </div>
-
-        <div class="sidebar-sep"></div>
-
-        <div class="menu-item cerrar" (click)="cerrarSesion()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Cerrar Sesión
-        </div>
-      </nav>
-    </aside>
-
-    <!-- ===== CONTENIDO ===== -->
-    <main class="app-contenido">
-      <div class="contenido-encabezado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        <h2>Lista de Participantes</h2>
-      </div>
-
-      <!-- BARRA DE BÚSQUEDA Y ACCIÓN -->
-      <div class="card barra-card">
-        <div class="barra-acciones">
-          <div class="campo-busqueda">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar por nombre, apellido, DNI/CE o cargo..."
-              [(ngModel)]="busqueda"
-              (input)="buscar()"
-            />
-          </div>
-          <div class="campo-busqueda" style="max-width:200px">
-            <input
-              type="text"
-              placeholder="Filtrar por código act."
-              [(ngModel)]="codigoFiltro"
-              (input)="buscar()"
-            />
-          </div>
-          <select class="select-filtro" [(ngModel)]="regimenFiltro" (change)="buscar()">
-            <option value="">Todos los regímenes</option>
-            <option value="276">276</option>
-            <option value="728">728</option>
-            <option value="CAS">CAS</option>
-          </select>
-          <button class="btn-toggle-form" (click)="toggleFormulario()">
-            @if (mostrarFormulario) {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Cancelar
-            } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Agregar Participante
-            }
-          </button>
-        </div>
-      </div>
-
-      <!-- FORMULARIO AGREGAR PARTICIPANTE -->
-      @if (mostrarFormulario) {
-        <div class="card card-form">
-          <div class="card-section-title">📝 Nuevo Participante</div>
-          <div class="datos-grid tres-col">
-            <div class="campo">
-              <label>Código act. <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: 2025PL704" [(ngModel)]="nuevo.codigo_act" />
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
             </div>
-            <div class="campo">
-              <label>DNI / CE</label>
-              <input
-                type="text"
-                placeholder="Ingresa DNI para autocompletar"
-                maxlength="12"
-                [(ngModel)]="nuevo.dni_ce"
-                (blur)="buscarPorDni()"
-              />
-            </div>
-            <div class="campo">
-              <label>Cod. Planilla</label>
-              <input type="text" placeholder="Ej: P-00123" [(ngModel)]="nuevo.cod_planilla" />
-            </div>
-            <div class="campo">
-              <label>Nombres <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: Juan Carlos" [(ngModel)]="nuevo.nombre" />
-            </div>
-            <div class="campo">
-              <label>Apellidos <span class="req">*</span></label>
-              <input type="text" placeholder="Ej: García Pérez" [(ngModel)]="nuevo.apellidos" />
-            </div>
-            <div class="campo">
-              <label>Sexo</label>
-              <select [(ngModel)]="nuevo.sexo">
-                <option value="">Seleccione...</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-              </select>
-            </div>
-            <div class="campo">
-              <label>Red Asist. / Prest. / Ins. Esp.</label>
-              <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="nuevo.red" />
-            </div>
-            <div class="campo">
-              <label>Sub Programa</label>
-              <input type="text" placeholder="Ej: Sub Programa Regional" [(ngModel)]="nuevo.sub_programa" />
-            </div>
-            <div class="campo">
-              <label>Servicio o área</label>
-              <input type="text" placeholder="Ej: Urgencias, Logística" [(ngModel)]="nuevo.servicio_area" />
-            </div>
-            <div class="campo">
-              <label>Cargo</label>
-              <input type="text" placeholder="Ej: Enfermero(a), Técnico" [(ngModel)]="nuevo.cargo" />
-            </div>
-            <div class="campo">
-              <label>Régimen laboral</label>
-              <input type="text" placeholder="Ej: 276, CAS, 728" [(ngModel)]="nuevo.regimen_laboral" />
-            </div>
-          </div>
 
-          @if (errorFormulario) {
-            <p class="error-form">{{ errorFormulario }}</p>
-          }
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
+            </div>
 
-          <div class="form-actions">
-            <button class="btn-cancelar" (click)="toggleFormulario()">Cancelar</button>
-            <button class="btn-guardar-part" (click)="agregarParticipante()">
-              ✅ Guardar Participante
-            </button>
-          </div>
-        </div>
-      }
-
-      <!-- TABLA DE PARTICIPANTES -->
-      <div class="card">
-        <div class="card-section-title-row">
-          <span class="card-section-title">👥 Participantes Registrados</span>
-          <span class="badge-count">{{ totalRegistros }}</span>
-        </div>
-
-        @if (cargando) {
-          <div class="sin-resultados"><p>Cargando datos...</p></div>
-        } @else if (participantes.length === 0) {
-          <div class="sin-resultados">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-            </svg>
-            @if (busqueda || codigoFiltro) {
-              <p>No se encontraron resultados para la búsqueda.</p>
-            } @else {
-              <p>Aún no hay participantes registrados. Haz clic en <strong>Agregar Participante</strong> para comenzar.</p>
-            }
-          </div>
-        } @else {
-          <div class="tabla-scroll">
-            <table class="tabla-part">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Código act.</th>
-                  <th>DNI / CE</th>
-                  <th>Cod. Planilla</th>
-                  <th>Nombres</th>
-                  <th>Apellidos</th>
-                  <th>Sexo</th>
-                  <th>Red Asist.</th>
-                  <th>Sub Programa</th>
-                  <th>Servicio / Área</th>
-                  <th>Cargo</th>
-                  <th>Régimen laboral</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (p of participantes; track p.id) {
-                  <tr>
-                    <td>{{ p.numero || '—' }}</td>
-                    <td>{{ p.codigo_act || '—' }}</td>
-                    <td>{{ p.dni_ce || '—' }}</td>
-                    <td>{{ p.cod_planilla || '—' }}</td>
-                    <td>{{ p.nombre }}</td>
-                    <td>{{ p.apellidos }}</td>
-                    <td>
-                      <span class="badge-sexo" [class.femenino]="p.sexo === 'Femenino'">
-                        {{ p.sexo || '—' }}
-                      </span>
-                    </td>
-                    <td>{{ p.red || '—' }}</td>
-                    <td>{{ p.sub_programa || '—' }}</td>
-                    <td>{{ p.servicio_area || '—' }}</td>
-                    <td>{{ p.cargo || '—' }}</td>
-                    <td>{{ p.regimen_laboral || '—' }}</td>
-                    <td>
-                      <button class="btn-eliminar" (click)="eliminarParticipante(p.id)" title="Eliminar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                          <path d="M10 11v6M14 11v6" />
-                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-
-          <!-- PAGINACIÓN -->
-          <div class="paginacion">
-            <button (click)="paginaAnterior()" [disabled]="pagina <= 1">← Anterior</button>
-            <span>Página {{ pagina }} de {{ totalPaginas }}</span>
-            <button (click)="paginaSiguiente()" [disabled]="pagina >= totalPaginas">Siguiente →</button>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
         }
       </div>
-    </main>
-  </div>
+ </div>
+ </nav>
+
+ <div class="app-cuerpo">
+ <!-- ===== SIDEBAR ===== -->
+ <aside class="sidebar">
+ <div class="sidebar-perfil">
+ <p class="bienvenido-label">Bienvenido</p>
+ <div class="perfil-avatar">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+ <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+ <circle cx="12" cy="7" r="4" />
+ </svg>
+ </div>
+ <p class="perfil-nombre">{{ usuario?.nombre }}</p>
+ <p class="perfil-correo">{{ usuario?.correo || usuario?.tipo }}</p>
+ <div class="perfil-acciones">
+ <button class="perfil-icon-btn" title="Cambiar contraseña">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <rect x="3" y="11" width="18" height="11" rx="2" />
+ <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+ </svg>
+ </button>
+ <button class="perfil-icon-btn" title="Editar perfil">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+ <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+ </svg>
+ </button>
+ </div>
+ </div>
+
+ <nav class="sidebar-nav">
+ <div class="menu-item" (click)="irA('/ejecutor')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+ </svg>
+ Diagnóstico DNC
+ </div>
+
+ <div class="menu-item activo">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+ <circle cx="9" cy="7" r="4" />
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+ <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+ </svg>
+ Lista de Participantes
+ </div>
+
+ <div class="menu-item" (click)="irA('/personal-pdp')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+ <circle cx="12" cy="7" r="4" />
+ </svg>
+ Personal
+ </div>
+
+ <div class="menu-item" (click)="irA('/busqueda-expediente')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="11" cy="11" r="8" />
+ <line x1="21" y1="21" x2="16.65" y2="16.65" />
+ </svg>
+ Búsqueda de Expediente
+ </div>
+
+ <div class="menu-item" (click)="irA('/documentos')">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ <line x1="16" y1="13" x2="8" y2="13" />
+ <line x1="16" y1="17" x2="8" y2="17" />
+ </svg>
+ Documentos
+ </div>
+
+ <div class="sidebar-sep"></div>
+
+ <div class="menu-item cerrar" (click)="cerrarSesion()">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+ <polyline points="16 17 21 12 16 7" />
+ <line x1="21" y1="12" x2="9" y2="12" />
+ </svg>
+ Cerrar Sesión
+ </div>
+ </nav>
+ </aside>
+
+ <!-- ===== CONTENIDO ===== -->
+ <main class="app-contenido">
+ <div class="contenido-encabezado">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+ <circle cx="9" cy="7" r="4" />
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+ <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+ </svg>
+ <h2>Lista de Participantes</h2>
+ </div>
+
+ <!-- BARRA DE BÚSQUEDA Y ACCIÓN -->
+ <div class="card barra-card">
+ <div class="barra-acciones">
+ <div class="campo-busqueda">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <circle cx="11" cy="11" r="8" />
+ <line x1="21" y1="21" x2="16.65" y2="16.65" />
+ </svg>
+ <input
+ type="text"
+ placeholder="Buscar por nombre, apellido, DNI/CE o cargo..."
+ [(ngModel)]="busqueda"
+ (input)="buscar()"
+ />
+ </div>
+ <div class="campo-busqueda" style="max-width:200px">
+ <input
+ type="text"
+ placeholder="Filtrar por código act."
+ [(ngModel)]="codigoFiltro"
+ (input)="buscar()"
+ />
+ </div>
+ <select class="select-filtro" [(ngModel)]="regimenFiltro" (change)="buscar()">
+ <option value="">Todos los regímenes</option>
+ <option value="276">276</option>
+ <option value="728">728</option>
+ <option value="CAS">CAS</option>
+ </select>
+ <button class="btn-toggle-form" (click)="toggleFormulario()">
+ @if (mostrarFormulario) {
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+ <line x1="18" y1="6" x2="6" y2="18" />
+ <line x1="6" y1="6" x2="18" y2="18" />
+ </svg>
+ Cancelar
+ } @else {
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+ <line x1="12" y1="5" x2="12" y2="19" />
+ <line x1="5" y1="12" x2="19" y2="12" />
+ </svg>
+ Agregar Participante
+ }
+ </button>
+ </div>
+ </div>
+
+ <!-- FORMULARIO AGREGAR PARTICIPANTE -->
+ @if (mostrarFormulario) {
+ <div class="card card-form">
+ <div class="card-section-title"> Nuevo Participante</div>
+ <div class="datos-grid tres-col">
+ <div class="campo">
+ <label>Código act. <span class="req">*</span></label>
+ <input type="text" placeholder="Ej: 2025PL704" [(ngModel)]="nuevo.codigo_act" />
+ </div>
+ <div class="campo">
+ <label>DNI / CE</label>
+ <input
+ type="text"
+ placeholder="Ingresa DNI para autocompletar"
+ maxlength="12"
+ [(ngModel)]="nuevo.dni_ce"
+ (blur)="buscarPorDni()"
+ />
+ </div>
+ <div class="campo">
+ <label>Cod. Planilla</label>
+ <input type="text" placeholder="Ej: P-00123" [(ngModel)]="nuevo.cod_planilla" />
+ </div>
+ <div class="campo">
+ <label>Nombres <span class="req">*</span></label>
+ <input type="text" placeholder="Ej: Juan Carlos" [(ngModel)]="nuevo.nombre" />
+ </div>
+ <div class="campo">
+ <label>Apellidos <span class="req">*</span></label>
+ <input type="text" placeholder="Ej: García Pérez" [(ngModel)]="nuevo.apellidos" />
+ </div>
+ <div class="campo">
+ <label>Sexo</label>
+ <select [(ngModel)]="nuevo.sexo">
+ <option value="">Seleccione...</option>
+ <option value="Masculino">Masculino</option>
+ <option value="Femenino">Femenino</option>
+ </select>
+ </div>
+ <div class="campo">
+ <label>Red Asist. / Prest. / Ins. Esp.</label>
+ <input type="text" placeholder="Ej: Red Asistencial Almenara" [(ngModel)]="nuevo.red" />
+ </div>
+ <div class="campo">
+ <label>Sub Programa</label>
+ <input type="text" placeholder="Ej: Sub Programa Regional" [(ngModel)]="nuevo.sub_programa" />
+ </div>
+ <div class="campo">
+ <label>Servicio o área</label>
+ <input type="text" placeholder="Ej: Urgencias, Logística" [(ngModel)]="nuevo.servicio_area" />
+ </div>
+ <div class="campo">
+ <label>Cargo</label>
+ <input type="text" placeholder="Ej: Enfermero(a), Técnico" [(ngModel)]="nuevo.cargo" />
+ </div>
+ <div class="campo">
+ <label>Régimen laboral</label>
+ <input type="text" placeholder="Ej: 276, CAS, 728" [(ngModel)]="nuevo.regimen_laboral" />
+ </div>
+ </div>
+
+ @if (errorFormulario) {
+ <p class="error-form">{{ errorFormulario }}</p>
+ }
+
+ <div class="form-actions">
+ <button class="btn-cancelar" (click)="toggleFormulario()">Cancelar</button>
+ <button class="btn-guardar-part" (click)="agregarParticipante()">
+ Guardar Participante
+ </button>
+ </div>
+ </div>
+ }
+
+ <!-- TABLA DE PARTICIPANTES -->
+ <div class="card">
+ <div class="card-section-title-row">
+ <span class="card-section-title"> Participantes Registrados</span>
+ <span class="badge-count">{{ totalRegistros }}</span>
+ </div>
+
+ @if (cargando) {
+ <div class="sin-resultados"><p>Cargando datos...</p></div>
+ } @else if (participantes.length === 0) {
+ <div class="sin-resultados">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+ <circle cx="12" cy="12" r="10" />
+ <line x1="8" y1="12" x2="16" y2="12" />
+ </svg>
+ @if (busqueda || codigoFiltro) {
+ <p>No se encontraron resultados para la búsqueda.</p>
+ } @else {
+ <p>Aún no hay participantes registrados. Haz clic en <strong>Agregar Participante</strong> para comenzar.</p>
+ }
+ </div>
+ } @else {
+ <div class="tabla-scroll">
+ <table class="tabla-part">
+ <thead>
+ <tr>
+ <th>#</th>
+ <th>Código act.</th>
+ <th>DNI / CE</th>
+ <th>Cod. Planilla</th>
+ <th>Nombres</th>
+ <th>Apellidos</th>
+ <th>Sexo</th>
+ <th>Red Asist.</th>
+ <th>Sub Programa</th>
+ <th>Servicio / Área</th>
+ <th>Cargo</th>
+ <th>Régimen laboral</th>
+ <th></th>
+ </tr>
+ </thead>
+ <tbody>
+ @for (p of participantes; track p.id) {
+ <tr>
+ <td>{{ p.numero || '—' }}</td>
+ <td>{{ p.codigo_act || '—' }}</td>
+ <td>{{ p.dni_ce || '—' }}</td>
+ <td>{{ p.cod_planilla || '—' }}</td>
+ <td>{{ p.nombre }}</td>
+ <td>{{ p.apellidos }}</td>
+ <td>
+ <span class="badge-sexo" [class.femenino]="p.sexo === 'Femenino'">
+ {{ p.sexo || '—' }}
+ </span>
+ </td>
+ <td>{{ p.red || '—' }}</td>
+ <td>{{ p.sub_programa || '—' }}</td>
+ <td>{{ p.servicio_area || '—' }}</td>
+ <td>{{ p.cargo || '—' }}</td>
+ <td>{{ p.regimen_laboral || '—' }}</td>
+ <td>
+ <button class="btn-eliminar" (click)="eliminarParticipante(p.id)" title="Eliminar">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polyline points="3 6 5 6 21 6" />
+ <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+ <path d="M10 11v6M14 11v6" />
+ <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+ </svg>
+ </button>
+ </td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ </div>
+
+ <!-- PAGINACIÓN -->
+ <div class="paginacion">
+ <button (click)="paginaAnterior()" [disabled]="pagina <= 1">← Anterior</button>
+ <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+ <button (click)="paginaSiguiente()" [disabled]="pagina >= totalPaginas">Siguiente →</button>
+ </div>
+ }
+ </div>
+ </main>
+ </div>
 </div>

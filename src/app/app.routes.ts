@@ -4,6 +4,7 @@ import { roleGuard } from './guards/role-guard';
 
 import { Sectorista } from './pages/sectorista/sectorista';
 import { Login } from './pages/login/login';
+import { Sso } from './pages/sso/sso';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { HojaRuta } from './pages/hoja-ruta/hoja-ruta';
 import { ExpedientesPdp } from './pages/expedientes-pdp/expedientes-pdp';
@@ -28,6 +29,11 @@ export const routes: Routes = [
   {
     path: 'login',
     component: Login,
+  },
+
+  {
+    path: 'sso',
+    component: Sso,
   },
 
   {

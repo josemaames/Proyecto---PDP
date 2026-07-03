@@ -1,149 +1,149 @@
 <div class="hr-page">
 
-  <!-- PANEL IZQUIERDO: búsqueda -->
-  <aside class="hr-aside">
-    <h3 class="aside-titulo">Capacitaciones</h3>
-    <input
-      class="hr-search"
-      type="text"
-      placeholder="Buscar por nombre o código…"
-      [(ngModel)]="busqueda"
-      (ngModelChange)="onBusqueda()"
-    />
+ <!-- PANEL IZQUIERDO: búsqueda -->
+ <aside class="hr-aside">
+ <h3 class="aside-titulo">Capacitaciones</h3>
+ <input
+ class="hr-search"
+ type="text"
+ placeholder="Buscar por nombre o código…"
+ [(ngModel)]="busqueda"
+ (ngModelChange)="onBusqueda()"
+ />
 
-    @if (buscando) {
-      <p class="hr-hint">Buscando…</p>
-    }
+ @if (buscando) {
+ <p class="hr-hint">Buscando…</p>
+ }
 
-    <ul class="hr-lista">
-      @for (cap of resultados; track cap.id) {
-        <li
-          class="hr-item"
-          [class.activo]="capacitacionSeleccionada?.id === cap.id"
-          (click)="seleccionar(cap)"
-        >
-          <span class="hr-cod">{{ cap.codigo_act }}</span>
-          <span class="hr-nom">{{ cap.nombre_actividad }}</span>
-          <span class="hr-red">{{ cap.red_asistencial }}</span>
-        </li>
-      }
-      @if (!buscando && resultados.length === 0) {
-        <li class="hr-hint">Sin resultados</li>
-      }
-    </ul>
-  </aside>
+ <ul class="hr-lista">
+ @for (cap of resultados; track cap.id) {
+ <li
+ class="hr-item"
+ [class.activo]="capacitacionSeleccionada?.id === cap.id"
+ (click)="seleccionar(cap)"
+ >
+ <span class="hr-cod">{{ cap.codigo_act }}</span>
+ <span class="hr-nom">{{ cap.nombre_actividad }}</span>
+ <span class="hr-red">{{ cap.red_asistencial }}</span>
+ </li>
+ }
+ @if (!buscando && resultados.length === 0) {
+ <li class="hr-hint">Sin resultados</li>
+ }
+ </ul>
+ </aside>
 
-  <!-- PANEL DERECHO: hoja de ruta -->
-  <main class="hr-main">
+ <!-- PANEL DERECHO: hoja de ruta -->
+ <main class="hr-main">
 
-    @if (!capacitacionSeleccionada) {
-      <div class="hr-empty">
-        <div class="hr-empty-icon">📋</div>
-        <p>Selecciona una capacitación de la lista para ver su hoja de ruta.</p>
-      </div>
-    }
+ @if (!capacitacionSeleccionada) {
+ <div class="hr-empty">
+ <div class="hr-empty-icon"></div>
+ <p>Selecciona una capacitación de la lista para ver su hoja de ruta.</p>
+ </div>
+ }
 
-    @if (capacitacionSeleccionada) {
+ @if (capacitacionSeleccionada) {
 
-      <!-- ENCABEZADO -->
-      <div class="hr-card">
-        <div class="hr-enc">
-          <div>
-            <h2>{{ capacitacionSeleccionada.codigo_act }}</h2>
-            <p class="hr-enc-sub">{{ capacitacionSeleccionada.nombre_actividad }}</p>
-            <p class="hr-enc-red">{{ capacitacionSeleccionada.red_asistencial }}</p>
-          </div>
-          <div class="hr-enc-right">
-            <div class="semaforo semaforo-{{ semaforo }}">
-              @if (semaforo === 'verde') { 🟢 En tiempo }
-              @if (semaforo === 'amarillo') { 🟡 Próximo a vencer }
-              @if (semaforo === 'rojo') { 🔴 Urgente }
-              @if (semaforo === 'gris') { ⚪ Sin fecha }
-            </div>
-            @if (semaforo !== 'gris') {
-              <p class="hr-dias">{{ diasRestantes > 0 ? diasRestantes + ' días restantes' : 'Vencido' }}</p>
-            }
-            <p class="hr-estado-label">Paso actual</p>
-            <strong class="hr-estado-val">{{ pasoActual }}</strong>
-          </div>
-        </div>
+ <!-- ENCABEZADO -->
+ <div class="hr-card">
+ <div class="hr-enc">
+ <div>
+ <h2>{{ capacitacionSeleccionada.codigo_act }}</h2>
+ <p class="hr-enc-sub">{{ capacitacionSeleccionada.nombre_actividad }}</p>
+ <p class="hr-enc-red">{{ capacitacionSeleccionada.red_asistencial }}</p>
+ </div>
+ <div class="hr-enc-right">
+ <div class="semaforo semaforo-{{ semaforo }}">
+ @if (semaforo === 'verde') { En tiempo }
+ @if (semaforo === 'amarillo') { Próximo a vencer }
+ @if (semaforo === 'rojo') { Urgente }
+ @if (semaforo === 'gris') { Sin fecha }
+ </div>
+ @if (semaforo !== 'gris') {
+ <p class="hr-dias">{{ diasRestantes > 0 ? diasRestantes + ' días restantes' : 'Vencido' }}</p>
+ }
+ <p class="hr-estado-label">Paso actual</p>
+ <strong class="hr-estado-val">{{ pasoActual }}</strong>
+ </div>
+ </div>
 
-        <!-- BARRA DE AVANCE -->
-        <div class="hr-avance-wrap">
-          <div class="hr-avance-info">
-            <span>Avance General</span>
-            <strong class="hr-pct" [class.pct-verde]="porcentajeAvance === 100">{{ porcentajeAvance }}%</strong>
-          </div>
-          <div class="hr-barra-bg">
-            <div
-              class="hr-barra-fill"
-              [class.fill-completo]="porcentajeAvance === 100"
-              [style.width.%]="porcentajeAvance"
-            ></div>
-          </div>
-        </div>
+ <!-- BARRA DE AVANCE -->
+ <div class="hr-avance-wrap">
+ <div class="hr-avance-info">
+ <span>Avance General</span>
+ <strong class="hr-pct" [class.pct-verde]="porcentajeAvance === 100">{{ porcentajeAvance }}%</strong>
+ </div>
+ <div class="hr-barra-bg">
+ <div
+ class="hr-barra-fill"
+ [class.fill-completo]="porcentajeAvance === 100"
+ [style.width.%]="porcentajeAvance"
+ ></div>
+ </div>
+ </div>
 
-        <!-- INFO GRID -->
-        <div class="hr-info-grid">
-          <div class="info-c">
-            <h4>Red Asistencial</h4>
-            <p>{{ capacitacionSeleccionada.red_asistencial || '—' }}</p>
-          </div>
-          <div class="info-c">
-            <h4>Fecha Inicio</h4>
-            <p>{{ formatFecha(capacitacionSeleccionada.fecha_inicio) }}</p>
-          </div>
-          <div class="info-c">
-            <h4>Mes Término</h4>
-            <p>{{ capacitacionSeleccionada.mes_termino || '—' }}</p>
-          </div>
-          <div class="info-c info-c-dias" [class.info-alerta-rojo]="semaforo === 'rojo'" [class.info-alerta-amarillo]="semaforo === 'amarillo'">
-            <h4>Días Restantes</h4>
-            <p>{{ semaforo !== 'gris' ? diasRestantes : '—' }}</p>
-          </div>
-        </div>
+ <!-- INFO GRID -->
+ <div class="hr-info-grid">
+ <div class="info-c">
+ <h4>Red Asistencial</h4>
+ <p>{{ capacitacionSeleccionada.red_asistencial || '—' }}</p>
+ </div>
+ <div class="info-c">
+ <h4>Fecha Inicio</h4>
+ <p>{{ formatFecha(capacitacionSeleccionada.fecha_inicio) }}</p>
+ </div>
+ <div class="info-c">
+ <h4>Mes Término</h4>
+ <p>{{ capacitacionSeleccionada.mes_termino || '—' }}</p>
+ </div>
+ <div class="info-c info-c-dias" [class.info-alerta-rojo]="semaforo === 'rojo'" [class.info-alerta-amarillo]="semaforo === 'amarillo'">
+ <h4>Días Restantes</h4>
+ <p>{{ semaforo !== 'gris' ? diasRestantes : '—' }}</p>
+ </div>
+ </div>
 
-        <!-- TIMELINE INTERACTIVO -->
-        @if (cargandoPasos) {
-          <p class="hr-hint" style="text-align:center;padding:20px">Cargando pasos…</p>
-        }
+ <!-- TIMELINE INTERACTIVO -->
+ @if (cargandoPasos) {
+ <p class="hr-hint" style="text-align:center;padding:20px">Cargando pasos…</p>
+ }
 
-        @if (!cargandoPasos) {
-          <div class="hr-timeline">
-            @for (p of pasos; track p.paso; let i = $index) {
-              <div class="hr-step-wrap">
-                <button
-                  class="hr-step"
-                  [class.step-completado]="p.completado"
-                  [class.step-proceso]="!p.completado && pasoActual === p.paso"
-                  [class.step-pendiente]="!p.completado && pasoActual !== p.paso"
-                  [class.step-cargando]="guardandoPaso === p.paso"
-                  [disabled]="guardandoPaso !== null"
-                  (click)="togglePaso(p)"
-                  [title]="p.completado ? 'Desmarcar paso' : 'Marcar como completado'"
-                >
-                  @if (guardandoPaso === p.paso) { ⏳ }
-                  @else if (p.completado) { ✓ }
-                  @else if (pasoActual === p.paso) { ⏳ }
-                  @else { ○ }
-                </button>
-                <span class="hr-step-label" [class.label-activo]="pasoActual === p.paso && !p.completado">
-                  {{ p.paso }}
-                </span>
-                @if (p.completado_at) {
-                  <span class="hr-step-fecha">{{ formatFecha(p.completado_at) }}</span>
-                }
-                @if (i < pasos.length - 1) {
-                  <div class="hr-line" [class.line-done]="p.completado"></div>
-                }
-              </div>
-            }
-          </div>
-        }
+ @if (!cargandoPasos) {
+ <div class="hr-timeline">
+ @for (p of pasos; track p.paso; let i = $index) {
+ <div class="hr-step-wrap">
+ <button
+ class="hr-step"
+ [class.step-completado]="p.completado"
+ [class.step-proceso]="!p.completado && pasoActual === p.paso"
+ [class.step-pendiente]="!p.completado && pasoActual !== p.paso"
+ [class.step-cargando]="guardandoPaso === p.paso"
+ [disabled]="guardandoPaso !== null"
+ (click)="togglePaso(p)"
+ [title]="p.completado ? 'Desmarcar paso' : 'Marcar como completado'"
+ >
+ @if (guardandoPaso === p.paso) { ⏳ }
+ @else if (p.completado) { }
+ @else if (pasoActual === p.paso) { ⏳ }
+ @else { ○ }
+ </button>
+ <span class="hr-step-label" [class.label-activo]="pasoActual === p.paso && !p.completado">
+ {{ p.paso }}
+ </span>
+ @if (p.completado_at) {
+ <span class="hr-step-fecha">{{ formatFecha(p.completado_at) }}</span>
+ }
+ @if (i < pasos.length - 1) {
+ <div class="hr-line" [class.line-done]="p.completado"></div>
+ }
+ </div>
+ }
+ </div>
+ }
 
-      </div><!-- /.hr-card -->
+ </div><!-- /.hr-card -->
 
-    }<!-- /@if capacitacionSeleccionada -->
+ }<!-- /@if capacitacionSeleccionada -->
 
-  </main>
+ </main>
 </div>
