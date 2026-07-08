@@ -11,6 +11,7 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // POST de formulario (SSO desde SOMOS)
 
 // ──────────────────────────────────────────────
 // Supabase Storage (documentos)
@@ -1714,6 +1715,88 @@ app.delete('/api/documentos/:id', async (req, res) => {
   }
 });
 
+// ──────────────────────────────────────────────
+// SSO con SOMOS — ingreso sin volver a iniciar sesión
+// El usuario llega ya autenticado desde SOMOS con un token de un solo uso (60s).
+// Flujo: SOMOS-frontend genera token -> POST aquí -> validamos contra SOMOS
+//        -> resolvemos rol PDP por DNI -> redirigimos al frontend con la sesión.
+// ──────────────────────────────────────────────
+const SOMOS_API_URL = process.env.SOMOS_API_URL || 'https://appsqa.essalud.gob.pe/marcaciones-service/api';
+const PDP_FRONTEND_URL = process.env.PDP_FRONTEND_URL || 'http://localhost:4200';
+// FASE DE PRUEBAS: si el DNI no existe como usuario PDP, entra como 'Administrador'.
+// Cambiar a 'denegar' cuando exista el Administrador General que asigna roles.
+const SSO_USUARIO_NO_REGISTRADO = process.env.SSO_USUARIO_NO_REGISTRADO || 'Administrador';
+
+app.post('/api/sso/ingreso', async (req, res) => {
+  try {
+    const token = req.body.token;
+    if (!token) return res.status(400).send('Falta el token de ingreso.');
+
+    // 1. Validar el token contra SOMOS y obtener los datos del trabajador
+    const resp = await fetch(`${SOMOS_API_URL}/personal/validar-token?token=${encodeURIComponent(token)}`, {
+      method: 'POST',
+    });
+    const datos = await resp.json();
+    if (!datos || !datos.success) {
+      return res.status(401).send('No se pudo validar la sesión de SOMOS: ' + (datos && datos.mensaje ? datos.mensaje : 'token inválido'));
+    }
+
+    const dni = datos.dni;
+
+    // 2. Resolver el rol de PDP a partir del DNI
+    let usuarioPdp;
+    const { rows } = await pool.query('SELECT * FROM usuarios_sistema WHERE dni=$1', [dni]);
+
+    if (rows.length) {
+      usuarioPdp = rows[0];
+      if (usuarioPdp.estado === 'Inactivo') {
+        return res.status(403).send('Su cuenta de PDP está desactivada. Contacte al administrador.');
+      }
+    } else {
+      if (SSO_USUARIO_NO_REGISTRADO === 'denegar') {
+        return res.status(403).send('No tiene acceso a PDP. Solicite al administrador que le asigne un rol.');
+      }
+      // Alta automática (solo fase de pruebas)
+      const nombre = `${datos.nombres || ''} ${datos.apellidos || ''}`.trim() || dni;
+      const ins = await pool.query(
+        `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
+         VALUES ($1,$2,$3,$4,$5,'Activo',$6,$7,$8)
+         RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
+        [dni, nombre, '__sso__', SSO_USUARIO_NO_REGISTRADO, datos.cargo || '', datos.dependencia || '', datos.codigoPlanilla || '', datos.correo || '']
+      );
+      usuarioPdp = ins.rows[0];
+      logEvento('usuario_creado', `Alta automática por SSO: ${nombre} (${SSO_USUARIO_NO_REGISTRADO})`, 'SSO SOMOS', 'Sistema', nombre);
+    }
+
+    // 3. Construir la sesión que el frontend guardará en localStorage.usuario
+    const sesion = {
+      id: usuarioPdp.id,
+      dni: usuarioPdp.dni,
+      nombre: usuarioPdp.nombre,
+      rol: usuarioPdp.rol,
+      cargo: usuarioPdp.cargo,
+      estado: usuarioPdp.estado,
+      sedes: usuarioPdp.sedes ? String(usuarioPdp.sedes).split(',').filter(Boolean) : [],
+      numeroPlantilla: usuarioPdp.numero_plantilla,
+      somos: {
+        correo: datos.correo,
+        codigoPlanilla: datos.codigoPlanilla,
+        regimen: datos.regimen,
+        dependencia: datos.dependencia,
+        numeroPlaza: datos.numeroPlaza,
+      },
+    };
+
+    // 4. Redirigir al frontend con la sesión codificada en base64 (un solo salto)
+    const payload = Buffer.from(JSON.stringify(sesion), 'utf8').toString('base64');
+    return res.redirect(`${PDP_FRONTEND_URL}/sso?u=${encodeURIComponent(payload)}`);
+  } catch (err) {
+    console.error('Error en SSO ingreso:', err);
+    return res.status(500).send('Error al procesar el ingreso SSO.');
+  }
+});
+
+// ──────────────────────────────────────────────
 // INICIAR SERVIDOR
 // ──────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;

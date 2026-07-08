@@ -5,241 +5,246 @@ import { HttpClient } from '@angular/common/http';
 import { PdpDataService } from '../../services/pdp-data.service';
 
 @Component({
-  selector: 'app-personal',
-  imports: [FormsModule],
-  templateUrl: './personal.html',
-  styleUrl: './personal.css',
+ selector: 'app-personal',
+ imports: [FormsModule],
+ templateUrl: './personal.html',
+ styleUrl: './personal.css',
 })
 export class Personal implements OnInit {
-  private router   = inject(Router);
-  private http     = inject(HttpClient);
-  private pdpData  = inject(PdpDataService);
+ private router = inject(Router);
+ private http = inject(HttpClient);
+ private pdpData = inject(PdpDataService);
 
-  usuarioActual: any = {};
-  fechaHoy = '';
-  inicialUsuario = 'U';
-  mostrarFormulario = false;
-  modoEdicion = false;
-  dniEditando = '';
-  mostrarDetalle = false;
-  usuarioSeleccionado: any = null;
+ usuarioActual: any = {};
+ fechaHoy = '';
+ inicialUsuario = 'U';
+ mostrarPerfilMenu = false;
+ mostrarFormulario = false;
+ modoEdicion = false;
+ dniEditando = '';
+ mostrarDetalle = false;
+ usuarioSeleccionado: any = null;
 
-  redesDisponibles: string[] = [];
-  sedesSeleccionadas: string[] = [];
-  mostrarPassword = false;
+ redesDisponibles: string[] = [];
+ sedesSeleccionadas: string[] = [];
+ mostrarPassword = false;
 
-  nuevoUsuarioData = {
-    dni: '',
-    nombre: '',
-    cargo: '',
-    rol: 'Ejecutor',
-    estado: 'Activo',
-    sedes: '',
-    password: '',
-    email: '',
-  };
+ nuevoUsuarioData = {
+ dni: '',
+ nombre: '',
+ cargo: '',
+ rol: 'Ejecutor',
+ estado: 'Activo',
+ sedes: '',
+ password: '',
+ email: '',
+ };
 
-  usuarios: any[] = [];
-  guardando = false;
-  cargandoUsuarios = false;
-  errorUsuarios = '';
+ usuarios: any[] = [];
+ guardando = false;
+ cargandoUsuarios = false;
+ errorUsuarios = '';
 
-  textoBusqueda = '';
-  filtroRol = 'Todos';
-  filtroEstado = 'Todos';
+ textoBusqueda = '';
+ filtroRol = 'Todos';
+ filtroEstado = 'Todos';
 
-  ngOnInit() {
-    this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-    this.inicialUsuario = (this.usuarioActual?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
-    const f = new Date().toLocaleDateString('es-PE', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    });
-    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+ ngOnInit() {
+ this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+ this.inicialUsuario = (this.usuarioActual?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+ const f = new Date().toLocaleDateString('es-PE', {
+ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+ });
+ this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-    this.cargarUsuarios();
+ this.cargarUsuarios();
 
-    this.pdpData.getResumenRedes().subscribe({
-      next: (redes) => {
-        this.redesDisponibles = redes.map(r => r.red).filter(r => r !== 'Sin Red');
-      },
-    });
-  }
+ this.pdpData.getResumenRedes().subscribe({
+ next: (redes) => {
+ this.redesDisponibles = redes.map(r => r.red).filter(r => r !== 'Sin Red');
+ },
+ });
+ }
 
-  cargarUsuarios() {
-    this.cargandoUsuarios = true;
-    this.errorUsuarios = '';
-    this.http.get<any[]>('/api/usuarios').subscribe({
-      next: (data) => {
-        this.usuarios = data;
-        this.cargandoUsuarios = false;
-      },
-      error: () => {
-        this.cargandoUsuarios = false;
-        this.errorUsuarios = 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.';
-      },
-    });
-  }
+ cargarUsuarios() {
+ this.cargandoUsuarios = true;
+ this.errorUsuarios = '';
+ this.http.get<any[]>('/api/usuarios').subscribe({
+ next: (data) => {
+ this.usuarios = data;
+ this.cargandoUsuarios = false;
+ },
+ error: () => {
+ this.cargandoUsuarios = false;
+ this.errorUsuarios = 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.';
+ },
+ });
+ }
 
-  irA(ruta: string) { this.router.navigate([ruta]); }
+ irA(ruta: string) { this.router.navigate([ruta]); }
 
-  cerrarSesion() {
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
-  }
+ togglePerfilMenu() {
+ this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+ }
 
-  nuevoUsuario() {
-    this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
-    this.sedesSeleccionadas = [];
-    this.mostrarPassword = false;
-    this.modoEdicion = false;
-    this.mostrarFormulario = true;
-  }
+ cerrarSesion() {
+ localStorage.removeItem('usuario');
+ this.router.navigate(['/login']);
+ }
 
-  editarUsuario(dni: string) {
-    const usuario = this.usuarios.find((u) => u.dni === dni);
-    if (!usuario) return;
+ nuevoUsuario() {
+ this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
+ this.sedesSeleccionadas = [];
+ this.mostrarPassword = false;
+ this.modoEdicion = false;
+ this.mostrarFormulario = true;
+ }
 
-    const sedesStr = Array.isArray(usuario.sedes)
-      ? usuario.sedes.join(',')
-      : (usuario.sedes || '');
+ editarUsuario(dni: string) {
+ const usuario = this.usuarios.find((u) => u.dni === dni);
+ if (!usuario) return;
 
-    this.nuevoUsuarioData = {
-      dni:      usuario.dni,
-      nombre:   usuario.nombre,
-      cargo:    usuario.cargo,
-      rol:      usuario.rol,
-      estado:   usuario.estado,
-      sedes:    usuario.rol === 'Ejecutor' ? sedesStr : '',
-      password: usuario.password || '',
-      email:    usuario.email || '',
-    };
+ const sedesStr = Array.isArray(usuario.sedes)
+ ? usuario.sedes.join(',')
+ : (usuario.sedes || '');
 
-    this.sedesSeleccionadas = usuario.rol === 'Sectorista'
-      ? sedesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
-      : [];
+ this.nuevoUsuarioData = {
+ dni: usuario.dni,
+ nombre: usuario.nombre,
+ cargo: usuario.cargo,
+ rol: usuario.rol,
+ estado: usuario.estado,
+ sedes: usuario.rol === 'Ejecutor' ? sedesStr : '',
+ password: usuario.password || '',
+ email: usuario.email || '',
+ };
 
-    this.mostrarPassword = false;
-    this.dniEditando = dni;
-    this.modoEdicion = true;
-    this.mostrarFormulario = true;
-  }
+ this.sedesSeleccionadas = usuario.rol === 'Sectorista'
+ ? sedesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+ : [];
 
-  verUsuario(dni: string) {
-    const usuario = this.usuarios.find((u) => u.dni === dni);
+ this.mostrarPassword = false;
+ this.dniEditando = dni;
+ this.modoEdicion = true;
+ this.mostrarFormulario = true;
+ }
 
-    if (usuario) {
-      this.usuarioSeleccionado = usuario;
-      this.mostrarDetalle = true;
-    }
-  }
+ verUsuario(dni: string) {
+ const usuario = this.usuarios.find((u) => u.dni === dni);
 
-  cambiarEstado(dni: string) {
-    const usuario = this.usuarios.find((u) => u.dni === dni);
-    if (!usuario) return;
-    const nuevoEstado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
-    this.http.put<any>(`/api/usuarios/${dni}`, { estado: nuevoEstado }).subscribe({
-      next: () => { usuario.estado = nuevoEstado; },
-    });
-  }
+ if (usuario) {
+ this.usuarioSeleccionado = usuario;
+ this.mostrarDetalle = true;
+ }
+ }
 
-  cerrarDetalle() {
-    this.mostrarDetalle = false;
-  }
+ cambiarEstado(dni: string) {
+ const usuario = this.usuarios.find((u) => u.dni === dni);
+ if (!usuario) return;
+ const nuevoEstado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
+ this.http.put<any>(`/api/usuarios/${dni}`, { estado: nuevoEstado }).subscribe({
+ next: () => { usuario.estado = nuevoEstado; },
+ });
+ }
 
-  toggleSede(red: string) {
-    const idx = this.sedesSeleccionadas.indexOf(red);
-    if (idx === -1) this.sedesSeleccionadas.push(red);
-    else this.sedesSeleccionadas.splice(idx, 1);
-  }
+ cerrarDetalle() {
+ this.mostrarDetalle = false;
+ }
 
-  sedeSeleccionada(red: string): boolean {
-    return this.sedesSeleccionadas.includes(red);
-  }
+ toggleSede(red: string) {
+ const idx = this.sedesSeleccionadas.indexOf(red);
+ if (idx === -1) this.sedesSeleccionadas.push(red);
+ else this.sedesSeleccionadas.splice(idx, 1);
+ }
 
-  guardarUsuario() {
-    const rol = this.nuevoUsuarioData.rol;
-    if (rol === 'Sectorista') {
-      this.nuevoUsuarioData.sedes = this.sedesSeleccionadas.join(',');
-    } else if (rol === 'Administrador' || rol === 'Administrativo') {
-      this.nuevoUsuarioData.sedes = '';
-    }
+ sedeSeleccionada(red: string): boolean {
+ return this.sedesSeleccionadas.includes(red);
+ }
 
-    this.guardando = true;
-    const payload = {
-      dni:              this.nuevoUsuarioData.dni,
-      nombre:           this.nuevoUsuarioData.nombre,
-      password:         this.nuevoUsuarioData.password,
-      rol:              this.nuevoUsuarioData.rol,
-      cargo:            this.nuevoUsuarioData.cargo,
-      estado:           this.nuevoUsuarioData.estado,
-      sedes:            this.nuevoUsuarioData.sedes,
-      numero_plantilla: this.nuevoUsuarioData.dni,
-      email:            this.nuevoUsuarioData.email,
-    };
+ guardarUsuario() {
+ const rol = this.nuevoUsuarioData.rol;
+ if (rol === 'Sectorista') {
+ this.nuevoUsuarioData.sedes = this.sedesSeleccionadas.join(',');
+ } else if (rol === 'Administrador' || rol === 'Administrativo') {
+ this.nuevoUsuarioData.sedes = '';
+ }
 
-    const req$ = this.modoEdicion
-      ? this.http.put<any>(`/api/usuarios/${this.dniEditando}`, payload)
-      : this.http.post<any>('/api/usuarios', payload);
+ this.guardando = true;
+ const payload = {
+ dni: this.nuevoUsuarioData.dni,
+ nombre: this.nuevoUsuarioData.nombre,
+ password: this.nuevoUsuarioData.password,
+ rol: this.nuevoUsuarioData.rol,
+ cargo: this.nuevoUsuarioData.cargo,
+ estado: this.nuevoUsuarioData.estado,
+ sedes: this.nuevoUsuarioData.sedes,
+ numero_plantilla: this.nuevoUsuarioData.dni,
+ email: this.nuevoUsuarioData.email,
+ };
 
-    req$.subscribe({
-      next: () => {
-        this.guardando = false;
-        this.cargarUsuarios();
-        this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
-        this.sedesSeleccionadas = [];
-        this.mostrarPassword = false;
-        this.mostrarFormulario = false;
-        this.modoEdicion = false;
-        this.dniEditando = '';
-      },
-      error: (err) => {
-        this.guardando = false;
-        alert(err.error?.error || 'Error al guardar el usuario.');
-      },
-    });
-  }
+ const req$ = this.modoEdicion
+ ? this.http.put<any>(`/api/usuarios/${this.dniEditando}`, payload)
+ : this.http.post<any>('/api/usuarios', payload);
 
-  sedesTexto(usuario: any): string {
-    if (!usuario.sedes) return '—';
-    if (Array.isArray(usuario.sedes)) return usuario.sedes.join(', ') || '—';
-    return usuario.sedes || '—';
-  }
+ req$.subscribe({
+ next: () => {
+ this.guardando = false;
+ this.cargarUsuarios();
+ this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
+ this.sedesSeleccionadas = [];
+ this.mostrarPassword = false;
+ this.mostrarFormulario = false;
+ this.modoEdicion = false;
+ this.dniEditando = '';
+ },
+ error: (err) => {
+ this.guardando = false;
+ alert(err.error?.error || 'Error al guardar el usuario.');
+ },
+ });
+ }
 
-  cancelarUsuario() {
-    this.mostrarFormulario = false;
-  }
+ sedesTexto(usuario: any): string {
+ if (!usuario.sedes) return '—';
+ if (Array.isArray(usuario.sedes)) return usuario.sedes.join(', ') || '—';
+ return usuario.sedes || '—';
+ }
 
-  get usuariosFiltrados() {
-    return this.usuarios.filter((usuario) => {
-      const coincideTexto =
-        usuario.nombre.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
-        usuario.dni.includes(this.textoBusqueda);
+ cancelarUsuario() {
+ this.mostrarFormulario = false;
+ }
 
-      const coincideRol = this.filtroRol === 'Todos' || usuario.rol === this.filtroRol;
+ get usuariosFiltrados() {
+ return this.usuarios.filter((usuario) => {
+ const coincideTexto =
+ usuario.nombre.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+ usuario.dni.includes(this.textoBusqueda);
 
-      const coincideEstado = this.filtroEstado === 'Todos' || usuario.estado === this.filtroEstado;
+ const coincideRol = this.filtroRol === 'Todos' || usuario.rol === this.filtroRol;
 
-      return coincideTexto && coincideRol && coincideEstado;
-    });
-  }
+ const coincideEstado = this.filtroEstado === 'Todos' || usuario.estado === this.filtroEstado;
 
-  get totalAdministradores() {
-    return this.usuarios.filter((u) => u.rol === 'Administrador').length;
-  }
+ return coincideTexto && coincideRol && coincideEstado;
+ });
+ }
 
-  get totalSectoristas() {
-    return this.usuarios.filter((u) => u.rol === 'Sectorista').length;
-  }
+ get totalAdministradores() {
+ return this.usuarios.filter((u) => u.rol === 'Administrador').length;
+ }
 
-  get totalEjecutores() {
-    return this.usuarios.filter((u) => u.rol === 'Ejecutor').length;
-  }
+ get totalSectoristas() {
+ return this.usuarios.filter((u) => u.rol === 'Sectorista').length;
+ }
 
-  get totalActivos() {
-    return this.usuarios.filter((u) => u.estado === 'Activo').length;
-  }
+ get totalEjecutores() {
+ return this.usuarios.filter((u) => u.rol === 'Ejecutor').length;
+ }
 
-  get totalInactivos() {
-    return this.usuarios.filter((u) => u.estado === 'Inactivo').length;
-  }
+ get totalActivos() {
+ return this.usuarios.filter((u) => u.estado === 'Activo').length;
+ }
+
+ get totalInactivos() {
+ return this.usuarios.filter((u) => u.estado === 'Inactivo').length;
+ }
 }
