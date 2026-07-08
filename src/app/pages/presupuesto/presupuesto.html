@@ -1,0 +1,202 @@
+<div class="pre-layout">
+  <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
+      </div>
+    </div>
+    <div class="nav-der">
+      <button *ngIf="tieneSectorista" class="pre-switch" (click)="irASectorista()">Cambiar a Sectorista</button>
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
+            </div>
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
+            </div>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <main class="pre-main">
+    <div *ngIf="cargando" class="pre-centro">Cargando…</div>
+
+    <ng-container *ngIf="!cargando">
+      <!-- PRESUPUESTOS POR RED (todos) -->
+      <div class="pre-card">
+        <div class="pre-card-title">Presupuesto por Red</div>
+        <div class="tabla-scroll">
+          <table class="pre-tabla">
+            <thead>
+              <tr>
+                <th>Red</th>
+                <th class="num">Techo</th>
+                <th class="num">Ejecutado</th>
+                <th class="num">Saldo</th>
+                <th>Avance</th>
+                <th *ngIf="esPresupuesto"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of redes">
+                <td>{{ r.red }}</td>
+                <td class="num">S/ {{ r.techo | number: '1.2-2' }}</td>
+                <td class="num ejec">S/ {{ r.ejecutado | number: '1.2-2' }}</td>
+                <td class="num saldo" [class.neg]="r.saldo < 0">S/ {{ r.saldo | number: '1.2-2' }}</td>
+                <td class="barra-cell">
+                  <div class="barra-bg"><div class="barra-fill" [class.exc]="r.pct >= 100" [style.width.%]="r.pct"></div></div>
+                  <span class="barra-pct">{{ r.pct }}%</span>
+                </td>
+                <td *ngIf="esPresupuesto">
+                  <button class="pre-btn-sm" (click)="abrirSolicitud(r.red)">Solicitar</button>
+                </td>
+              </tr>
+              <tr *ngIf="redes.length === 0"><td colspan="6" class="vacio">No hay presupuestos registrados.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN: solicitudes pendientes -->
+      <div class="pre-card" *ngIf="esAdmin">
+        <div class="pre-card-title">
+          Solicitudes de Presupuesto pendientes
+          <span class="pre-badge" *ngIf="pendientes.length">{{ pendientes.length }}</span>
+        </div>
+        <div class="tabla-scroll" *ngIf="pendientes.length; else sinPend">
+          <table class="pre-tabla">
+            <thead>
+              <tr><th>Fecha</th><th>Solicitante</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Motivo</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of pendientes">
+                <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ s.solicitante_nombre || '—' }}</td>
+                <td>{{ etiquetaTipo(s.tipo) }}</td>
+                <td>{{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span></td>
+                <td class="num">S/ {{ s.monto | number: '1.2-2' }}</td>
+                <td>{{ s.motivo || '—' }}</td>
+                <td><button class="pre-btn-sm" (click)="abrirRevisar(s)">Revisar</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #sinPend><p class="vacio">No hay solicitudes pendientes.</p></ng-template>
+      </div>
+
+      <!-- PRESUPUESTO: mis solicitudes -->
+      <div class="pre-card" *ngIf="esPresupuesto">
+        <div class="pre-card-title">Mis solicitudes</div>
+        <div class="tabla-scroll" *ngIf="misSolicitudes.length; else sinMias">
+          <table class="pre-tabla">
+            <thead>
+              <tr><th>Fecha</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Estado</th><th>Respuesta</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of misSolicitudes">
+                <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ etiquetaTipo(s.tipo) }}</td>
+                <td>{{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span></td>
+                <td class="num">S/ {{ s.monto | number: '1.2-2' }}</td>
+                <td>
+                  <span class="estado" [class.ap]="s.estado === 'aprobado'" [class.de]="s.estado === 'denegado'">{{ s.estado }}</span>
+                </td>
+                <td>{{ s.respuesta || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #sinMias><p class="vacio">Aún no has hecho solicitudes.</p></ng-template>
+      </div>
+    </ng-container>
+  </main>
+</div>
+
+<!-- MODAL: crear solicitud -->
+<div class="pre-overlay" *ngIf="mostrarModal">
+  <div class="pre-modal">
+    <h3>Nueva solicitud de presupuesto</h3>
+    <div class="pre-campo">
+      <label>Red</label>
+      <input type="text" [value]="form.red" disabled />
+    </div>
+    <div class="pre-campo">
+      <label>Tipo de solicitud</label>
+      <select [(ngModel)]="form.tipo">
+        <option value="aumento">Aumento de presupuesto</option>
+        <option value="reduccion">Reducción de presupuesto</option>
+        <option value="reasignacion">Reasignar saldo a otra red</option>
+      </select>
+    </div>
+    <div class="pre-campo" *ngIf="form.tipo === 'reasignacion'">
+      <label>Red destino</label>
+      <select [(ngModel)]="form.red_destino">
+        <option value="">Seleccione…</option>
+        <option *ngFor="let r of otrasRedes" [value]="r.red">{{ r.red }}</option>
+      </select>
+    </div>
+    <div class="pre-campo">
+      <label>Monto (S/.)</label>
+      <input type="number" [(ngModel)]="form.monto" min="0" placeholder="0.00" />
+    </div>
+    <div class="pre-campo">
+      <label>Motivo</label>
+      <textarea [(ngModel)]="form.motivo" rows="3" placeholder="Justificación de la solicitud"></textarea>
+    </div>
+    <p class="pre-error" *ngIf="errorModal">{{ errorModal }}</p>
+    <div class="pre-modal-btns">
+      <button class="pre-btn-sec" (click)="mostrarModal = false" [disabled]="enviando">Cancelar</button>
+      <button class="pre-btn" (click)="enviarSolicitud()" [disabled]="enviando">{{ enviando ? 'Enviando…' : 'Enviar solicitud' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: revisar (admin) -->
+<div class="pre-overlay" *ngIf="mostrarRevisar && solicitudRevisar">
+  <div class="pre-modal">
+    <h3>Revisar solicitud</h3>
+    <div class="pre-resumen">
+      <div><span>Solicitante</span><strong>{{ solicitudRevisar.solicitante_nombre }}</strong></div>
+      <div><span>Tipo</span><strong>{{ etiquetaTipo(solicitudRevisar.tipo) }}</strong></div>
+      <div><span>Red</span><strong>{{ solicitudRevisar.red }}<span *ngIf="solicitudRevisar.tipo === 'reasignacion'"> → {{ solicitudRevisar.red_destino }}</span></strong></div>
+      <div><span>Monto</span><strong>S/ {{ solicitudRevisar.monto | number: '1.2-2' }}</strong></div>
+      <div class="full"><span>Motivo</span><strong>{{ solicitudRevisar.motivo || '—' }}</strong></div>
+    </div>
+    <div class="pre-campo">
+      <label>Respuesta / observación (opcional)</label>
+      <textarea [(ngModel)]="respuestaRevisar" rows="2"></textarea>
+    </div>
+    <div class="pre-modal-btns">
+      <button class="pre-btn-sec" (click)="mostrarRevisar = false" [disabled]="procesando">Cancelar</button>
+      <button class="pre-btn-den" (click)="decidir('denegado')" [disabled]="procesando">Denegar</button>
+      <button class="pre-btn-ap" (click)="decidir('aprobado')" [disabled]="procesando">Aprobar</button>
+    </div>
+  </div>
+</div>

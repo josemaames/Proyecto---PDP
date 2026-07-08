@@ -189,6 +189,7 @@
  <label>Cargo</label>
  <input type="text" [(ngModel)]="nuevoUsuarioData.cargo" placeholder="Cargo o puesto" />
  </div>
+<<<<<<< HEAD
  <div class="campo">
  <label>Rol</label>
  <select [(ngModel)]="nuevoUsuarioData.rol">
@@ -197,6 +198,18 @@
  <option value="Sectorista">Sectorista</option>
  <option value="Ejecutor">Ejecutor</option>
  </select>
+=======
+ <div class="campo campo-full">
+ <label>Roles <small class="campo-hint">(puede marcar más de uno)</small></label>
+ <div class="redes-checkboxes">
+ @for (r of rolesDisponibles; track r) {
+ <label class="check-red" [class.check-red-activo]="rolSelMarcado(r)">
+ <input type="checkbox" [checked]="rolSelMarcado(r)" (change)="toggleRolSel(r)" />
+ {{ r }}
+ </label>
+ }
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  </div>
  <div class="campo">
  <label>Estado</label>
@@ -232,7 +245,11 @@
  </button>
  </div>
  </div>
+<<<<<<< HEAD
  @if (nuevoUsuarioData.rol === 'Sectorista') {
+=======
+ @if (rolSelMarcado('Sectorista')) {
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <div class="campo campo-sedes campo-full">
  <label>Redes Asistenciales</label>
  <small class="campo-hint">Marca todas las redes que este sectorista puede ver.</small>
@@ -255,7 +272,11 @@
  }
  </div>
  }
+<<<<<<< HEAD
  @if (nuevoUsuarioData.rol === 'Ejecutor') {
+=======
+ @if (rolSelMarcado('Ejecutor')) {
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <div class="campo">
  <label>Red Asistencial</label>
  <select [(ngModel)]="nuevoUsuarioData.sedes">

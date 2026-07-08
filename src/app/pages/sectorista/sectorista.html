@@ -16,6 +16,12 @@
  </div>
  </div>
  <div class="nav-der">
+<<<<<<< HEAD
+=======
+ @if (tienePresupuesto) {
+ <button class="btn-cambiar-vista" (click)="irAPresupuesto()">Cambiar a Presupuesto</button>
+ }
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <span class="nav-fecha">{{ fechaHoy }}</span>
  <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
@@ -99,8 +105,23 @@
  <span class="badge-pendiente">{{ solicitudes.length }}</span>
  }
  </span>
+<<<<<<< HEAD
  <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">↻</button>
  </div>
+=======
+ <div class="filtro-red-row">
+ @if (redesDisponibles.length > 1) {
+ <select class="filtro-red-select" [(ngModel)]="filtroRedSolicitudes">
+ <option value="">Todas mis redes</option>
+ @for (r of redesDisponibles; track r) {
+ <option [value]="r">{{ r }}</option>
+ }
+ </select>
+ }
+ <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">↻</button>
+ </div>
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
 
  @if (cargandoSolicitudes) {
  <div class="sin-resultados"><p>Cargando solicitudes...</p></div>
@@ -108,6 +129,13 @@
  <div class="sin-resultados">
  <p>No hay solicitudes pendientes de revisión.</p>
  </div>
+<<<<<<< HEAD
+=======
+ } @else if (solicitudesFiltradas.length === 0) {
+ <div class="sin-resultados">
+ <p>No hay solicitudes pendientes en la red seleccionada.</p>
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  } @else {
  <div class="tabla-scroll">
  <table class="tabla-part">
@@ -121,7 +149,11 @@
  </tr>
  </thead>
  <tbody>
+<<<<<<< HEAD
  @for (s of solicitudes; track s.id) {
+=======
+ @for (s of solicitudesFiltradas; track s.id) {
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <tr [class.fila-seleccionada]="solicitudDetalle?.id === s.id">
  <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
  <td>{{ s.ejecutor_nombre || '—' }}</td>
@@ -311,6 +343,17 @@
  {{ exportandoExcel ? '⏳ Generando...' : ' Exportar Excel' }}
  </button>
 
+<<<<<<< HEAD
+=======
+ @if (redesDisponibles.length > 1) {
+ <select class="filtro-red-select" [(ngModel)]="filtroRedHistorial">
+ <option value="">Todas mis redes</option>
+ @for (r of redesDisponibles; track r) {
+ <option [value]="r">{{ r }}</option>
+ }
+ </select>
+ }
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
  </div>
 
@@ -382,6 +425,13 @@
  <div class="sin-resultados">
  <p>Aún no has aprobado ni denegado ninguna solicitud.</p>
  </div>
+<<<<<<< HEAD
+=======
+ } @else if (historialFiltrado.length === 0) {
+ <div class="sin-resultados">
+ <p>No hay revisiones en la red seleccionada.</p>
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  } @else {
  <div class="tabla-scroll">
  <table class="tabla-part">
@@ -397,7 +447,11 @@
  </tr>
  </thead>
  <tbody>
+<<<<<<< HEAD
  @for (s of historial; track s.id) {
+=======
+ @for (s of historialFiltrado; track s.id) {
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <tr>
  <td>{{ s.reviewed_at | date: 'dd/MM/yyyy HH:mm' }}</td>
  <td>{{ s.ejecutor_nombre || '—' }}</td>
@@ -444,6 +498,21 @@
  <span class="presupuesto-anio">Techo {{ p.anio }}</span>
  <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
  </div>
+<<<<<<< HEAD
+=======
+ <div class="presupuesto-linea">
+ <span class="presupuesto-etq">Ejecutado</span>
+ <span class="presupuesto-ejec">S/ {{ p.ejecutado | number: '1.2-2' }}</span>
+ </div>
+ <div class="presupuesto-linea">
+ <span class="presupuesto-etq">Saldo disponible</span>
+ <span class="presupuesto-saldo" [class.saldo-negativo]="p.saldo < 0">S/ {{ p.saldo | number: '1.2-2' }}</span>
+ </div>
+ <div class="presupuesto-barra-bg">
+ <div class="presupuesto-barra-fill" [class.barra-excedida]="p.pct >= 100" [style.width.%]="p.pct"></div>
+ </div>
+ <div class="presupuesto-pct">{{ p.pct }}% ejecutado</div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  </div>
  }
  </div>
@@ -1019,7 +1088,19 @@
  [class.opcion-seleccionada]="seccionEdicion === 'formulario'"
  (click)="seccionEdicion = 'formulario'"
  >
+<<<<<<< HEAD
  <div class="opcion-icono"></div>
+=======
+ <div class="opcion-icono">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ <line x1="16" y1="13" x2="8" y2="13" />
+ <line x1="16" y1="17" x2="8" y2="17" />
+ <line x1="10" y1="9" x2="8" y2="9" />
+ </svg>
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <div>
  <strong>Formulario de Capacitación</strong>
  <p>Datos de la actividad: fechas, modalidad, horas, proveedor, etc.</p>
@@ -1031,7 +1112,18 @@
  [class.opcion-seleccionada]="seccionEdicion === 'participantes'"
  (click)="seccionEdicion = 'participantes'"
  >
+<<<<<<< HEAD
  <div class="opcion-icono"></div>
+=======
+ <div class="opcion-icono">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+ <circle cx="9" cy="7" r="4" />
+ <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+ <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+ </svg>
+ </div>
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  <div>
  <strong>Registro de Participantes</strong>
  <p>Lista de participantes registrados en la capacitación.</p>

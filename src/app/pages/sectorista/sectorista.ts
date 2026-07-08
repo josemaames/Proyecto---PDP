@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin, firstValueFrom } from 'rxjs';
 import { PdpDataService, Actividad, Participante } from '../../services/pdp-data.service';
+import { tieneRol } from '../../utils/roles.util';
 import * as ExcelJS from 'exceljs';
 
 @Component({
@@ -23,6 +24,10 @@ export class Sectorista implements OnInit {
  usuario: any = {};
  fechaHoy = '';
  inicialUsuario = 'U';
+<<<<<<< HEAD
+=======
+ tienePresupuesto = false;
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  mostrarPerfilMenu = false;
 
  cargandoRuc = false;
@@ -207,6 +212,10 @@ export class Sectorista implements OnInit {
  ngOnInit() {
  this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
  this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+<<<<<<< HEAD
+=======
+ this.tienePresupuesto = tieneRol(this.usuario, 'Presupuesto');
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  const f = new Date().toLocaleDateString('es-PE', {
  weekday: 'long',
  day: 'numeric',
@@ -425,6 +434,7 @@ export class Sectorista implements OnInit {
  ? sedesRaw.split(',').map((s: string) => s.trim())
  : [];
 
+<<<<<<< HEAD
  this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes').subscribe({
  next: (data) => {
  this.presupuestoMiRed = sedes.length
@@ -432,6 +442,31 @@ export class Sectorista implements OnInit {
  sedes.some((s) => this.normalizarRedKey(s) === this.normalizarRedKey(p.red)),
  )
  : [];
+=======
+ const redesParam = sedes.length ? `?redes=${encodeURIComponent(sedes.join(','))}` : '';
+
+ forkJoin({
+ techos: this.http.get<any[]>('http://localhost:3001/api/presupuesto-redes'),
+ ejecutados: this.http.get<any[]>(`http://localhost:3001/api/resumen-redes${redesParam}`),
+ }).subscribe({
+ next: ({ techos, ejecutados }) => {
+ const misRedes = sedes.length
+ ? techos.filter((p) =>
+ sedes.some((s) => this.normalizarRedKey(s) === this.normalizarRedKey(p.red)),
+ )
+ : [];
+ this.presupuestoMiRed = misRedes.map((p) => {
+ const match = (ejecutados || []).find(
+ (e) => this.normalizarRedKey(e.red) === this.normalizarRedKey(p.red),
+ );
+ const techo = Number(p.techo) || 0;
+ const ejecutado = Number(match?.presupuesto) || 0;
+ const saldo = techo - ejecutado;
+ const pct = techo > 0 ? Math.min(100, Math.round((ejecutado / techo) * 100)) : 0;
+ return { ...p, ejecutado, saldo, pct };
+ });
+ this.cdr.detectChanges();
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  },
  });
  }
@@ -571,6 +606,13 @@ export class Sectorista implements OnInit {
  this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
  }
 
+<<<<<<< HEAD
+=======
+ irAPresupuesto() {
+ this.router.navigate(['/presupuesto']);
+ }
+
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  cerrarSesion() {
  localStorage.removeItem('usuario');
  this.router.navigate(['/login']);
@@ -820,6 +862,24 @@ export class Sectorista implements OnInit {
  'SINASIE',
  ];
 
+<<<<<<< HEAD
+=======
+ filtroRedSolicitudes = '';
+ filtroRedHistorial = '';
+
+ get solicitudesFiltradas(): any[] {
+ if (!this.filtroRedSolicitudes) return this.solicitudes;
+ const k = this.normalizarRedKey(this.filtroRedSolicitudes);
+ return this.solicitudes.filter((s) => this.normalizarRedKey(s.red_asistencial) === k);
+ }
+
+ get historialFiltrado(): any[] {
+ if (!this.filtroRedHistorial) return this.historial;
+ const k = this.normalizarRedKey(this.filtroRedHistorial);
+ return this.historial.filter((s) => this.normalizarRedKey(s.red_asistencial) === k);
+ }
+
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  get redesDisponibles(): string[] {
  return this.redFiltro
  ? this.redFiltro.split(',').map((r) => r.trim()).filter(Boolean)

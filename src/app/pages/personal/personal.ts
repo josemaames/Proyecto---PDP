@@ -27,6 +27,11 @@ export class Personal implements OnInit {
 
  redesDisponibles: string[] = [];
  sedesSeleccionadas: string[] = [];
+<<<<<<< HEAD
+=======
+ rolesDisponibles = ['Administrador', 'Sectorista', 'Ejecutor', 'Presupuesto', 'Administrativo'];
+ rolesSeleccionados: string[] = [];
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  mostrarPassword = false;
 
  nuevoUsuarioData = {
@@ -95,6 +100,10 @@ export class Personal implements OnInit {
  nuevoUsuario() {
  this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
  this.sedesSeleccionadas = [];
+<<<<<<< HEAD
+=======
+ this.rolesSeleccionados = [];
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  this.mostrarPassword = false;
  this.modoEdicion = false;
  this.mostrarFormulario = true;
@@ -108,6 +117,7 @@ export class Personal implements OnInit {
  ? usuario.sedes.join(',')
  : (usuario.sedes || '');
 
+<<<<<<< HEAD
  this.nuevoUsuarioData = {
  dni: usuario.dni,
  nombre: usuario.nombre,
@@ -240,6 +250,156 @@ export class Personal implements OnInit {
  return this.usuarios.filter((u) => u.rol === 'Ejecutor').length;
  }
 
+=======
+ this.rolesSeleccionados = (usuario.roles && String(usuario.roles).trim())
+ ? String(usuario.roles).split(',').map((s: string) => s.trim()).filter(Boolean)
+ : (usuario.rol ? [usuario.rol] : []);
+
+ this.nuevoUsuarioData = {
+ dni: usuario.dni,
+ nombre: usuario.nombre,
+ cargo: usuario.cargo,
+ rol: usuario.rol,
+ estado: usuario.estado,
+ sedes: this.rolesSeleccionados.includes('Ejecutor') ? sedesStr : '',
+ password: usuario.password || '',
+ email: usuario.email || '',
+ };
+
+ this.sedesSeleccionadas = this.rolesSeleccionados.includes('Sectorista')
+ ? sedesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+ : [];
+
+ this.mostrarPassword = false;
+ this.dniEditando = dni;
+ this.modoEdicion = true;
+ this.mostrarFormulario = true;
+ }
+
+ verUsuario(dni: string) {
+ const usuario = this.usuarios.find((u) => u.dni === dni);
+
+ if (usuario) {
+ this.usuarioSeleccionado = usuario;
+ this.mostrarDetalle = true;
+ }
+ }
+
+ cambiarEstado(dni: string) {
+ const usuario = this.usuarios.find((u) => u.dni === dni);
+ if (!usuario) return;
+ const nuevoEstado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
+ this.http.put<any>(`/api/usuarios/${dni}`, { estado: nuevoEstado }).subscribe({
+ next: () => { usuario.estado = nuevoEstado; },
+ });
+ }
+
+ cerrarDetalle() {
+ this.mostrarDetalle = false;
+ }
+
+ toggleRolSel(rol: string) {
+ const i = this.rolesSeleccionados.indexOf(rol);
+ if (i === -1) this.rolesSeleccionados.push(rol);
+ else this.rolesSeleccionados.splice(i, 1);
+ }
+
+ rolSelMarcado(rol: string): boolean {
+ return this.rolesSeleccionados.includes(rol);
+ }
+
+ toggleSede(red: string) {
+ const idx = this.sedesSeleccionadas.indexOf(red);
+ if (idx === -1) this.sedesSeleccionadas.push(red);
+ else this.sedesSeleccionadas.splice(idx, 1);
+ }
+
+ sedeSeleccionada(red: string): boolean {
+ return this.sedesSeleccionadas.includes(red);
+ }
+
+ guardarUsuario() {
+ if (this.rolesSeleccionados.length === 0) { alert('Seleccione al menos un rol.'); return; }
+ if (this.rolesSeleccionados.includes('Sectorista')) {
+ this.nuevoUsuarioData.sedes = this.sedesSeleccionadas.join(',');
+ } else if (!this.rolesSeleccionados.includes('Ejecutor')) {
+ this.nuevoUsuarioData.sedes = '';
+ }
+
+ this.guardando = true;
+ const payload = {
+ dni: this.nuevoUsuarioData.dni,
+ nombre: this.nuevoUsuarioData.nombre,
+ password: this.nuevoUsuarioData.password,
+ rol: this.rolesSeleccionados[0],
+ roles: this.rolesSeleccionados,
+ cargo: this.nuevoUsuarioData.cargo,
+ estado: this.nuevoUsuarioData.estado,
+ sedes: this.nuevoUsuarioData.sedes,
+ numero_plantilla: this.nuevoUsuarioData.dni,
+ email: this.nuevoUsuarioData.email,
+ };
+
+ const req$ = this.modoEdicion
+ ? this.http.put<any>(`/api/usuarios/${this.dniEditando}`, payload)
+ : this.http.post<any>('/api/usuarios', payload);
+
+ req$.subscribe({
+ next: () => {
+ this.guardando = false;
+ this.cargarUsuarios();
+ this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
+ this.sedesSeleccionadas = [];
+ this.rolesSeleccionados = [];
+ this.mostrarPassword = false;
+ this.mostrarFormulario = false;
+ this.modoEdicion = false;
+ this.dniEditando = '';
+ },
+ error: (err) => {
+ this.guardando = false;
+ alert(err.error?.error || 'Error al guardar el usuario.');
+ },
+ });
+ }
+
+ sedesTexto(usuario: any): string {
+ if (!usuario.sedes) return '—';
+ if (Array.isArray(usuario.sedes)) return usuario.sedes.join(', ') || '—';
+ return usuario.sedes || '—';
+ }
+
+ cancelarUsuario() {
+ this.mostrarFormulario = false;
+ }
+
+ get usuariosFiltrados() {
+ return this.usuarios.filter((usuario) => {
+ const coincideTexto =
+ usuario.nombre.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
+ usuario.dni.includes(this.textoBusqueda);
+
+ const coincideRol = this.filtroRol === 'Todos' || usuario.rol === this.filtroRol;
+
+ const coincideEstado = this.filtroEstado === 'Todos' || usuario.estado === this.filtroEstado;
+
+ return coincideTexto && coincideRol && coincideEstado;
+ });
+ }
+
+ get totalAdministradores() {
+ return this.usuarios.filter((u) => u.rol === 'Administrador').length;
+ }
+
+ get totalSectoristas() {
+ return this.usuarios.filter((u) => u.rol === 'Sectorista').length;
+ }
+
+ get totalEjecutores() {
+ return this.usuarios.filter((u) => u.rol === 'Ejecutor').length;
+ }
+
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
  get totalActivos() {
  return this.usuarios.filter((u) => u.estado === 'Activo').length;
  }

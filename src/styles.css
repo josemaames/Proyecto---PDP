@@ -608,6 +608,11 @@ body {
   font-size: 60px;
   margin-bottom: 16px;
 }
+.vacio-icono svg {
+  width: 48px;
+  height: 48px;
+  stroke: #94a3b8;
+}
 
 .tabla-vacia h4 {
   margin: 0;

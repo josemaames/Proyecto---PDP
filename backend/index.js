@@ -186,6 +186,29 @@ async function crearTablas() {
     )
   `);
   await pool.query(`ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS email TEXT DEFAULT ''`);
+  // Multi-rol: columna 'roles' (separada por comas). Si está vacía, se usa 'rol' como respaldo.
+  await pool.query(`ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS roles TEXT DEFAULT ''`);
+
+  // Solicitudes de presupuesto (rol Presupuesto → Administrador aprueba/deniega)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS solicitud_presupuesto (
+      id                 SERIAL PRIMARY KEY,
+      tipo               TEXT NOT NULL,                       -- 'aumento' | 'reduccion' | 'reasignacion'
+      red                TEXT NOT NULL,                       -- red origen
+      red_destino        TEXT,                                -- solo en 'reasignacion'
+      monto              NUMERIC(14,2) NOT NULL,
+      motivo             TEXT,
+      estado             TEXT NOT NULL DEFAULT 'pendiente',   -- 'pendiente' | 'aprobado' | 'denegado'
+      solicitante_dni    TEXT,
+      solicitante_nombre TEXT,
+      revisor_dni        TEXT,
+      revisor_nombre     TEXT,
+      respuesta          TEXT,
+      created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolved_at        TIMESTAMPTZ
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_solpres_estado ON solicitud_presupuesto(estado)`);
 
   const seed = [
     ['90642735', 'José Manuel Ames Anapán',       'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0001', 'jose.ames@essalud.gob.pe'],
@@ -1491,11 +1514,15 @@ app.post('/api/auth/login', async (req, res) => {
     if (!rows.length) return res.status(401).json({ error: 'Credenciales incorrectas' });
     const u = rows[0];
     if (u.estado === 'Inactivo') return res.status(403).json({ error: 'Cuenta desactivada. Contacte al administrador.' });
+    const roles = (u.roles && u.roles.trim())
+      ? u.roles.split(',').map((s) => s.trim()).filter(Boolean)
+      : [u.rol];
     res.json({
       id: u.id,
       dni: u.dni,
       nombre: u.nombre,
-      rol: u.rol,
+      rol: u.rol,          // rol principal (compatibilidad)
+      roles,               // todos los roles del usuario
       cargo: u.cargo,
       estado: u.estado,
       sedes: u.sedes ? u.sedes.split(',').filter(Boolean) : [],
@@ -1509,7 +1536,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/usuarios', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email FROM usuarios_sistema ORDER BY rol,nombre'
+      'SELECT id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email FROM usuarios_sistema ORDER BY rol,nombre'
     );
     res.json(rows);
   } catch (err) {
@@ -1519,14 +1546,18 @@ app.get('/api/usuarios', async (req, res) => {
 
 app.post('/api/usuarios', async (req, res) => {
   try {
-    const { dni, nombre, password, rol, cargo, estado, sedes, numero_plantilla, email, actor_nombre, actor_rol } = req.body;
-    if (!dni || !nombre || !password || !rol) return res.status(400).json({ error: 'dni, nombre, password y rol son requeridos' });
+    const { dni, nombre, password, rol, roles, cargo, estado, sedes, numero_plantilla, email, actor_nombre, actor_rol } = req.body;
+    const rolesArr = (Array.isArray(roles) ? roles : (roles ? String(roles).split(',') : (rol ? [rol] : [])))
+      .map((s) => String(s).trim()).filter(Boolean);
+    const rolesStr = rolesArr.join(',');
+    const rolPrincipal = rolesArr[0] || '';
+    if (!dni || !nombre || !password || !rolPrincipal) return res.status(400).json({ error: 'dni, nombre, password y al menos un rol son requeridos' });
     const { rows } = await pool.query(
-      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
-      [dni, nombre, password, rol, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '', email || '']
+      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,roles,cargo,estado,sedes,numero_plantilla,email)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email`,
+      [dni, nombre, password, rolPrincipal, rolesStr, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '', email || '']
     );
-    logEvento('usuario_creado', `${actor_nombre || 'Administrador'} creó el usuario ${nombre} (${rol})`, actor_nombre, actor_rol || 'Administrador', nombre);
+    logEvento('usuario_creado', `${actor_nombre || 'Administrador'} creó el usuario ${nombre} (${rolesStr})`, actor_nombre, actor_rol || 'Administrador', nombre);
     res.status(201).json(rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Ya existe un usuario con ese DNI.' });
@@ -1537,7 +1568,14 @@ app.post('/api/usuarios', async (req, res) => {
 app.put('/api/usuarios/:dni', async (req, res) => {
   try {
     const { actor_nombre, actor_rol } = req.body;
-    const campos = ['nombre','password','rol','cargo','estado','sedes','numero_plantilla','email'];
+    // Multi-rol: si viene 'roles', se actualiza también 'rol' (principal = primero)
+    if (req.body.roles !== undefined) {
+      const rolesArr = (Array.isArray(req.body.roles) ? req.body.roles : String(req.body.roles).split(','))
+        .map((s) => String(s).trim()).filter(Boolean);
+      req.body.roles = rolesArr.join(',');
+      req.body.rol = rolesArr[0] || req.body.rol || '';
+    }
+    const campos = ['nombre','password','rol','roles','cargo','estado','sedes','numero_plantilla','email'];
     const sets = [], params = [];
     let idx = 1;
     for (const campo of campos) {
@@ -1549,11 +1587,11 @@ app.put('/api/usuarios/:dni', async (req, res) => {
     if (!sets.length) return res.status(400).json({ error: 'Sin campos a actualizar' });
     params.push(req.params.dni);
     const { rows } = await pool.query(
-      `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
+      `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email`,
       params
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
-    logEvento('usuario_editado', `${actor_nombre || 'Administrador'} editó el usuario ${rows[0].nombre} (${rows[0].rol})`, actor_nombre, actor_rol || 'Administrador', rows[0].nombre);
+    logEvento('usuario_editado', `${actor_nombre || 'Administrador'} editó el usuario ${rows[0].nombre} (${rows[0].roles || rows[0].rol})`, actor_nombre, actor_rol || 'Administrador', rows[0].nombre);
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1605,6 +1643,85 @@ app.put('/api/presupuesto-redes/:red', async (req, res) => {
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// SOLICITUDES DE PRESUPUESTO (rol Presupuesto → Administrador aprueba/deniega)
+// ──────────────────────────────────────────────
+app.post('/api/solicitudes-presupuesto', async (req, res) => {
+  try {
+    const { tipo, red, red_destino, monto, motivo, solicitante_dni, solicitante_nombre } = req.body;
+    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo)) return res.status(400).json({ error: 'tipo inválido' });
+    if (!red || !monto || Number(monto) <= 0) return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
+    if (tipo === 'reasignacion' && !red_destino) return res.status(400).json({ error: 'red_destino requerida para reasignación' });
+    const { rows } = await pool.query(
+      `INSERT INTO solicitud_presupuesto (tipo, red, red_destino, monto, motivo, solicitante_dni, solicitante_nombre)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [tipo, red, tipo === 'reasignacion' ? red_destino : null, monto, motivo || '', solicitante_dni || '', solicitante_nombre || ''],
+    );
+    logEvento('presupuesto_solicitado', `${solicitante_nombre || 'Presupuesto'} solicitó ${tipo} de S/ ${monto} en ${red}`, solicitante_nombre, 'Presupuesto', red);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/solicitudes-presupuesto', async (req, res) => {
+  try {
+    const { estado, solicitante_dni } = req.query;
+    const cond = [], params = [];
+    let i = 1;
+    if (estado) { cond.push(`estado=$${i++}`); params.push(estado); }
+    if (solicitante_dni) { cond.push(`solicitante_dni=$${i++}`); params.push(String(solicitante_dni)); }
+    const where = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
+    const { rows } = await pool.query(
+      `SELECT * FROM solicitud_presupuesto ${where} ORDER BY created_at DESC`, params,
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/solicitudes-presupuesto/:id/revisar', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { decision, revisor_dni, revisor_nombre, respuesta } = req.body; // 'aprobado' | 'denegado'
+    if (!['aprobado', 'denegado'].includes(decision)) return res.status(400).json({ error: 'decision inválida' });
+
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT * FROM solicitud_presupuesto WHERE id=$1 FOR UPDATE', [req.params.id]);
+    if (!rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Solicitud no encontrada' }); }
+    const s = rows[0];
+    if (s.estado !== 'pendiente') { await client.query('ROLLBACK'); return res.status(409).json({ error: 'La solicitud ya fue resuelta.' }); }
+
+    if (decision === 'aprobado') {
+      const monto = Number(s.monto);
+      const ajustar = (red, delta) => client.query(
+        `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
+         ON CONFLICT (red) DO UPDATE SET techo = GREATEST(presupuesto_redes.techo + $2, 0)`,
+        [red, delta, new Date().getFullYear()],
+      );
+      if (s.tipo === 'aumento') await ajustar(s.red, monto);
+      else if (s.tipo === 'reduccion') await ajustar(s.red, -monto);
+      else if (s.tipo === 'reasignacion') { await ajustar(s.red, -monto); await ajustar(s.red_destino, monto); }
+    }
+
+    const upd = await client.query(
+      `UPDATE solicitud_presupuesto
+       SET estado=$1, revisor_dni=$2, revisor_nombre=$3, respuesta=$4, resolved_at=NOW()
+       WHERE id=$5 RETURNING *`,
+      [decision, revisor_dni || '', revisor_nombre || '', respuesta || '', req.params.id],
+    );
+    await client.query('COMMIT');
+    logEvento('presupuesto_revisado', `${revisor_nombre || 'Administrador'} ${decision} la solicitud de ${s.tipo} en ${s.red}`, revisor_nombre, 'Administrador', s.red);
+    res.json(upd.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -1774,6 +1891,12 @@ app.post('/api/sso/ingreso', async (req, res) => {
       dni: usuarioPdp.dni,
       nombre: usuarioPdp.nombre,
       rol: usuarioPdp.rol,
+<<<<<<< HEAD
+=======
+      roles: (usuarioPdp.roles && String(usuarioPdp.roles).trim())
+        ? String(usuarioPdp.roles).split(',').map((s) => s.trim()).filter(Boolean)
+        : [usuarioPdp.rol],
+>>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
       cargo: usuarioPdp.cargo,
       estado: usuarioPdp.estado,
       sedes: usuarioPdp.sedes ? String(usuarioPdp.sedes).split(',').filter(Boolean) : [],

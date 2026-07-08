@@ -1628,6 +1628,11 @@ tr:hover td {
   justify-content: center;
   font-size: 28px;
 }
+.insight-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: #4f46e5;
+}
 
 .insight-info {
   flex: 1;
@@ -1690,6 +1695,12 @@ tr:hover td {
 
 .lider-icono {
   font-size: 42px;
+}
+.lider-icono svg {
+  width: 40px;
+  height: 40px;
+  stroke: #f59e0b;
+  fill: none;
 }
 
 .lider-titulo {
