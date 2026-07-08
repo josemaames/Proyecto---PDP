@@ -27,6 +27,8 @@ export class Presupuesto implements OnInit {
 
   usuario: any = {};
   inicialUsuario = 'U';
+  fechaHoy = '';
+  mostrarPerfilMenu = false;
   esPresupuesto = false;
   esAdmin = false;
   tieneSectorista = false;
@@ -51,6 +53,8 @@ export class Presupuesto implements OnInit {
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+    const f = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.esPresupuesto = tieneRol(this.usuario, 'Presupuesto');
     this.esAdmin = tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
     this.tieneSectorista = tieneRol(this.usuario, 'Sectorista');
@@ -164,6 +168,7 @@ export class Presupuesto implements OnInit {
     return t === 'aumento' ? 'Aumento' : t === 'reduccion' ? 'Reducción' : 'Reasignación';
   }
 
+  togglePerfilMenu(): void { this.mostrarPerfilMenu = !this.mostrarPerfilMenu; }
   irASectorista(): void { this.router.navigate(['/sectorista']); }
   cerrarSesion(): void { localStorage.removeItem('usuario'); this.router.navigate(['/login']); }
 }

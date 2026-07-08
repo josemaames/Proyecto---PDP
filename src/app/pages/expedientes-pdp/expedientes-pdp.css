@@ -238,15 +238,17 @@
 .pag-botones { display: flex; gap: 8px; }
 
 .pag-botones button {
-  border: 1px solid #e5e7eb;
-  background: white;
+  border: 1px solid #005baa;
+  background: #005baa;
+  color: white;
   padding: 7px 14px;
   border-radius: 7px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
-.pag-botones button:hover:not(:disabled) { background: #005baa; color: white; border-color: #005baa; }
+.pag-botones button:hover:not(:disabled) { background: #00468a; border-color: #00468a; }
 .pag-botones button:disabled { opacity: 0.4; cursor: default; }
 
 /* ── MODAL ───────────────────────────────────── */

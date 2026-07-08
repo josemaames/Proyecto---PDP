@@ -21,7 +21,7 @@
 }
 .pre-salir { background: transparent; border: none; color: #fff; cursor: pointer; font-size: 13px; opacity: .85; }
 
-.pre-main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+.pre-main { max-width: 1080px; margin: 0 auto; padding: calc(var(--nav-h, 60px) + 24px) 24px 24px; }
 .pre-centro { text-align: center; padding: 40px; color: #64748b; }
 
 .pre-card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.06); padding: 22px; margin-bottom: 20px; }

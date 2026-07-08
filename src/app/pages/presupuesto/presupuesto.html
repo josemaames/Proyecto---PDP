@@ -1,17 +1,47 @@
 <div class="pre-layout">
-  <!-- NAVBAR -->
-  <nav class="pre-nav">
-    <div class="pre-nav-izq">
-      <img src="somos-essalud.png" class="pre-logo" alt="EsSalud" />
-      <div>
-        <div class="pre-nav-title">Gestión de Presupuesto</div>
-        <div class="pre-nav-sub">Plan de Desarrollo de Personas</div>
+  <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
       </div>
     </div>
-    <div class="pre-nav-der">
+    <div class="nav-der">
       <button *ngIf="tieneSectorista" class="pre-switch" (click)="irASectorista()">Cambiar a Sectorista</button>
-      <span class="pre-avatar">{{ inicialUsuario }}</span>
-      <button class="pre-salir" (click)="cerrarSesion()">Salir</button>
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
+            </div>
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
+            </div>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+          </div>
+        }
+      </div>
     </div>
   </nav>
 
