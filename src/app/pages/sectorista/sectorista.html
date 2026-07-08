@@ -1,29 +1,26 @@
 <div class="app-layout">
- <!-- ===== NAVBAR ===== -->
- <nav class="app-nav">
- <div class="nav-izq">
- <button class="nav-hamburger">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <line x1="3" y1="6" x2="21" y2="6" />
- <line x1="3" y1="12" x2="21" y2="12" />
- <line x1="3" y1="18" x2="21" y2="18" />
- </svg>
- </button>
- <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
- <div class="nav-brand">
- <div class="nav-brand-title">Sistema de Gestión PDP</div>
- <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
- </div>
- </div>
- <div class="nav-der">
-<<<<<<< HEAD
-=======
- @if (tienePresupuesto) {
- <button class="btn-cambiar-vista" (click)="irAPresupuesto()">Cambiar a Presupuesto</button>
- }
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <span class="nav-fecha">{{ fechaHoy }}</span>
- <div class="perfil-wrap">
+  <!-- ===== NAVBAR ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
+      </div>
+    </div>
+    <div class="nav-der">
+      @if (tienePresupuesto) {
+        <button class="btn-cambiar-vista" (click)="irAPresupuesto()">Cambiar a Presupuesto</button>
+      }
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
 
         @if (mostrarPerfilMenu) {
@@ -38,1126 +35,1297 @@
             </div>
 
             <div class="perfil-menu-datos">
-              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
+              <div class="perfil-dato">
+                <span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong>
+              </div>
             </div>
 
             <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
         }
       </div>
- </div>
- </nav>
+    </div>
+  </nav>
 
- <div class="perfil-superior">
- <nav class="menu-superior">
- <div class="menu-item" [class.activo]="seccionActiva === 'inicio'" (click)="cambiarSeccion('inicio')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M3 10.5L12 3l9 7.5" />
- <path d="M5 9.5V21h14V9.5" />
- </svg>
- <span>Inicio</span>
- </div>
- <div class="menu-item" (click)="irA('/expedientes')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
- <polyline points="14 2 14 8 20 8" />
- </svg>
- <span>Expedientes</span>
- </div>
- <div class="menu-item" [class.activo]="seccionActiva === 'sindicatos'" (click)="cambiarSeccion('sindicatos')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 20h5v-1a4 4 0 0 0-4-4h-1" />
- <path d="M9 20H4v-1a4 4 0 0 1 4-4h1" />
- <circle cx="12" cy="7" r="4" />
- <path d="M12 11v9" />
- </svg>
- <span>Sindicatos</span>
- </div>
- <div class="menu-item cerrar" (click)="cerrarSesion()">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
- <polyline points="16 17 21 12 16 7" />
- <line x1="21" y1="12" x2="9" y2="12" />
- </svg>
- <span>Salir</span>
- </div>
- </nav>
- </div>
+  <div class="perfil-superior">
+    <nav class="menu-superior">
+      <div
+        class="menu-item"
+        [class.activo]="seccionActiva === 'inicio'"
+        (click)="cambiarSeccion('inicio')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 10.5L12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
+        </svg>
+        <span>Inicio</span>
+      </div>
+      <div class="menu-item" (click)="irA('/expedientes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>Expedientes</span>
+      </div>
+      <div
+        class="menu-item"
+        [class.activo]="seccionActiva === 'sindicatos'"
+        (click)="cambiarSeccion('sindicatos')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 20h5v-1a4 4 0 0 0-4-4h-1" />
+          <path d="M9 20H4v-1a4 4 0 0 1 4-4h1" />
+          <circle cx="12" cy="7" r="4" />
+          <path d="M12 11v9" />
+        </svg>
+        <span>Sindicatos</span>
+      </div>
+      <div class="menu-item cerrar" (click)="cerrarSesion()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        <span>Salir</span>
+      </div>
+    </nav>
+  </div>
 
- <div class="app-cuerpo">
- <aside class="sidebar"></aside>
+  <div class="app-cuerpo">
+    <aside class="sidebar"></aside>
 
- <!-- ===== CONTENIDO ===== -->
- <main class="app-contenido">
+    <!-- ===== CONTENIDO ===== -->
+    <main class="app-contenido">
+      @if (seccionActiva === 'inicio') {
+        <!-- SOLICITUDES PENDIENTES -->
+        <div class="card">
+          <div class="card-section-title-row">
+            <span class="card-section-title">
+              Solicitudes de Revisión
+              @if (solicitudes.length > 0) {
+                <span class="badge-pendiente">{{ solicitudes.length }}</span>
+              }
+            </span>
+            <div class="filtro-red-row">
+              @if (redesDisponibles.length > 1) {
+                <select class="filtro-red-select" [(ngModel)]="filtroRedSolicitudes">
+                  <option value="">Todas mis redes</option>
+                  @for (r of redesDisponibles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              }
+              <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">
+                ↻
+              </button>
+            </div>
+          </div>
 
- @if (seccionActiva === 'inicio') {
- <!-- SOLICITUDES PENDIENTES -->
- <div class="card">
- <div class="card-section-title-row">
- <span class="card-section-title">
- Solicitudes de Revisión
- @if (solicitudes.length > 0) {
- <span class="badge-pendiente">{{ solicitudes.length }}</span>
- }
- </span>
-<<<<<<< HEAD
- <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">↻</button>
- </div>
-=======
- <div class="filtro-red-row">
- @if (redesDisponibles.length > 1) {
- <select class="filtro-red-select" [(ngModel)]="filtroRedSolicitudes">
- <option value="">Todas mis redes</option>
- @for (r of redesDisponibles; track r) {
- <option [value]="r">{{ r }}</option>
- }
- </select>
- }
- <button class="btn-refrescar" (click)="cargarSolicitudes()" title="Actualizar">↻</button>
- </div>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
+          @if (cargandoSolicitudes) {
+            <div class="sin-resultados"><p>Cargando solicitudes...</p></div>
+          } @else if (solicitudes.length === 0) {
+            <div class="sin-resultados">
+              <p>No hay solicitudes pendientes de revisión.</p>
+            </div>
+          } @else if (solicitudesFiltradas.length === 0) {
+            <div class="sin-resultados">
+              <p>No hay solicitudes pendientes en la red seleccionada.</p>
+            </div>
+          } @else {
+            <div class="tabla-scroll">
+              <table class="tabla-part">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Ejecutor</th>
+                    <th>Actividad</th>
+                    <th>Red asistencial</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (s of solicitudesFiltradas; track s.id) {
+                    <tr [class.fila-seleccionada]="solicitudDetalle?.id === s.id">
+                      <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ s.ejecutor_nombre || '—' }}</td>
+                      <td>{{ s.datos?.nombreActividad || '—' }}</td>
+                      <td>{{ s.red_asistencial || '—' }}</td>
+                      <td class="acciones-celda">
+                        <button class="btn-ver-detalle" (click)="verSolicitud(s)">
+                          {{ solicitudDetalle?.id === s.id ? 'Ocultar' : 'Ver detalle' }}
+                        </button>
+                        <button
+                          class="btn-aprobar"
+                          (click)="aprobarSolicitud(s)"
+                          [disabled]="procesandoRevision"
+                        >
+                          Aprobar
+                        </button>
+                        <button
+                          class="btn-observar"
+                          (click)="abrirModalRechazo(s)"
+                          [disabled]="procesandoRevision"
+                        >
+                          Observar
+                        </button>
+                        <button
+                          class="btn-excluir"
+                          (click)="excluirSolicitud(s)"
+                          [disabled]="procesandoRevision"
+                        >
+                          Excluir
+                        </button>
+                      </td>
+                    </tr>
+                    @if (solicitudDetalle?.id === s.id) {
+                      <tr class="fila-detalle">
+                        <td colspan="5">
+                          <div class="detalle-solicitud-grid">
+                            <div>
+                              <span>Código act.</span
+                              ><strong>{{ s.datos?.codigoAct || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Fecha inicio</span
+                              ><strong>{{ s.datos?.fechaInicio || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Fecha fin</span><strong>{{ s.datos?.fechaFin || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Modalidad</span><strong>{{ s.datos?.modalidad || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Total horas</span
+                              ><strong>{{ s.datos?.totalHoras ?? '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Participantes</span
+                              ><strong>{{ s.datos?.totalParticipantes ?? '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Eje temático</span
+                              ><strong>{{ s.datos?.ejeTematico || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Presupuesto (S/)</span
+                              ><strong>{{ s.datos?.presupuestoEjecutado ?? '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Proveedor</span
+                              ><strong>{{ s.datos?.nombreProveedor || '—' }}</strong>
+                            </div>
+                            <div>
+                              <span>Nivel evaluación</span
+                              ><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong>
+                            </div>
+                          </div>
 
- @if (cargandoSolicitudes) {
- <div class="sin-resultados"><p>Cargando solicitudes...</p></div>
- } @else if (solicitudes.length === 0) {
- <div class="sin-resultados">
- <p>No hay solicitudes pendientes de revisión.</p>
- </div>
-<<<<<<< HEAD
-=======
- } @else if (solicitudesFiltradas.length === 0) {
- <div class="sin-resultados">
- <p>No hay solicitudes pendientes en la red seleccionada.</p>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- } @else {
- <div class="tabla-scroll">
- <table class="tabla-part">
- <thead>
- <tr>
- <th>Fecha</th>
- <th>Ejecutor</th>
- <th>Actividad</th>
- <th>Red asistencial</th>
- <th>Acciones</th>
- </tr>
- </thead>
- <tbody>
-<<<<<<< HEAD
- @for (s of solicitudes; track s.id) {
-=======
- @for (s of solicitudesFiltradas; track s.id) {
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <tr [class.fila-seleccionada]="solicitudDetalle?.id === s.id">
- <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
- <td>{{ s.ejecutor_nombre || '—' }}</td>
- <td>{{ s.datos?.nombreActividad || '—' }}</td>
- <td>{{ s.red_asistencial || '—' }}</td>
- <td class="acciones-celda">
- <button class="btn-ver-detalle" (click)="verSolicitud(s)">
- {{ solicitudDetalle?.id === s.id ? 'Ocultar' : 'Ver detalle' }}
- </button>
- <button
- class="btn-aprobar"
- (click)="aprobarSolicitud(s)"
- [disabled]="procesandoRevision"
- >
- Aprobar
- </button>
- <button
- class="btn-observar"
- (click)="abrirModalRechazo(s)"
- [disabled]="procesandoRevision"
- >
- Observar
- </button>
- <button
- class="btn-excluir"
- (click)="excluirSolicitud(s)"
- [disabled]="procesandoRevision"
- >
- Excluir
- </button>
- </td>
- </tr>
- @if (solicitudDetalle?.id === s.id) {
- <tr class="fila-detalle">
- <td colspan="5">
- <div class="detalle-solicitud-grid">
- <div>
- <span>Código act.</span><strong>{{ s.datos?.codigoAct || '—' }}</strong>
- </div>
- <div>
- <span>Fecha inicio</span
- ><strong>{{ s.datos?.fechaInicio || '—' }}</strong>
- </div>
- <div>
- <span>Fecha fin</span><strong>{{ s.datos?.fechaFin || '—' }}</strong>
- </div>
- <div>
- <span>Modalidad</span><strong>{{ s.datos?.modalidad || '—' }}</strong>
- </div>
- <div>
- <span>Total horas</span
- ><strong>{{ s.datos?.totalHoras ?? '—' }}</strong>
- </div>
- <div>
- <span>Participantes</span
- ><strong>{{ s.datos?.totalParticipantes ?? '—' }}</strong>
- </div>
- <div>
- <span>Eje temático</span
- ><strong>{{ s.datos?.ejeTematico || '—' }}</strong>
- </div>
- <div>
- <span>Presupuesto (S/)</span
- ><strong>{{ s.datos?.presupuestoEjecutado ?? '—' }}</strong>
- </div>
- <div>
- <span>Proveedor</span
- ><strong>{{ s.datos?.nombreProveedor || '—' }}</strong>
- </div>
- <div>
- <span>Nivel evaluación</span
- ><strong>{{ s.datos?.nivelEvaluacion || '—' }}</strong>
- </div>
- </div>
+                          <div class="detalle-participantes">
+                            <p class="detalle-partic-titulo">Comprobante de pago</p>
+                            @if (documentosDetalle.length === 0) {
+                              <p style="font-size: 0.85rem; color: #6b7280">
+                                El ejecutor no ha subido ningún comprobante.
+                              </p>
+                            } @else {
+                              @for (doc of documentosDetalle; track doc.id) {
+                                <div
+                                  style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    padding: 8px 12px;
+                                    background: #f8fafc;
+                                    border: 1px solid #e2e8f0;
+                                    border-radius: 8px;
+                                    margin-bottom: 6px;
+                                  "
+                                >
+                                  <span style="font-size: 0.85rem"> {{ doc.nombre_archivo }}</span>
+                                  <button
+                                    type="button"
+                                    class="btn-ver-detalle"
+                                    (click)="descargarDocumentoDetalle(doc)"
+                                  >
+                                    Descargar
+                                  </button>
+                                </div>
+                              }
+                            }
+                          </div>
 
- <div class="detalle-participantes">
- <p class="detalle-partic-titulo"> Comprobante de pago</p>
- @if (documentosDetalle.length === 0) {
- <p style="font-size: 0.85rem; color: #6b7280">
- El ejecutor no ha subido ningún comprobante.
- </p>
- } @else {
- @for (doc of documentosDetalle; track doc.id) {
- <div
- style="
- display: flex;
- justify-content: space-between;
- align-items: center;
- padding: 8px 12px;
- background: #f8fafc;
- border: 1px solid #e2e8f0;
- border-radius: 8px;
- margin-bottom: 6px;
- "
- >
- <span style="font-size: 0.85rem"> {{ doc.nombre_archivo }}</span>
- <button
- type="button"
- class="btn-ver-detalle"
- (click)="descargarDocumentoDetalle(doc)"
- >
- Descargar
- </button>
- </div>
- }
- }
- </div>
+                          @if (s.datos?.participantesDetalle?.length > 0) {
+                            <div class="detalle-participantes">
+                              <p class="detalle-partic-titulo">
+                                Participantes registrados ({{
+                                  s.datos.participantesDetalle.length
+                                }})
+                              </p>
+                              <table class="tabla-partic-detalle">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Cód. Act.</th>
+                                    <th>Red</th>
+                                    <th>DNI / CE</th>
+                                    <th>Cód. Planilla</th>
+                                    <th>Apellidos y Nombre</th>
+                                    <th>Sexo</th>
+                                    <th>Sub-Programa</th>
+                                    <th>Servicio / Área</th>
+                                    <th>Cargo</th>
+                                    <th>Régimen</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (p of s.datos.participantesDetalle; track $index) {
+                                    <tr>
+                                      <td>{{ $index + 1 }}</td>
+                                      <td>{{ p.codigo_act || '—' }}</td>
+                                      <td>{{ p.red || '—' }}</td>
+                                      <td>{{ p.dni_ce || '—' }}</td>
+                                      <td>{{ p.cod_planilla || '—' }}</td>
+                                      <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                                      <td>{{ p.sexo || '—' }}</td>
+                                      <td>{{ p.sub_programa || '—' }}</td>
+                                      <td>{{ p.servicio_area || '—' }}</td>
+                                      <td>{{ p.cargo || '—' }}</td>
+                                      <td>{{ p.regimen_laboral || '—' }}</td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
 
- @if (s.datos?.participantesDetalle?.length > 0) {
- <div class="detalle-participantes">
- <p class="detalle-partic-titulo">
- Participantes registrados ({{ s.datos.participantesDetalle.length }})
- </p>
- <table class="tabla-partic-detalle">
- <thead>
- <tr>
- <th>#</th>
- <th>Cód. Act.</th>
- <th>Red</th>
- <th>DNI / CE</th>
- <th>Cód. Planilla</th>
- <th>Apellidos y Nombre</th>
- <th>Sexo</th>
- <th>Sub-Programa</th>
- <th>Servicio / Área</th>
- <th>Cargo</th>
- <th>Régimen</th>
- </tr>
- </thead>
- <tbody>
- @for (p of s.datos.participantesDetalle; track $index) {
- <tr>
- <td>{{ $index + 1 }}</td>
- <td>{{ p.codigo_act || '—' }}</td>
- <td>{{ p.red || '—' }}</td>
- <td>{{ p.dni_ce || '—' }}</td>
- <td>{{ p.cod_planilla || '—' }}</td>
- <td>{{ p.apellidos }} {{ p.nombre }}</td>
- <td>{{ p.sexo || '—' }}</td>
- <td>{{ p.sub_programa || '—' }}</td>
- <td>{{ p.servicio_area || '—' }}</td>
- <td>{{ p.cargo || '—' }}</td>
- <td>{{ p.regimen_laboral || '—' }}</td>
- </tr>
- }
- </tbody>
- </table>
- </div>
- }
- </td>
- </tr>
- }
- }
- </tbody>
- </table>
- </div>
- }
- </div>
+        <!-- HISTORIAL DE REVISIONES -->
+        <div class="card" style="margin-top: 24px">
+          <div class="card-section-title-row">
+            <span class="card-section-title">
+              Historial de Revisiones
+              @if (historial.length > 0) {
+                <span class="badge-pendiente" style="background: #6b7280">
+                  {{ historial.length }}
+                </span>
+              }
+            </span>
 
- <!-- HISTORIAL DE REVISIONES -->
- <div class="card" style="margin-top: 24px">
- <div class="card-section-title-row">
- <span class="card-section-title">
- Historial de Revisiones
- @if (historial.length > 0) {
- <span class="badge-pendiente" style="background: #6b7280">
- {{ historial.length }}
- </span>
- }
- </span>
+            <div class="acciones-historial">
+              <button
+                class="btn-documentos"
+                (click)="abrirGestionDocumentos()"
+                title="Gestionar documentación"
+              >
+                Gestionar documentos
+              </button>
 
- <div class="acciones-historial">
- <button
- class="btn-documentos"
- (click)="abrirGestionDocumentos()"
- title="Gestionar documentación"
- >
- Gestionar documentos
- </button>
+              <button
+                class="btn-exportar-excel"
+                (click)="exportarExcel()"
+                title="Exportar capacitaciones de mis redes a Excel"
+                [disabled]="exportandoExcel"
+              >
+                {{ exportandoExcel ? '⏳ Generando...' : ' Exportar Excel' }}
+              </button>
 
- <button
- class="btn-exportar-excel"
- (click)="exportarExcel()"
- title="Exportar capacitaciones de mis redes a Excel"
- [disabled]="exportandoExcel"
- >
- {{ exportandoExcel ? '⏳ Generando...' : ' Exportar Excel' }}
- </button>
+              @if (redesDisponibles.length > 1) {
+                <select class="filtro-red-select" [(ngModel)]="filtroRedHistorial">
+                  <option value="">Todas mis redes</option>
+                  @for (r of redesDisponibles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              }
+              <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">
+                ↻
+              </button>
+            </div>
 
-<<<<<<< HEAD
-=======
- @if (redesDisponibles.length > 1) {
- <select class="filtro-red-select" [(ngModel)]="filtroRedHistorial">
- <option value="">Todas mis redes</option>
- @for (r of redesDisponibles; track r) {
- <option [value]="r">{{ r }}</option>
- }
- </select>
- }
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <button class="btn-refrescar" (click)="cargarHistorial()" title="Actualizar">↻</button>
- </div>
+            @if (mostrarModalDocumentos) {
+              <div class="modal-busqueda-overlay" (click)="cerrarGestionDocumentos()">
+                <div class="modal-documentos" (click)="$event.stopPropagation()">
+                  <div class="modal-documentos-header">
+                    <h3>Gestión de Documentos</h3>
 
- @if (mostrarModalDocumentos) {
- <div class="modal-busqueda-overlay" (click)="cerrarGestionDocumentos()">
- <div class="modal-documentos" (click)="$event.stopPropagation()">
- <div class="modal-documentos-header">
- <h3> Gestión de Documentos</h3>
+                    <button class="btn-cerrar-modal" (click)="cerrarGestionDocumentos()"></button>
+                  </div>
 
- <button class="btn-cerrar-modal" (click)="cerrarGestionDocumentos()"></button>
- </div>
+                  <div class="modal-documentos-body">
+                    @if (cargandoDocumentosGestion) {
+                      <div class="sin-resultados"><p>Cargando documentos...</p></div>
+                    } @else if (documentosGestion.length === 0) {
+                      <div class="sin-resultados">
+                        <p>No hay documentos para mostrar.</p>
+                      </div>
+                    } @else {
+                      @for (doc of documentosGestion; track doc.id) {
+                        <div
+                          style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 10px 14px;
+                            background: #f8fafc;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 8px;
+                            margin-bottom: 8px;
+                          "
+                        >
+                          <div>
+                            <span
+                              style="
+                                background: #005baa;
+                                color: #fff;
+                                padding: 2px 8px;
+                                border-radius: 6px;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                              "
+                              >{{ doc.codigo_act }}</span
+                            >
+                            <span style="margin-left: 10px; font-size: 0.85rem">
+                              {{ doc.nombre_archivo }}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-ver-detalle"
+                            (click)="descargarDocumentoGestion(doc)"
+                          >
+                            Descargar
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
 
- <div class="modal-documentos-body">
- @if (cargandoDocumentosGestion) {
- <div class="sin-resultados"><p>Cargando documentos...</p></div>
- } @else if (documentosGestion.length === 0) {
- <div class="sin-resultados">
- <p>No hay documentos para mostrar.</p>
- </div>
- } @else {
- @for (doc of documentosGestion; track doc.id) {
- <div
- style="
- display: flex;
- justify-content: space-between;
- align-items: center;
- padding: 10px 14px;
- background: #f8fafc;
- border: 1px solid #e2e8f0;
- border-radius: 8px;
- margin-bottom: 8px;
- "
- >
- <div>
- <span
- style="
- background: #005baa;
- color: #fff;
- padding: 2px 8px;
- border-radius: 6px;
- font-size: 0.75rem;
- font-weight: 600;
- "
- >{{ doc.codigo_act }}</span
- >
- <span style="margin-left: 10px; font-size: 0.85rem">
- {{ doc.nombre_archivo }}
- </span>
- </div>
- <button
- type="button"
- class="btn-ver-detalle"
- (click)="descargarDocumentoGestion(doc)"
- >
- Descargar
- </button>
- </div>
- }
- }
- </div>
- </div>
- </div>
- }
- </div>
+          @if (cargandoHistorial) {
+            <div class="sin-resultados"><p>Cargando historial...</p></div>
+          } @else if (historial.length === 0) {
+            <div class="sin-resultados">
+              <p>Aún no has aprobado ni denegado ninguna solicitud.</p>
+            </div>
+          } @else if (historialFiltrado.length === 0) {
+            <div class="sin-resultados">
+              <p>No hay revisiones en la red seleccionada.</p>
+            </div>
+          } @else {
+            <div class="tabla-scroll">
+              <table class="tabla-part">
+                <thead>
+                  <tr>
+                    <th>Fecha revisión</th>
+                    <th>Ejecutor</th>
+                    <th>Actividad</th>
+                    <th>Red asistencial</th>
+                    <th>Estado</th>
+                    <th>Motivo rechazo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (s of historialFiltrado; track s.id) {
+                    <tr>
+                      <td>{{ s.reviewed_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ s.ejecutor_nombre || '—' }}</td>
+                      <td>{{ s.datos?.nombreActividad || '—' }}</td>
+                      <td>{{ s.red_asistencial || '—' }}</td>
+                      <td>
+                        @if (s.estado === 'aprobado') {
+                          <span class="badge-aprobado"> Aprobado</span>
+                        } @else if (s.estado === 'observado') {
+                          <span class="badge-observado"> Observado</span>
+                        } @else if (s.estado === 'excluido') {
+                          <span class="badge-excluido"> Excluido</span>
+                        } @else {
+                          <span class="badge-denegado"> Denegado</span>
+                        }
+                      </td>
+                      <td
+                        style="font-size: 0.85rem"
+                        [style.color]="s.estado === 'observado' ? '#d97706' : '#dc2626'"
+                      >
+                        {{ s.motivo_rechazo || '—' }}
+                      </td>
+                      <td>
+                        @if (s.estado === 'aprobado' || s.estado === 'observado') {
+                          <button class="btn-solicitar-edicion" (click)="abrirSolicitudEdicion(s)">
+                            Solicitar corrección
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
 
- @if (cargandoHistorial) {
- <div class="sin-resultados"><p>Cargando historial...</p></div>
- } @else if (historial.length === 0) {
- <div class="sin-resultados">
- <p>Aún no has aprobado ni denegado ninguna solicitud.</p>
- </div>
-<<<<<<< HEAD
-=======
- } @else if (historialFiltrado.length === 0) {
- <div class="sin-resultados">
- <p>No hay revisiones en la red seleccionada.</p>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- } @else {
- <div class="tabla-scroll">
- <table class="tabla-part">
- <thead>
- <tr>
- <th>Fecha revisión</th>
- <th>Ejecutor</th>
- <th>Actividad</th>
- <th>Red asistencial</th>
- <th>Estado</th>
- <th>Motivo rechazo</th>
- <th>Acciones</th>
- </tr>
- </thead>
- <tbody>
-<<<<<<< HEAD
- @for (s of historial; track s.id) {
-=======
- @for (s of historialFiltrado; track s.id) {
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <tr>
- <td>{{ s.reviewed_at | date: 'dd/MM/yyyy HH:mm' }}</td>
- <td>{{ s.ejecutor_nombre || '—' }}</td>
- <td>{{ s.datos?.nombreActividad || '—' }}</td>
- <td>{{ s.red_asistencial || '—' }}</td>
- <td>
- @if (s.estado === 'aprobado') {
- <span class="badge-aprobado"> Aprobado</span>
- } @else if (s.estado === 'observado') {
- <span class="badge-observado"> Observado</span>
- } @else if (s.estado === 'excluido') {
- <span class="badge-excluido"> Excluido</span>
- } @else {
- <span class="badge-denegado"> Denegado</span>
- }
- </td>
- <td style="font-size: 0.85rem" [style.color]="s.estado === 'observado' ? '#d97706' : '#dc2626'">
- {{ s.motivo_rechazo || '—' }}
- </td>
- <td>
- @if (s.estado === 'aprobado' || s.estado === 'observado') {
- <button class="btn-solicitar-edicion" (click)="abrirSolicitudEdicion(s)"> Solicitar corrección</button>
- }
- </td>
- </tr>
- }
- </tbody>
- </table>
- </div>
- }
- </div>
+        <!-- ASIGNACIÓN PRESUPUESTAL -->
+        @if (presupuestoMiRed.length > 0) {
+          <div class="card presupuesto-card">
+            <div class="card-section-title-row">
+              <span class="card-section-title"> Asignación Presupuestal</span>
+            </div>
+            <div class="presupuesto-grid">
+              @for (p of presupuestoMiRed; track p.red) {
+                <div class="presupuesto-red-item">
+                  <div class="presupuesto-red-nombre">{{ p.red }}</div>
+                  <div class="presupuesto-techo-row">
+                    <span class="presupuesto-anio">Techo {{ p.anio }}</span>
+                    <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="presupuesto-linea">
+                    <span class="presupuesto-etq">Ejecutado</span>
+                    <span class="presupuesto-ejec">S/ {{ p.ejecutado | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="presupuesto-linea">
+                    <span class="presupuesto-etq">Saldo disponible</span>
+                    <span class="presupuesto-saldo" [class.saldo-negativo]="p.saldo < 0"
+                      >S/ {{ p.saldo | number: '1.2-2' }}</span
+                    >
+                  </div>
+                  <div class="presupuesto-barra-bg">
+                    <div
+                      class="presupuesto-barra-fill"
+                      [class.barra-excedida]="p.pct >= 100"
+                      [style.width.%]="p.pct"
+                    ></div>
+                  </div>
+                  <div class="presupuesto-pct">{{ p.pct }}% ejecutado</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+      <!-- fin @if seccionActiva === 'inicio' -->
 
- <!-- ASIGNACIÓN PRESUPUESTAL -->
- @if (presupuestoMiRed.length > 0) {
- <div class="card presupuesto-card">
- <div class="card-section-title-row">
- <span class="card-section-title"> Asignación Presupuestal</span>
- </div>
- <div class="presupuesto-grid">
- @for (p of presupuestoMiRed; track p.red) {
- <div class="presupuesto-red-item">
- <div class="presupuesto-red-nombre">{{ p.red }}</div>
- <div class="presupuesto-techo-row">
- <span class="presupuesto-anio">Techo {{ p.anio }}</span>
- <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
- </div>
-<<<<<<< HEAD
-=======
- <div class="presupuesto-linea">
- <span class="presupuesto-etq">Ejecutado</span>
- <span class="presupuesto-ejec">S/ {{ p.ejecutado | number: '1.2-2' }}</span>
- </div>
- <div class="presupuesto-linea">
- <span class="presupuesto-etq">Saldo disponible</span>
- <span class="presupuesto-saldo" [class.saldo-negativo]="p.saldo < 0">S/ {{ p.saldo | number: '1.2-2' }}</span>
- </div>
- <div class="presupuesto-barra-bg">
- <div class="presupuesto-barra-fill" [class.barra-excedida]="p.pct >= 100" [style.width.%]="p.pct"></div>
- </div>
- <div class="presupuesto-pct">{{ p.pct }}% ejecutado</div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- </div>
- }
- </div>
- </div>
- }
- } <!-- fin @if seccionActiva === 'inicio' -->
+      @if (seccionActiva === 'sindicatos') {
+        <!-- ===== SECCIÓN SINDICATOS ===== -->
 
- @if (seccionActiva === 'sindicatos') {
- <!-- ===== SECCIÓN SINDICATOS ===== -->
+        <!-- TABLA DE REGISTROS -->
+        <div class="card">
+          <div class="card-section-title-row">
+            <span class="card-section-title">
+              Capacitaciones de Sindicatos
+              @if (capacitacionesSindicato.length > 0) {
+                <span class="badge-pendiente" style="background: #7c3aed">{{
+                  capacitacionesSindicato.length
+                }}</span>
+              }
+            </span>
+          </div>
 
- <!-- TABLA DE REGISTROS -->
- <div class="card">
- <div class="card-section-title-row">
- <span class="card-section-title">
- Capacitaciones de Sindicatos
- @if (capacitacionesSindicato.length > 0) {
- <span class="badge-pendiente" style="background: #7c3aed">{{ capacitacionesSindicato.length }}</span>
- }
- </span>
- </div>
+          @if (capacitacionesSindicato.length === 0) {
+            <div class="sin-resultados">
+              <p>Aún no se han registrado capacitaciones para sindicatos.</p>
+            </div>
+          } @else {
+            <div class="tabla-scroll">
+              <table class="tabla-part">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Sindicato</th>
+                    <th>Código act.</th>
+                    <th>Nombre de la actividad</th>
+                    <th>Red asistencial</th>
+                    <th>Modalidad</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Participantes</th>
+                    <th>Presupuesto (S/)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of capacitacionesSindicato; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>
+                        <span class="badge-sindicato">{{ c.sindicato }}</span>
+                      </td>
+                      <td>{{ c.codigoAct || '—' }}</td>
+                      <td>{{ c.nombreActividad || '—' }}</td>
+                      <td>{{ c.redAsistencial || '—' }}</td>
+                      <td>{{ c.modalidad || '—' }}</td>
+                      <td>{{ c.fechaInicio || '—' }}</td>
+                      <td>{{ c.fechaFin || '—' }}</td>
+                      <td>{{ c.totalParticipantes ?? '—' }}</td>
+                      <td>
+                        {{
+                          c.presupuestoEjecutado != null
+                            ? (c.presupuestoEjecutado | number: '1.2-2')
+                            : '—'
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
 
- @if (capacitacionesSindicato.length === 0) {
- <div class="sin-resultados"><p>Aún no se han registrado capacitaciones para sindicatos.</p></div>
- } @else {
- <div class="tabla-scroll">
- <table class="tabla-part">
- <thead>
- <tr>
- <th>#</th>
- <th>Sindicato</th>
- <th>Código act.</th>
- <th>Nombre de la actividad</th>
- <th>Red asistencial</th>
- <th>Modalidad</th>
- <th>Fecha inicio</th>
- <th>Fecha fin</th>
- <th>Participantes</th>
- <th>Presupuesto (S/)</th>
- </tr>
- </thead>
- <tbody>
- @for (c of capacitacionesSindicato; track $index) {
- <tr>
- <td>{{ $index + 1 }}</td>
- <td><span class="badge-sindicato">{{ c.sindicato }}</span></td>
- <td>{{ c.codigoAct || '—' }}</td>
- <td>{{ c.nombreActividad || '—' }}</td>
- <td>{{ c.redAsistencial || '—' }}</td>
- <td>{{ c.modalidad || '—' }}</td>
- <td>{{ c.fechaInicio || '—' }}</td>
- <td>{{ c.fechaFin || '—' }}</td>
- <td>{{ c.totalParticipantes ?? '—' }}</td>
- <td>{{ c.presupuestoEjecutado != null ? (c.presupuestoEjecutado | number:'1.2-2') : '—' }}</td>
- </tr>
- }
- </tbody>
- </table>
- </div>
- }
- </div>
+        <!-- FORMULARIO -->
+        <div class="card">
+          <div class="card-section-title">Registrar Capacitación para Sindicato</div>
 
- <!-- FORMULARIO -->
- <div class="card">
- <div class="card-section-title"> Registrar Capacitación para Sindicato</div>
+          <!-- SELECCIÓN DE SINDICATO -->
+          <div class="datos-grid tres-col" style="margin-bottom: 20px">
+            <div class="campo">
+              <label>Sindicato *</label>
+              <select [(ngModel)]="formularioSindicato.sindicato">
+                <option value="">Seleccione un sindicato...</option>
+                @for (s of SINDICATOS_LISTA; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          </div>
 
- <!-- SELECCIÓN DE SINDICATO -->
- <div class="datos-grid tres-col" style="margin-bottom: 20px">
- <div class="campo">
- <label>Sindicato *</label>
- <select [(ngModel)]="formularioSindicato.sindicato">
- <option value="">Seleccione un sindicato...</option>
- @for (s of SINDICATOS_LISTA; track s) {
- <option [value]="s">{{ s }}</option>
- }
- </select>
- </div>
- </div>
+          <!-- INFORMACIÓN GENERAL -->
+          <div class="card-section-title" style="font-size: 14px; margin-bottom: 12px">
+            Información General
+          </div>
+          <div class="datos-grid tres-col">
+            <div class="campo">
+              <label>Código act.</label>
+              <input
+                type="text"
+                placeholder="Ej: CAP-2025-001"
+                [(ngModel)]="formularioSindicato.codigoAct"
+              />
+            </div>
+            <div class="campo">
+              <label>Fecha de inicio</label>
+              <input type="date" [(ngModel)]="formularioSindicato.fechaInicio" />
+            </div>
+            <div class="campo">
+              <label>Fecha de finalización</label>
+              <input
+                type="date"
+                [ngModel]="formularioSindicato.fechaFin"
+                (ngModelChange)="
+                  formularioSindicato.fechaFin = $event; actualizarMesTerminoSindicato()
+                "
+              />
+            </div>
+            <div class="campo">
+              <label>Mes de término de ejecución</label>
+              <select [(ngModel)]="formularioSindicato.mesTermino">
+                <option value="">Seleccione...</option>
+                @for (
+                  mes of [
+                    'Enero',
+                    'Febrero',
+                    'Marzo',
+                    'Abril',
+                    'Mayo',
+                    'Junio',
+                    'Julio',
+                    'Agosto',
+                    'Septiembre',
+                    'Octubre',
+                    'Noviembre',
+                    'Diciembre',
+                  ];
+                  track mes
+                ) {
+                  <option [value]="mes">{{ mes }}</option>
+                }
+              </select>
+            </div>
+            <div class="campo">
+              <label>Red asistencial *</label>
+              <select [(ngModel)]="formularioSindicato.redAsistencial">
+                <option value="">Seleccione...</option>
+                @for (red of redesDisponibles; track red) {
+                  <option [value]="red">{{ red }}</option>
+                }
+              </select>
+            </div>
+            <div class="campo">
+              <label>Servicio / Área solicitante</label>
+              <input
+                type="text"
+                placeholder="Ej: Recursos Humanos"
+                [(ngModel)]="formularioSindicato.servicioArea"
+              />
+            </div>
+          </div>
 
- <!-- INFORMACIÓN GENERAL -->
- <div class="card-section-title" style="font-size: 14px; margin-bottom: 12px"> Información General</div>
- <div class="datos-grid tres-col">
- <div class="campo">
- <label>Código act.</label>
- <input type="text" placeholder="Ej: CAP-2025-001" [(ngModel)]="formularioSindicato.codigoAct" />
- </div>
- <div class="campo">
- <label>Fecha de inicio</label>
- <input type="date" [(ngModel)]="formularioSindicato.fechaInicio" />
- </div>
- <div class="campo">
- <label>Fecha de finalización</label>
- <input type="date"
- [ngModel]="formularioSindicato.fechaFin"
- (ngModelChange)="formularioSindicato.fechaFin = $event; actualizarMesTerminoSindicato()" />
- </div>
- <div class="campo">
- <label>Mes de término de ejecución</label>
- <select [(ngModel)]="formularioSindicato.mesTermino">
- <option value="">Seleccione...</option>
- @for (mes of ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']; track mes) {
- <option [value]="mes">{{ mes }}</option>
- }
- </select>
- </div>
- <div class="campo">
- <label>Red asistencial *</label>
- <select [(ngModel)]="formularioSindicato.redAsistencial">
- <option value="">Seleccione...</option>
- @for (red of redesDisponibles; track red) {
- <option [value]="red">{{ red }}</option>
- }
- </select>
- </div>
- <div class="campo">
- <label>Servicio / Área solicitante</label>
- <input type="text" placeholder="Ej: Recursos Humanos" [(ngModel)]="formularioSindicato.servicioArea" />
- </div>
- </div>
+          <!-- DATOS DE LA ACTIVIDAD -->
+          <div
+            class="card-section-title"
+            style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"
+          >
+            Datos de la Actividad
+          </div>
+          <div class="campo" style="margin-bottom: 18px">
+            <label>Nombre de la acción de formación laboral *</label>
+            <input
+              type="text"
+              placeholder="Ej: Gestión Documental Electrónica"
+              [(ngModel)]="formularioSindicato.nombreActividad"
+            />
+          </div>
+          <div class="datos-grid tres-col">
+            <div class="campo">
+              <label>Total horas ejecutadas (cronológicas)</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                [(ngModel)]="formularioSindicato.totalHoras"
+              />
+            </div>
+            <div class="campo">
+              <label>Horas fuera del horario laboral</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                [(ngModel)]="formularioSindicato.horasFueraHorario"
+              />
+            </div>
+            <div class="campo">
+              <label>Frecuencia de desarrollo</label>
+              <input
+                type="text"
+                placeholder="Ej: Única, Diaria, Semanal"
+                [(ngModel)]="formularioSindicato.frecuencia"
+              />
+            </div>
+            <div class="campo">
+              <label>Hora de inicio</label>
+              <input type="time" [(ngModel)]="formularioSindicato.horaInicio" />
+            </div>
+            <div class="campo">
+              <label>Hora de término</label>
+              <input type="time" [(ngModel)]="formularioSindicato.horaTermino" />
+            </div>
+            <div class="campo">
+              <label>Modalidad</label>
+              <select [(ngModel)]="formularioSindicato.modalidad">
+                <option value="">Seleccione...</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Virtual">Virtual</option>
+                <option value="Semipresencial">Semipresencial</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Público</label>
+              <select [(ngModel)]="formularioSindicato.publico">
+                <option value="">Seleccione...</option>
+                <option value="Asistencial">Asistencial</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Mixto">Mixto</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Nivel de evaluación ejecutado</label>
+              <select [(ngModel)]="formularioSindicato.nivelEvaluacion">
+                <option value="">Seleccione...</option>
+                <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
+                <option value="Reación y aprendizaje (Conocimientos y habilidades)">
+                  Reacción y aprendizaje (Conocimientos y habilidades)
+                </option>
+                <option value="Reacción, aprendizaje y acción">
+                  Reacción, aprendizaje y acción
+                </option>
+                <option value="Reacción, aprendizaje y aplicación">
+                  Reacción, aprendizaje y aplicación
+                </option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Total de participantes (planilla)</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                [(ngModel)]="formularioSindicato.totalParticipantes"
+              />
+            </div>
+          </div>
+          <div class="datos-grid dos-col" style="margin-top: 18px">
+            <div class="campo">
+              <label>Eje temático</label>
+              <select [(ngModel)]="formularioSindicato.ejeTematico">
+                <option value="" disabled>Seleccione un eje temático</option>
+                <option value="Atención Especializada">Atención Especializada</option>
+                <option value="Atención primaria">Atención primaria</option>
+                <option value="Control interno o auditoría">Control interno o auditoría</option>
+                <option value="Ética, integridad, lucha contra la corrupción">
+                  Ética, integridad, lucha contra la corrupción
+                </option>
+                <option value="Gestión institucional">Gestión institucional</option>
+                <option value="Salud Mental">Salud Mental</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Objetivo estratégico vinculado</label>
+              <select [(ngModel)]="formularioSindicato.objetivoEstrategico">
+                <option value="">Seleccione...</option>
+                <option
+                  value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos"
+                >
+                  OE1 – Proteger financieramente las prestaciones
+                </option>
+                <option
+                  value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades"
+                >
+                  OE2 – Brindar acceso oportuno a prestaciones integrales
+                </option>
+                <option
+                  value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución"
+                >
+                  OE3 – Impulsar la transformación digital
+                </option>
+                <option
+                  value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud"
+                >
+                  OEI.05 – Promover la identidad y desarrollo de servidores
+                </option>
+              </select>
+            </div>
+          </div>
 
- <!-- DATOS DE LA ACTIVIDAD -->
- <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"> Datos de la Actividad</div>
- <div class="campo" style="margin-bottom: 18px">
- <label>Nombre de la acción de formación laboral *</label>
- <input type="text" placeholder="Ej: Gestión Documental Electrónica" [(ngModel)]="formularioSindicato.nombreActividad" />
- </div>
- <div class="datos-grid tres-col">
- <div class="campo">
- <label>Total horas ejecutadas (cronológicas)</label>
- <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.totalHoras" />
- </div>
- <div class="campo">
- <label>Horas fuera del horario laboral</label>
- <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.horasFueraHorario" />
- </div>
- <div class="campo">
- <label>Frecuencia de desarrollo</label>
- <input type="text" placeholder="Ej: Única, Diaria, Semanal" [(ngModel)]="formularioSindicato.frecuencia" />
- </div>
- <div class="campo">
- <label>Hora de inicio</label>
- <input type="time" [(ngModel)]="formularioSindicato.horaInicio" />
- </div>
- <div class="campo">
- <label>Hora de término</label>
- <input type="time" [(ngModel)]="formularioSindicato.horaTermino" />
- </div>
- <div class="campo">
- <label>Modalidad</label>
- <select [(ngModel)]="formularioSindicato.modalidad">
- <option value="">Seleccione...</option>
- <option value="Presencial">Presencial</option>
- <option value="Virtual">Virtual</option>
- <option value="Semipresencial">Semipresencial</option>
- </select>
- </div>
- <div class="campo">
- <label>Público</label>
- <select [(ngModel)]="formularioSindicato.publico">
- <option value="">Seleccione...</option>
- <option value="Asistencial">Asistencial</option>
- <option value="Administrativo">Administrativo</option>
- <option value="Mixto">Mixto</option>
- </select>
- </div>
- <div class="campo">
- <label>Nivel de evaluación ejecutado</label>
- <select [(ngModel)]="formularioSindicato.nivelEvaluacion">
- <option value="">Seleccione...</option>
- <option value="Reacción y aprendizaje">Reacción y aprendizaje</option>
- <option value="Reación y aprendizaje (Conocimientos y habilidades)">Reacción y aprendizaje (Conocimientos y habilidades)</option>
- <option value="Reacción, aprendizaje y acción">Reacción, aprendizaje y acción</option>
- <option value="Reacción, aprendizaje y aplicación">Reacción, aprendizaje y aplicación</option>
- </select>
- </div>
- <div class="campo">
- <label>Total de participantes (planilla)</label>
- <input type="number" min="0" placeholder="0" [(ngModel)]="formularioSindicato.totalParticipantes" />
- </div>
- </div>
- <div class="datos-grid dos-col" style="margin-top: 18px">
- <div class="campo">
- <label>Eje temático</label>
- <select [(ngModel)]="formularioSindicato.ejeTematico">
- <option value="" disabled>Seleccione un eje temático</option>
- <option value="Atención Especializada">Atención Especializada</option>
- <option value="Atención primaria">Atención primaria</option>
- <option value="Control interno o auditoría">Control interno o auditoría</option>
- <option value="Ética, integridad, lucha contra la corrupción">Ética, integridad, lucha contra la corrupción</option>
- <option value="Gestión institucional">Gestión institucional</option>
- <option value="Salud Mental">Salud Mental</option>
- <option value="Otros">Otros</option>
- </select>
- </div>
- <div class="campo">
- <label>Objetivo estratégico vinculado</label>
- <select [(ngModel)]="formularioSindicato.objetivoEstrategico">
- <option value="">Seleccione...</option>
- <option value="OE1 Proteger financieramente las prestaciones que se brindan a los asegurados garantizando una gestión eficiente de los recursos">OE1 – Proteger financieramente las prestaciones</option>
- <option value="OE2 Brindar a los asegurados acceso oportuno a prestaciones integrales y de calidad acorde a sus necesidades">OE2 – Brindar acceso oportuno a prestaciones integrales</option>
- <option value="OE3 Impulsar la transformación digital y la gestión para resultados centrada en los asegurados logrando modernizar la institución">OE3 – Impulsar la transformación digital</option>
- <option value="OEI.05 Promover la identidad y el desarrollo de los servidores enfocado en valores, así como la excelencia en la formación continua en salud">OEI.05 – Promover la identidad y desarrollo de servidores</option>
- </select>
- </div>
- </div>
+          <!-- PROVEEDOR -->
+          <div
+            class="card-section-title"
+            style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"
+          >
+            Proveedor Adjudicado
+          </div>
+          <div class="datos-grid tres-col">
+            <div class="campo">
+              <label>RUC del proveedor</label>
+              <input
+                type="text"
+                placeholder="20123456789"
+                maxlength="11"
+                [(ngModel)]="formularioSindicato.rucProveedor"
+              />
+            </div>
+            <div class="campo">
+              <label>Nombre del proveedor</label>
+              <input
+                type="text"
+                placeholder="Razón social"
+                [(ngModel)]="formularioSindicato.nombreProveedor"
+              />
+            </div>
+            <div class="campo">
+              <label>Sector del proveedor</label>
+              <select [(ngModel)]="formularioSindicato.sectorProveedor">
+                <option value="">Seleccione...</option>
+                <option value="Público">Público</option>
+                <option value="Privado">Privado</option>
+              </select>
+            </div>
+          </div>
 
- <!-- PROVEEDOR -->
- <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"> Proveedor Adjudicado</div>
- <div class="datos-grid tres-col">
- <div class="campo">
- <label>RUC del proveedor</label>
- <input type="text" placeholder="20123456789" maxlength="11" [(ngModel)]="formularioSindicato.rucProveedor" />
- </div>
- <div class="campo">
- <label>Nombre del proveedor</label>
- <input type="text" placeholder="Razón social" [(ngModel)]="formularioSindicato.nombreProveedor" />
- </div>
- <div class="campo">
- <label>Sector del proveedor</label>
- <select [(ngModel)]="formularioSindicato.sectorProveedor">
- <option value="">Seleccione...</option>
- <option value="Público">Público</option>
- <option value="Privado">Privado</option>
- </select>
- </div>
- </div>
+          <!-- PRESUPUESTO -->
+          <div
+            class="card-section-title"
+            style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"
+          >
+            Presupuesto
+          </div>
+          <div class="campo" style="max-width: 320px">
+            <label>Presupuesto ejecutado (S/)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              [(ngModel)]="formularioSindicato.presupuestoEjecutado"
+            />
+          </div>
 
- <!-- PRESUPUESTO -->
- <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"> Presupuesto</div>
- <div class="campo" style="max-width: 320px">
- <label>Presupuesto ejecutado (S/)</label>
- <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="formularioSindicato.presupuestoEjecutado" />
- </div>
+          <!-- PARTICIPANTES -->
+          <div
+            class="card-section-title"
+            style="font-size: 14px; margin-top: 20px; margin-bottom: 12px"
+          >
+            Participantes ({{ participantesSindicato.length }})
+          </div>
 
- <!-- PARTICIPANTES -->
- <div class="card-section-title" style="font-size: 14px; margin-top: 20px; margin-bottom: 12px">
- Participantes ({{ participantesSindicato.length }})
- </div>
+          @if (participantesSindicato.length > 0) {
+            <div class="tabla-scroll" style="margin-bottom: 16px">
+              <table class="tabla-part">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>DNI / CE</th>
+                    <th>Apellidos y Nombre</th>
+                    <th>Sexo</th>
+                    <th>Cargo</th>
+                    <th>Régimen</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of participantesSindicato; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ p.dni_ce || '—' }}</td>
+                      <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                      <td>{{ p.sexo || '—' }}</td>
+                      <td>{{ p.cargo || '—' }}</td>
+                      <td>{{ p.regimen_laboral || '—' }}</td>
+                      <td>
+                        <button
+                          class="btn-denegar"
+                          style="padding: 4px 10px; font-size: 0.8rem"
+                          (click)="quitarParticipanteSindicato($index)"
+                        >
+                          Quitar
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
 
- @if (participantesSindicato.length > 0) {
- <div class="tabla-scroll" style="margin-bottom: 16px">
- <table class="tabla-part">
- <thead>
- <tr>
- <th>#</th>
- <th>DNI / CE</th>
- <th>Apellidos y Nombre</th>
- <th>Sexo</th>
- <th>Cargo</th>
- <th>Régimen</th>
- <th></th>
- </tr>
- </thead>
- <tbody>
- @for (p of participantesSindicato; track $index) {
- <tr>
- <td>{{ $index + 1 }}</td>
- <td>{{ p.dni_ce || '—' }}</td>
- <td>{{ p.apellidos }} {{ p.nombre }}</td>
- <td>{{ p.sexo || '—' }}</td>
- <td>{{ p.cargo || '—' }}</td>
- <td>{{ p.regimen_laboral || '—' }}</td>
- <td>
- <button class="btn-denegar" style="padding: 4px 10px; font-size: 0.8rem"
- (click)="quitarParticipanteSindicato($index)">Quitar</button>
- </td>
- </tr>
- }
- </tbody>
- </table>
- </div>
- }
+          <div class="datos-grid tres-col">
+            <div class="campo">
+              <label>DNI / CE</label>
+              <input
+                type="text"
+                placeholder="Ej: 12345678"
+                [(ngModel)]="nuevoParticipanteSindicato.dni_ce"
+              />
+            </div>
+            <div class="campo">
+              <label>Cód. Planilla</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cod_planilla" />
+            </div>
+            <div class="campo">
+              <label>Apellidos</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.apellidos" />
+            </div>
+            <div class="campo">
+              <label>Nombre</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.nombre" />
+            </div>
+            <div class="campo">
+              <label>Sexo</label>
+              <select [(ngModel)]="nuevoParticipanteSindicato.sexo">
+                <option value="">—</option>
+                <option value="MASCULINO">Masculino</option>
+                <option value="FEMENINO">Femenino</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Cargo</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cargo" />
+            </div>
+            <div class="campo">
+              <label>Sub-Programa</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.sub_programa" />
+            </div>
+            <div class="campo">
+              <label>Servicio / Área</label>
+              <input type="text" [(ngModel)]="nuevoParticipanteSindicato.servicio_area" />
+            </div>
+            <div class="campo">
+              <label>Régimen laboral</label>
+              <input
+                type="text"
+                placeholder="Ej: 728, CAS"
+                [(ngModel)]="nuevoParticipanteSindicato.regimen_laboral"
+              />
+            </div>
+          </div>
 
- <div class="datos-grid tres-col">
- <div class="campo">
- <label>DNI / CE</label>
- <input type="text" placeholder="Ej: 12345678" [(ngModel)]="nuevoParticipanteSindicato.dni_ce" />
- </div>
- <div class="campo">
- <label>Cód. Planilla</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cod_planilla" />
- </div>
- <div class="campo">
- <label>Apellidos</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.apellidos" />
- </div>
- <div class="campo">
- <label>Nombre</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.nombre" />
- </div>
- <div class="campo">
- <label>Sexo</label>
- <select [(ngModel)]="nuevoParticipanteSindicato.sexo">
- <option value="">—</option>
- <option value="MASCULINO">Masculino</option>
- <option value="FEMENINO">Femenino</option>
- </select>
- </div>
- <div class="campo">
- <label>Cargo</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.cargo" />
- </div>
- <div class="campo">
- <label>Sub-Programa</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.sub_programa" />
- </div>
- <div class="campo">
- <label>Servicio / Área</label>
- <input type="text" [(ngModel)]="nuevoParticipanteSindicato.servicio_area" />
- </div>
- <div class="campo">
- <label>Régimen laboral</label>
- <input type="text" placeholder="Ej: 728, CAS" [(ngModel)]="nuevoParticipanteSindicato.regimen_laboral" />
- </div>
- </div>
+          @if (errorParticipanteSindicato) {
+            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 8px">
+              {{ errorParticipanteSindicato }}
+            </p>
+          }
+          <button
+            class="btn-ver-detalle"
+            style="margin-top: 12px"
+            (click)="agregarParticipanteSindicato()"
+          >
+            Agregar participante
+          </button>
 
- @if (errorParticipanteSindicato) {
- <p style="color: #dc2626; font-size: 0.85rem; margin-top: 8px">{{ errorParticipanteSindicato }}</p>
- }
- <button class="btn-ver-detalle" style="margin-top: 12px" (click)="agregarParticipanteSindicato()">
- Agregar participante
- </button>
+          <!-- VALIDACIÓN Y ENVÍO -->
+          @if (errorSindicatoForm) {
+            <div
+              style="
+                background: #fef2f2;
+                border: 1px solid #fca5a5;
+                border-radius: 10px;
+                padding: 14px 18px;
+                margin-top: 20px;
+                color: #dc2626;
+                font-size: 0.9rem;
+              "
+            >
+              {{ errorSindicatoForm }}
+            </div>
+          }
 
- <!-- VALIDACIÓN Y ENVÍO -->
- @if (errorSindicatoForm) {
- <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:14px 18px; margin-top:20px; color:#dc2626; font-size:0.9rem">
- {{ errorSindicatoForm }}
- </div>
- }
+          <div style="display: flex; justify-content: flex-end; margin-top: 24px">
+            <button
+              class="btn-guardar-sindicato"
+              (click)="guardarCapacitacionSindicato()"
+              [disabled]="guardandoSindicato"
+            >
+              {{ guardandoSindicato ? '⏳ Guardando...' : ' Registrar capacitación' }}
+            </button>
+          </div>
+        </div>
+      }
+      <!-- fin @if seccionActiva === 'sindicatos' -->
+    </main>
+  </div>
 
- <div style="display:flex; justify-content:flex-end; margin-top:24px">
- <button class="btn-guardar-sindicato" (click)="guardarCapacitacionSindicato()" [disabled]="guardandoSindicato">
- {{ guardandoSindicato ? '⏳ Guardando...' : ' Registrar capacitación' }}
- </button>
- </div>
- </div>
- } <!-- fin @if seccionActiva === 'sindicatos' -->
+  <!-- MODAL OBSERVAR -->
+  @if (mostrarModalRechazo) {
+    <div class="modal-busqueda-overlay" (click)="cerrarModalRechazo()">
+      <div class="modal-rechazo" (click)="$event.stopPropagation()">
+        <h3>Observar solicitud</h3>
+        <p class="modal-rechazo-actividad">{{ solicitudADenegar?.datos?.nombreActividad }}</p>
+        <label>Motivo de la observación (opcional)</label>
+        <textarea
+          rows="4"
+          [(ngModel)]="motivoRechazo"
+          placeholder="Indique la observación para que el ejecutor pueda corregirla..."
+        ></textarea>
+        <div class="modal-rechazo-acciones">
+          <button class="btn-cancelar-modal" (click)="cerrarModalRechazo()">Cancelar</button>
+          <button
+            class="btn-confirmar-rechazo"
+            style="background: #d97706"
+            (click)="confirmarRechazo()"
+            [disabled]="procesandoRevision"
+          >
+            {{ procesandoRevision ? 'Procesando...' : ' Confirmar observación' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
- </main>
- </div>
+  <!-- MODAL EDITAR CAPACITACIÓN -->
+  @if (mostrarModalEditar) {
+    <div class="modal-busqueda-overlay" (click)="cerrarEdicion()">
+      <div class="modal-documentos" (click)="$event.stopPropagation()" style="max-width: 760px">
+        <div class="modal-documentos-header">
+          <h3>Editar capacitación</h3>
+          <button class="btn-cerrar-modal" (click)="cerrarEdicion()"></button>
+        </div>
 
- <!-- MODAL OBSERVAR -->
- @if (mostrarModalRechazo) {
- <div class="modal-busqueda-overlay" (click)="cerrarModalRechazo()">
- <div class="modal-rechazo" (click)="$event.stopPropagation()">
- <h3> Observar solicitud</h3>
- <p class="modal-rechazo-actividad">{{ solicitudADenegar?.datos?.nombreActividad }}</p>
- <label>Motivo de la observación (opcional)</label>
- <textarea
- rows="4"
- [(ngModel)]="motivoRechazo"
- placeholder="Indique la observación para que el ejecutor pueda corregirla..."
- ></textarea>
- <div class="modal-rechazo-acciones">
- <button class="btn-cancelar-modal" (click)="cerrarModalRechazo()">Cancelar</button>
- <button
- class="btn-confirmar-rechazo"
- style="background: #d97706"
- (click)="confirmarRechazo()"
- [disabled]="procesandoRevision"
- >
- {{ procesandoRevision ? 'Procesando...' : ' Confirmar observación' }}
- </button>
- </div>
- </div>
- </div>
- }
+        <div class="modal-documentos-body">
+          @if (cargandoEdicion) {
+            <div class="sin-resultados"><p>Cargando...</p></div>
+          } @else if (errorEdicion && !actividadEditando) {
+            <div class="sin-resultados">
+              <p>{{ errorEdicion }}</p>
+            </div>
+          } @else if (actividadEditando) {
+            <div class="detalle-solicitud-grid">
+              <div class="campo">
+                <label>Código de actividad</label>
+                <input type="text" [(ngModel)]="actividadEditando.codigo_act" />
+              </div>
+              <div class="campo">
+                <label>Nombre de la actividad</label>
+                <input type="text" [(ngModel)]="actividadEditando.nombre_actividad" />
+              </div>
+              <div class="campo">
+                <label>Red asistencial</label>
+                <input type="text" [(ngModel)]="actividadEditando.red_asistencial" />
+              </div>
+              <div class="campo">
+                <label>Servicio / Área</label>
+                <input type="text" [(ngModel)]="actividadEditando.servicio_area" />
+              </div>
+              <div class="campo">
+                <label>Fecha inicio</label>
+                <input type="date" [(ngModel)]="actividadEditando.fecha_inicio" />
+              </div>
+              <div class="campo">
+                <label>Fecha fin</label>
+                <input type="date" [(ngModel)]="actividadEditando.fecha_fin" />
+              </div>
+              <div class="campo">
+                <label>Mes término</label>
+                <input type="text" [(ngModel)]="actividadEditando.mes_termino" />
+              </div>
+              <div class="campo">
+                <label>Modalidad</label>
+                <input type="text" [(ngModel)]="actividadEditando.modalidad" />
+              </div>
+              <div class="campo">
+                <label>Público objetivo</label>
+                <input type="text" [(ngModel)]="actividadEditando.publico" />
+              </div>
+              <div class="campo">
+                <label>Total horas</label>
+                <input type="number" min="0" [(ngModel)]="actividadEditando.total_horas" />
+              </div>
+              <div class="campo">
+                <label>Eje temático</label>
+                <input type="text" [(ngModel)]="actividadEditando.eje_tematico" />
+              </div>
+              <div class="campo">
+                <label>Presupuesto ejecutado (S/)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [(ngModel)]="actividadEditando.presupuesto_ejecutado"
+                />
+              </div>
+            </div>
 
- <!-- MODAL EDITAR CAPACITACIÓN -->
- @if (mostrarModalEditar) {
- <div class="modal-busqueda-overlay" (click)="cerrarEdicion()">
- <div class="modal-documentos" (click)="$event.stopPropagation()" style="max-width: 760px">
- <div class="modal-documentos-header">
- <h3> Editar capacitación</h3>
- <button class="btn-cerrar-modal" (click)="cerrarEdicion()"></button>
- </div>
+            <div class="detalle-participantes" style="margin-top: 20px">
+              <p class="detalle-partic-titulo">
+                Participantes ({{ participantesEditando.length }})
+              </p>
 
- <div class="modal-documentos-body">
- @if (cargandoEdicion) {
- <div class="sin-resultados"><p>Cargando...</p></div>
- } @else if (errorEdicion && !actividadEditando) {
- <div class="sin-resultados"><p>{{ errorEdicion }}</p></div>
- } @else if (actividadEditando) {
- <div class="detalle-solicitud-grid">
- <div class="campo">
- <label>Código de actividad</label>
- <input type="text" [(ngModel)]="actividadEditando.codigo_act" />
- </div>
- <div class="campo">
- <label>Nombre de la actividad</label>
- <input type="text" [(ngModel)]="actividadEditando.nombre_actividad" />
- </div>
- <div class="campo">
- <label>Red asistencial</label>
- <input type="text" [(ngModel)]="actividadEditando.red_asistencial" />
- </div>
- <div class="campo">
- <label>Servicio / Área</label>
- <input type="text" [(ngModel)]="actividadEditando.servicio_area" />
- </div>
- <div class="campo">
- <label>Fecha inicio</label>
- <input type="date" [(ngModel)]="actividadEditando.fecha_inicio" />
- </div>
- <div class="campo">
- <label>Fecha fin</label>
- <input type="date" [(ngModel)]="actividadEditando.fecha_fin" />
- </div>
- <div class="campo">
- <label>Mes término</label>
- <input type="text" [(ngModel)]="actividadEditando.mes_termino" />
- </div>
- <div class="campo">
- <label>Modalidad</label>
- <input type="text" [(ngModel)]="actividadEditando.modalidad" />
- </div>
- <div class="campo">
- <label>Público objetivo</label>
- <input type="text" [(ngModel)]="actividadEditando.publico" />
- </div>
- <div class="campo">
- <label>Total horas</label>
- <input type="number" min="0" [(ngModel)]="actividadEditando.total_horas" />
- </div>
- <div class="campo">
- <label>Eje temático</label>
- <input type="text" [(ngModel)]="actividadEditando.eje_tematico" />
- </div>
- <div class="campo">
- <label>Presupuesto ejecutado (S/)</label>
- <input
- type="number"
- min="0"
- step="0.01"
- [(ngModel)]="actividadEditando.presupuesto_ejecutado"
- />
- </div>
- </div>
+              @if (participantesEditando.length > 0) {
+                <table class="tabla-partic-detalle">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>DNI / CE</th>
+                      <th>Apellidos y Nombre</th>
+                      <th>Sexo</th>
+                      <th>Cargo</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of participantesEditando; track p.id) {
+                      <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ p.dni_ce || '—' }}</td>
+                        <td>{{ p.apellidos }} {{ p.nombre }}</td>
+                        <td>{{ p.sexo || '—' }}</td>
+                        <td>{{ p.cargo || '—' }}</td>
+                        <td>
+                          <button
+                            class="btn-denegar"
+                            style="padding: 4px 10px; font-size: 0.8rem"
+                            (click)="quitarParticipanteEdicion(p)"
+                          >
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
 
- <div class="detalle-participantes" style="margin-top: 20px">
- <p class="detalle-partic-titulo">
- Participantes ({{ participantesEditando.length }})
- </p>
+              <p class="detalle-partic-titulo" style="margin-top: 16px">Agregar participante</p>
+              <div class="detalle-solicitud-grid">
+                <div class="campo">
+                  <label>DNI / CE</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.dni_ce" />
+                </div>
+                <div class="campo">
+                  <label>Cód. Planilla</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cod_planilla" />
+                </div>
+                <div class="campo">
+                  <label>Apellidos</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.apellidos" />
+                </div>
+                <div class="campo">
+                  <label>Nombre</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.nombre" />
+                </div>
+                <div class="campo">
+                  <label>Sexo</label>
+                  <select [(ngModel)]="nuevoParticipanteEdicion.sexo">
+                    <option value="">Seleccione</option>
+                    <option value="MASCULINO">Masculino</option>
+                    <option value="FEMENINO">Femenino</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Cargo</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cargo" />
+                </div>
+                <div class="campo">
+                  <label>Sub-Programa</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.sub_programa" />
+                </div>
+                <div class="campo">
+                  <label>Servicio / Área</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.servicio_area" />
+                </div>
+                <div class="campo">
+                  <label>Régimen laboral</label>
+                  <input type="text" [(ngModel)]="nuevoParticipanteEdicion.regimen_laboral" />
+                </div>
+              </div>
+              @if (errorParticipanteEdicion) {
+                <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
+                  {{ errorParticipanteEdicion }}
+                </p>
+              }
+              <button
+                class="btn-ver-detalle"
+                style="margin-top: 10px"
+                (click)="agregarParticipanteEdicion()"
+              >
+                Agregar participante
+              </button>
+            </div>
 
- @if (participantesEditando.length > 0) {
- <table class="tabla-partic-detalle">
- <thead>
- <tr>
- <th>#</th>
- <th>DNI / CE</th>
- <th>Apellidos y Nombre</th>
- <th>Sexo</th>
- <th>Cargo</th>
- <th></th>
- </tr>
- </thead>
- <tbody>
- @for (p of participantesEditando; track p.id) {
- <tr>
- <td>{{ $index + 1 }}</td>
- <td>{{ p.dni_ce || '—' }}</td>
- <td>{{ p.apellidos }} {{ p.nombre }}</td>
- <td>{{ p.sexo || '—' }}</td>
- <td>{{ p.cargo || '—' }}</td>
- <td>
- <button class="btn-denegar" style="padding: 4px 10px; font-size: 0.8rem" (click)="quitarParticipanteEdicion(p)">
- Quitar
- </button>
- </td>
- </tr>
- }
- </tbody>
- </table>
- }
+            @if (errorEdicion) {
+              <p style="color: #dc2626; font-size: 0.85rem; margin-top: 12px">{{ errorEdicion }}</p>
+            }
 
- <p class="detalle-partic-titulo" style="margin-top: 16px">Agregar participante</p>
- <div class="detalle-solicitud-grid">
- <div class="campo">
- <label>DNI / CE</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.dni_ce" />
- </div>
- <div class="campo">
- <label>Cód. Planilla</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cod_planilla" />
- </div>
- <div class="campo">
- <label>Apellidos</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.apellidos" />
- </div>
- <div class="campo">
- <label>Nombre</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.nombre" />
- </div>
- <div class="campo">
- <label>Sexo</label>
- <select [(ngModel)]="nuevoParticipanteEdicion.sexo">
- <option value="">Seleccione</option>
- <option value="MASCULINO">Masculino</option>
- <option value="FEMENINO">Femenino</option>
- </select>
- </div>
- <div class="campo">
- <label>Cargo</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.cargo" />
- </div>
- <div class="campo">
- <label>Sub-Programa</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.sub_programa" />
- </div>
- <div class="campo">
- <label>Servicio / Área</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.servicio_area" />
- </div>
- <div class="campo">
- <label>Régimen laboral</label>
- <input type="text" [(ngModel)]="nuevoParticipanteEdicion.regimen_laboral" />
- </div>
- </div>
- @if (errorParticipanteEdicion) {
- <p style="color: #dc2626; font-size: 0.85rem; margin-top: 6px">
- {{ errorParticipanteEdicion }}
- </p>
- }
- <button class="btn-ver-detalle" style="margin-top: 10px" (click)="agregarParticipanteEdicion()">
- Agregar participante
- </button>
- </div>
+            <div class="modal-rechazo-acciones" style="margin-top: 20px">
+              <button class="btn-cancelar-modal" (click)="cerrarEdicion()">Cancelar</button>
+              <button
+                class="btn-confirmar-rechazo"
+                style="background: #16a34a"
+                (click)="guardarEdicionActividad()"
+                [disabled]="guardandoEdicion"
+              >
+                {{ guardandoEdicion ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
- @if (errorEdicion) {
- <p style="color: #dc2626; font-size: 0.85rem; margin-top: 12px">{{ errorEdicion }}</p>
- }
+  <!-- MODAL: SOLICITAR CORRECCIÓN AL EJECUTOR -->
+  @if (mostrarModalSolicitarEdicion) {
+    <div class="modal-busqueda-overlay" (click)="cerrarSolicitudEdicion()">
+      <div class="modal-sol-edicion" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="modal-sol-header">
+          <span class="modal-sol-titulo"> Solicitar corrección al ejecutor</span>
+          <button class="modal-sol-cerrar" (click)="cerrarSolicitudEdicion()"></button>
+        </div>
 
- <div class="modal-rechazo-acciones" style="margin-top: 20px">
- <button class="btn-cancelar-modal" (click)="cerrarEdicion()">Cancelar</button>
- <button
- class="btn-confirmar-rechazo"
- style="background: #16a34a"
- (click)="guardarEdicionActividad()"
- [disabled]="guardandoEdicion"
- >
- {{ guardandoEdicion ? 'Guardando...' : 'Guardar cambios' }}
- </button>
- </div>
- }
- </div>
- </div>
- </div>
- }
+        <!-- Body -->
+        <div class="modal-sol-body">
+          <div class="modal-sol-info">
+            <p>
+              <strong>Capacitación:</strong>
+              {{ solicitudParaEdicion?.datos?.nombreActividad || '—' }}
+            </p>
+            <p>Ejecutor: {{ solicitudParaEdicion?.ejecutor_nombre || '—' }}</p>
+          </div>
 
- <!-- MODAL: SOLICITAR CORRECCIÓN AL EJECUTOR -->
- @if (mostrarModalSolicitarEdicion) {
- <div class="modal-busqueda-overlay" (click)="cerrarSolicitudEdicion()">
- <div class="modal-sol-edicion" (click)="$event.stopPropagation()">
+          <p class="modal-sol-pregunta">¿Qué sección debe corregir el ejecutor?</p>
 
- <!-- Header -->
- <div class="modal-sol-header">
- <span class="modal-sol-titulo"> Solicitar corrección al ejecutor</span>
- <button class="modal-sol-cerrar" (click)="cerrarSolicitudEdicion()"></button>
- </div>
+          <div class="opciones-edicion">
+            <div
+              class="opcion-edicion"
+              [class.opcion-seleccionada]="seccionEdicion === 'formulario'"
+              (click)="seccionEdicion = 'formulario'"
+            >
+              <div class="opcion-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <line x1="10" y1="9" x2="8" y2="9" />
+                </svg>
+              </div>
+              <div>
+                <strong>Formulario de Capacitación</strong>
+                <p>Datos de la actividad: fechas, modalidad, horas, proveedor, etc.</p>
+              </div>
+            </div>
 
- <!-- Body -->
- <div class="modal-sol-body">
+            <div
+              class="opcion-edicion"
+              [class.opcion-seleccionada]="seccionEdicion === 'participantes'"
+              (click)="seccionEdicion = 'participantes'"
+            >
+              <div class="opcion-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div>
+                <strong>Registro de Participantes</strong>
+                <p>Lista de participantes registrados en la capacitación.</p>
+              </div>
+            </div>
+          </div>
 
- <div class="modal-sol-info">
- <p><strong>Capacitación:</strong> {{ solicitudParaEdicion?.datos?.nombreActividad || '—' }}</p>
- <p>Ejecutor: {{ solicitudParaEdicion?.ejecutor_nombre || '—' }}</p>
- </div>
+          <div class="modal-sol-textarea-wrap">
+            <label
+              >Indicaciones adicionales <span class="modal-sol-opcional">(opcional)</span></label
+            >
+            <textarea
+              rows="3"
+              placeholder="Describe específicamente qué debe corregir el ejecutor…"
+              [(ngModel)]="mensajeEdicion"
+            ></textarea>
+          </div>
 
- <p class="modal-sol-pregunta">¿Qué sección debe corregir el ejecutor?</p>
+          @if (errorSolicitudEdicion) {
+            <p class="modal-sol-error">{{ errorSolicitudEdicion }}</p>
+          }
 
- <div class="opciones-edicion">
- <div
- class="opcion-edicion"
- [class.opcion-seleccionada]="seccionEdicion === 'formulario'"
- (click)="seccionEdicion = 'formulario'"
- >
-<<<<<<< HEAD
- <div class="opcion-icono"></div>
-=======
- <div class="opcion-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
- <polyline points="14 2 14 8 20 8" />
- <line x1="16" y1="13" x2="8" y2="13" />
- <line x1="16" y1="17" x2="8" y2="17" />
- <line x1="10" y1="9" x2="8" y2="9" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div>
- <strong>Formulario de Capacitación</strong>
- <p>Datos de la actividad: fechas, modalidad, horas, proveedor, etc.</p>
- </div>
- </div>
-
- <div
- class="opcion-edicion"
- [class.opcion-seleccionada]="seccionEdicion === 'participantes'"
- (click)="seccionEdicion = 'participantes'"
- >
-<<<<<<< HEAD
- <div class="opcion-icono"></div>
-=======
- <div class="opcion-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
- <circle cx="9" cy="7" r="4" />
- <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
- <path d="M16 3.13a4 4 0 0 1 0 7.75" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div>
- <strong>Registro de Participantes</strong>
- <p>Lista de participantes registrados en la capacitación.</p>
- </div>
- </div>
- </div>
-
- <div class="modal-sol-textarea-wrap">
- <label>Indicaciones adicionales <span class="modal-sol-opcional">(opcional)</span></label>
- <textarea
- rows="3"
- placeholder="Describe específicamente qué debe corregir el ejecutor…"
- [(ngModel)]="mensajeEdicion"
- ></textarea>
- </div>
-
- @if (errorSolicitudEdicion) {
- <p class="modal-sol-error">{{ errorSolicitudEdicion }}</p>
- }
-
- <div class="modal-sol-acciones">
- <button class="btn-cancelar-modal" (click)="cerrarSolicitudEdicion()">Cancelar</button>
- <button
- class="btn-sol-enviar"
- (click)="enviarSolicitudEdicion()"
- [disabled]="enviandoSolicitudEdicion || !seccionEdicion"
- >
- {{ enviandoSolicitudEdicion ? 'Enviando...' : ' Enviar notificación' }}
- </button>
- </div>
-
- </div>
- </div>
- </div>
- }
-
+          <div class="modal-sol-acciones">
+            <button class="btn-cancelar-modal" (click)="cerrarSolicitudEdicion()">Cancelar</button>
+            <button
+              class="btn-sol-enviar"
+              (click)="enviarSolicitudEdicion()"
+              [disabled]="enviandoSolicitudEdicion || !seccionEdicion"
+            >
+              {{ enviandoSolicitudEdicion ? 'Enviando...' : ' Enviar notificación' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

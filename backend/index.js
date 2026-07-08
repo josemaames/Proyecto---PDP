@@ -35,7 +35,9 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB (límite del bucket "documentos" en Supabase)
   fileFilter: (req, file, cb) => {
     if (TIPOS_PERMITIDOS[file.mimetype]) return cb(null, true);
-    cb(new Error('Tipo de archivo no permitido. Solo PDF, Word, Excel o imágenes (JPG, PNG, WEBP).'));
+    cb(
+      new Error('Tipo de archivo no permitido. Solo PDF, Word, Excel o imágenes (JPG, PNG, WEBP).'),
+    );
   },
 });
 
@@ -111,9 +113,7 @@ const mailerTransport = nodemailer.createTransport({
 });
 
 async function enviarCorreo(destinatarios, asunto, html) {
-  const to = Array.isArray(destinatarios)
-    ? destinatarios.filter(Boolean).join(',')
-    : destinatarios;
+  const to = Array.isArray(destinatarios) ? destinatarios.filter(Boolean).join(',') : destinatarios;
   if (!to) return;
   try {
     await mailerTransport.sendMail({
@@ -208,28 +208,150 @@ async function crearTablas() {
       resolved_at        TIMESTAMPTZ
     )
   `);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_solpres_estado ON solicitud_presupuesto(estado)`);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_solpres_estado ON solicitud_presupuesto(estado)`,
+  );
 
   const seed = [
-    ['90642735', 'José Manuel Ames Anapán',       'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0001', 'jose.ames@essalud.gob.pe'],
-    ['70435255', 'Víctor Gabriel Acero Garay',     'admin123',    'Administrador', 'Analista PDP',               'Activo',   '',                              'PL-0002', 'victor.acero@essalud.gob.pe'],
-    ['73456264', 'Fernando David Campos Quiroz',   'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0003', 'fernando.campos@essalud.gob.pe'],
-    ['45611148', 'Sthywen Javier Muñoz Ruiz',      'admin123',    'Administrador', 'Especialista PDP',           'Activo',   '',                              'PL-0004', 'sthywen.munoz@essalud.gob.pe'],
-    ['11111111', 'María Torres Quispe',             'sector123',   'Sectorista',    'Sectorista Red Arequipa',    'Activo',   'RA AREQUIPA',                   'PL-0005', 'maria.torres@essalud.gob.pe'],
-    ['33333333', 'Ana Sofía Paredes Quispe',        'sector123',   'Sectorista',    'Sectorista Redes Sur-Centro','Activo',   'RA CUSCO,RA AREQUIPA,RA PIURA', 'PL-0007', 'ana.paredes@essalud.gob.pe'],
-    ['48562134', 'María Elena Torres Salazar',      'sector123',   'Sectorista',    'Sectorista Red Rebagliati',  'Activo',   'RP REBAGLIATI',                 '',        'maria.elena.torres@essalud.gob.pe'],
-    ['71234589', 'Luis Alberto Sánchez Rojas',      'sector123',   'Sectorista',    'Sectorista Red Almenara',    'Activo',   'RP ALMENARA',                   '',        'luis.sanchez@essalud.gob.pe'],
-    ['22222222', 'Ricardo Mendoza García',          'ejecutor123', 'Ejecutor',      'Ejecutor Red Rebagliati',    'Activo',   'RP REBAGLIATI',                 'PL-0006', 'ricardo.mendoza@essalud.gob.pe'],
-    ['44444444', 'Carlos Alberto Huanca Torres',    'ejecutor123', 'Ejecutor',      'Ejecutor Red Arequipa',      'Activo',   'RA AREQUIPA',                   'PL-0008', 'carlos.huanca@essalud.gob.pe'],
-    ['59874123', 'Ana Lucía Rodríguez Vargas',      'ejecutor123', 'Ejecutor',      'Ejecutor de Capacitación',   'Activo',   '',                              '',        'ana.rodriguez@essalud.gob.pe'],
-    ['74125896', 'Carmen Rosa Delgado Silva',       'ejecutor123', 'Ejecutor',      'Ejecutor Administrativo',    'Inactivo', '',                              '',        'carmen.delgado@essalud.gob.pe'],
+    [
+      '90642735',
+      'José Manuel Ames Anapán',
+      'admin123',
+      'Administrador',
+      'Analista PDP',
+      'Activo',
+      '',
+      'PL-0001',
+      'jose.ames@essalud.gob.pe',
+    ],
+    [
+      '70435255',
+      'Víctor Gabriel Acero Garay',
+      'admin123',
+      'Administrador',
+      'Analista PDP',
+      'Activo',
+      '',
+      'PL-0002',
+      'victor.acero@essalud.gob.pe',
+    ],
+    [
+      '73456264',
+      'Fernando David Campos Quiroz',
+      'admin123',
+      'Administrador',
+      'Especialista PDP',
+      'Activo',
+      '',
+      'PL-0003',
+      'fernando.campos@essalud.gob.pe',
+    ],
+    [
+      '45611148',
+      'Sthywen Javier Muñoz Ruiz',
+      'admin123',
+      'Administrador',
+      'Especialista PDP',
+      'Activo',
+      '',
+      'PL-0004',
+      'sthywen.munoz@essalud.gob.pe',
+    ],
+    [
+      '11111111',
+      'María Torres Quispe',
+      'sector123',
+      'Sectorista',
+      'Sectorista Red Arequipa',
+      'Activo',
+      'RA AREQUIPA',
+      'PL-0005',
+      'maria.torres@essalud.gob.pe',
+    ],
+    [
+      '33333333',
+      'Ana Sofía Paredes Quispe',
+      'sector123',
+      'Sectorista',
+      'Sectorista Redes Sur-Centro',
+      'Activo',
+      'RA CUSCO,RA AREQUIPA,RA PIURA',
+      'PL-0007',
+      'ana.paredes@essalud.gob.pe',
+    ],
+    [
+      '48562134',
+      'María Elena Torres Salazar',
+      'sector123',
+      'Sectorista',
+      'Sectorista Red Rebagliati',
+      'Activo',
+      'RP REBAGLIATI',
+      '',
+      'maria.elena.torres@essalud.gob.pe',
+    ],
+    [
+      '71234589',
+      'Luis Alberto Sánchez Rojas',
+      'sector123',
+      'Sectorista',
+      'Sectorista Red Almenara',
+      'Activo',
+      'RP ALMENARA',
+      '',
+      'luis.sanchez@essalud.gob.pe',
+    ],
+    [
+      '22222222',
+      'Ricardo Mendoza García',
+      'ejecutor123',
+      'Ejecutor',
+      'Ejecutor Red Rebagliati',
+      'Activo',
+      'RP REBAGLIATI',
+      'PL-0006',
+      'ricardo.mendoza@essalud.gob.pe',
+    ],
+    [
+      '44444444',
+      'Carlos Alberto Huanca Torres',
+      'ejecutor123',
+      'Ejecutor',
+      'Ejecutor Red Arequipa',
+      'Activo',
+      'RA AREQUIPA',
+      'PL-0008',
+      'carlos.huanca@essalud.gob.pe',
+    ],
+    [
+      '59874123',
+      'Ana Lucía Rodríguez Vargas',
+      'ejecutor123',
+      'Ejecutor',
+      'Ejecutor de Capacitación',
+      'Activo',
+      '',
+      '',
+      'ana.rodriguez@essalud.gob.pe',
+    ],
+    [
+      '74125896',
+      'Carmen Rosa Delgado Silva',
+      'ejecutor123',
+      'Ejecutor',
+      'Ejecutor Administrativo',
+      'Inactivo',
+      '',
+      '',
+      'carmen.delgado@essalud.gob.pe',
+    ],
   ];
   for (const u of seed) {
     await pool.query(
       `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        ON CONFLICT (dni) DO UPDATE SET email = EXCLUDED.email WHERE usuarios_sistema.email = ''`,
-      u
+      u,
     );
   }
   console.log('✓ Usuarios verificados');
@@ -243,44 +365,44 @@ async function crearTablas() {
     )
   `);
   const techos = [
-    ['Red Asistencial Amazonas',           30000.00],
-    ['Red Asistencial Ancash',            158640.00],
-    ['Red Asistencial Apurímac',           66000.00],
-    ['Red Asistencial Arequipa',          120000.00],
-    ['Red Asistencial Ayacucho',           65000.00],
-    ['Red Asistencial Cajamarca',          80000.00],
-    ['Red Asistencial Cusco',             160000.00],
-    ['Red Asistencial Huancavelica',       32000.00],
-    ['Red Asistencial Huánuco',            74000.00],
-    ['Red Asistencial Huaraz',             40000.00],
-    ['Red Asistencial Ica',               175000.00],
-    ['Red Asistencial Jaen',               32000.00],
-    ['Red Asistencial Juliaca',            65760.00],
-    ['Red Asistencial Junin',              54000.00],
-    ['Red Asistencial La Libertad',       114960.00],
-    ['Red Asistencial Loreto',             60000.00],
-    ['Red Asistencial Madre de Dios',      60000.00],
-    ['Red Asistencial Moquegua',           91020.00],
-    ['Red Asistencial Moyobamba',          62000.00],
-    ['Red Asistencial Pasco',              72000.00],
-    ['Red Asistencial Piura',              45000.00],
-    ['Red Asistencial Puno',             122524.00],
-    ['Red Asistencial Tacna',              90000.00],
-    ['Red Asistencial Tarapoto',           58000.00],
-    ['Red Asistencial Tumbes',             36130.00],
-    ['Red Asistencial Ucayali',            45000.00],
-    ['Red Prestacional Almenara',         240000.00],
-    ['Red Asistencial Lambayeque',        140000.00],
-    ['Red Prestacional Rebagliati',       240000.00],
-    ['Red Prestacional Sabogal',          195000.00],
-    ['Centro Nacional de Salud Renal',     72000.00],
-    ['Instituto Nacional Cardiovascular',  52000.00],
+    ['Red Asistencial Amazonas', 30000.0],
+    ['Red Asistencial Ancash', 158640.0],
+    ['Red Asistencial Apurímac', 66000.0],
+    ['Red Asistencial Arequipa', 120000.0],
+    ['Red Asistencial Ayacucho', 65000.0],
+    ['Red Asistencial Cajamarca', 80000.0],
+    ['Red Asistencial Cusco', 160000.0],
+    ['Red Asistencial Huancavelica', 32000.0],
+    ['Red Asistencial Huánuco', 74000.0],
+    ['Red Asistencial Huaraz', 40000.0],
+    ['Red Asistencial Ica', 175000.0],
+    ['Red Asistencial Jaen', 32000.0],
+    ['Red Asistencial Juliaca', 65760.0],
+    ['Red Asistencial Junin', 54000.0],
+    ['Red Asistencial La Libertad', 114960.0],
+    ['Red Asistencial Loreto', 60000.0],
+    ['Red Asistencial Madre de Dios', 60000.0],
+    ['Red Asistencial Moquegua', 91020.0],
+    ['Red Asistencial Moyobamba', 62000.0],
+    ['Red Asistencial Pasco', 72000.0],
+    ['Red Asistencial Piura', 45000.0],
+    ['Red Asistencial Puno', 122524.0],
+    ['Red Asistencial Tacna', 90000.0],
+    ['Red Asistencial Tarapoto', 58000.0],
+    ['Red Asistencial Tumbes', 36130.0],
+    ['Red Asistencial Ucayali', 45000.0],
+    ['Red Prestacional Almenara', 240000.0],
+    ['Red Asistencial Lambayeque', 140000.0],
+    ['Red Prestacional Rebagliati', 240000.0],
+    ['Red Prestacional Sabogal', 195000.0],
+    ['Centro Nacional de Salud Renal', 72000.0],
+    ['Instituto Nacional Cardiovascular', 52000.0],
   ];
   for (const [red, techo] of techos) {
     await pool.query(
       `INSERT INTO presupuesto_redes (red, techo) VALUES ($1, $2)
        ON CONFLICT (red) DO NOTHING`,
-      [red, techo]
+      [red, techo],
     );
   }
   console.log('✓ Presupuesto redes verificado');
@@ -310,7 +432,9 @@ async function crearTablas() {
       created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC)`);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC)`,
+  );
   console.log('✓ Tabla audit_log verificada');
 
   await pool.query(`
@@ -323,22 +447,34 @@ async function crearTablas() {
       UNIQUE(actividad_id, paso_nombre)
     )
   `);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_hoja_ruta_actividad ON hoja_ruta_pasos(actividad_id)`);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_hoja_ruta_actividad ON hoja_ruta_pasos(actividad_id)`,
+  );
   console.log('✓ Tabla hoja_ruta_pasos verificada');
 
   // Columnas de corrección en solicitudes_revision
-  await pool.query(`ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS correccion_pendiente BOOLEAN NOT NULL DEFAULT FALSE`);
-  await pool.query(`ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS seccion_correccion TEXT`);
+  await pool.query(
+    `ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS correccion_pendiente BOOLEAN NOT NULL DEFAULT FALSE`,
+  );
+  await pool.query(
+    `ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS seccion_correccion TEXT`,
+  );
   console.log('✓ Columnas correccion_pendiente verificadas');
 
   console.log('✓ Tablas verificadas');
 }
 
-async function logEvento(tipo, descripcion, actor_nombre = null, actor_rol = null, referencia = null) {
+async function logEvento(
+  tipo,
+  descripcion,
+  actor_nombre = null,
+  actor_rol = null,
+  referencia = null,
+) {
   try {
     await pool.query(
       `INSERT INTO audit_log (tipo, descripcion, actor_nombre, actor_rol, referencia) VALUES ($1,$2,$3,$4,$5)`,
-      [tipo, descripcion, actor_nombre, actor_rol, referencia]
+      [tipo, descripcion, actor_nombre, actor_rol, referencia],
     );
   } catch (e) {
     console.error('logEvento error:', e.message);
@@ -478,7 +614,14 @@ async function crearConstraints() {
 // ══════════════════════════════════════════════
 app.get('/api/participantes', async (req, res) => {
   try {
-    const { q = '', codigo_act = '', red = '', regimen_laboral = '', page = 1, limit = 50 } = req.query;
+    const {
+      q = '',
+      codigo_act = '',
+      red = '',
+      regimen_laboral = '',
+      page = 1,
+      limit = 50,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let conditions = [],
@@ -500,11 +643,14 @@ app.get('/api/participantes', async (req, res) => {
     if (red) {
       // Para cada red buscamos tanto el formato largo ("RED PRESTACIONAL REBAGLIATI")
       // como el formato corto ("RP REBAGLIATI") para cubrir ambas variantes en la tabla
-      const variants = red.split(',').flatMap((r) => {
-        const largo = expandirRed(r.trim());
-        const corto = r.trim().toUpperCase();
-        return largo !== corto ? [largo, corto] : [largo];
-      }).filter(Boolean);
+      const variants = red
+        .split(',')
+        .flatMap((r) => {
+          const largo = expandirRed(r.trim());
+          const corto = r.trim().toUpperCase();
+          return largo !== corto ? [largo, corto] : [largo];
+        })
+        .filter(Boolean);
 
       const redConds = variants.map((_, i) => {
         params.push(`%${variants[i]}%`);
@@ -571,7 +717,6 @@ app.delete('/api/participantes/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ══════════════════════════════════════════════
 // ACTIVIDADES
@@ -725,7 +870,13 @@ app.put('/api/actividades/:id', async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
     invalidarCache();
-    logEvento('capacitacion_editada', `${actor_nombre || 'Usuario'} editó la capacitación "${f.nombre_actividad}" [${f.codigo_act}]`, actor_nombre, actor_rol || 'Sectorista', f.codigo_act);
+    logEvento(
+      'capacitacion_editada',
+      `${actor_nombre || 'Usuario'} editó la capacitación "${f.nombre_actividad}" [${f.codigo_act}]`,
+      actor_nombre,
+      actor_rol || 'Sectorista',
+      f.codigo_act,
+    );
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -763,10 +914,12 @@ app.get('/api/hoja-ruta/:actividad_id/pasos', async (req, res) => {
     const actId = parseInt(req.params.actividad_id);
     const { rows } = await pool.query(
       `SELECT paso_nombre, completado, completado_at FROM hoja_ruta_pasos WHERE actividad_id=$1`,
-      [actId]
+      [actId],
     );
     const map = {};
-    rows.forEach((r) => (map[r.paso_nombre] = { completado: r.completado, completado_at: r.completado_at }));
+    rows.forEach(
+      (r) => (map[r.paso_nombre] = { completado: r.completado, completado_at: r.completado_at }),
+    );
     const result = PASOS_HOJA_RUTA.map((p) => ({
       paso: p,
       completado: map[p]?.completado || false,
@@ -793,24 +946,26 @@ app.put('/api/hoja-ruta/:actividad_id/pasos/:paso', async (req, res) => {
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (actividad_id, paso_nombre) DO UPDATE
          SET completado=$3, completado_at=$4`,
-      [actId, paso, completado, completado ? new Date() : null]
+      [actId, paso, completado, completado ? new Date() : null],
     );
 
     // Notificar sectorista de la red si se marca como completado
     if (completado) {
       const { rows: act } = await pool.query(
         `SELECT nombre_actividad, codigo_act, red_asistencial FROM datos_actividad WHERE id=$1`,
-        [actId]
+        [actId],
       );
       if (act.length) {
         const { nombre_actividad, codigo_act, red_asistencial } = act[0];
         const { rows: sectoristas } = await pool.query(
           `SELECT email, nombre FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
-          [`%${red_asistencial}%`]
+          [`%${red_asistencial}%`],
         );
         if (sectoristas.length) {
           const emails = sectoristas.map((s) => s.email);
-          const html = htmlBase('#005baa', '📋 Actualización de Hoja de Ruta PDP',
+          const html = htmlBase(
+            '#005baa',
+            '📋 Actualización de Hoja de Ruta PDP',
             `<p>El administrador <strong>${actor_nombre}</strong> marcó el paso <strong>"${paso}"</strong> como completado en la siguiente capacitación:</p>
              <table style="width:100%;border-collapse:collapse;margin:16px 0">
                <tr><td style="padding:8px;color:#6b7280">Capacitación:</td><td style="padding:8px;font-weight:bold">${nombre_actividad}</td></tr>
@@ -818,11 +973,17 @@ app.put('/api/hoja-ruta/:actividad_id/pasos/:paso', async (req, res) => {
                <tr><td style="padding:8px;color:#6b7280">Red asistencial:</td><td style="padding:8px">${red_asistencial}</td></tr>
                <tr><td style="padding:8px;color:#6b7280">Paso completado:</td><td style="padding:8px;color:#16a34a;font-weight:bold">✅ ${paso}</td></tr>
              </table>
-             <p>Ingrese al Sistema PDP para ver el estado actualizado de la hoja de ruta.</p>`
+             <p>Ingrese al Sistema PDP para ver el estado actualizado de la hoja de ruta.</p>`,
           );
           enviarCorreo(emails, `✅ Paso "${paso}" completado — ${nombre_actividad}`, html);
         }
-        logEvento('hoja_ruta', `${actor_nombre} marcó paso "${paso}" como ${completado ? 'completado' : 'pendiente'} en capacitación "${nombre_actividad}" [${codigo_act}]`, actor_nombre, 'Administrador', codigo_act);
+        logEvento(
+          'hoja_ruta',
+          `${actor_nombre} marcó paso "${paso}" como ${completado ? 'completado' : 'pendiente'} en capacitación "${nombre_actividad}" [${codigo_act}]`,
+          actor_nombre,
+          'Administrador',
+          codigo_act,
+        );
       }
     }
 
@@ -933,16 +1094,24 @@ app.get('/api/resumen-redes', async (req, res) => {
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
-    let conditions = [], params = [], idx = 1;
+    let conditions = [],
+      params = [],
+      idx = 1;
 
     if (redes) {
-      const lista = redes.split(',').map((r) => r.trim()).filter(Boolean);
+      const lista = redes
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (lista.length === 1) {
         conditions.push(`red_asistencial ILIKE $${idx}`);
         params.push(`%${lista[0]}%`);
         idx++;
       } else if (lista.length > 1) {
-        const conds = lista.map((r) => { params.push(`%${r}%`); return `red_asistencial ILIKE $${idx++}`; });
+        const conds = lista.map((r) => {
+          params.push(`%${r}%`);
+          return `red_asistencial ILIKE $${idx++}`;
+        });
         conditions.push(`(${conds.join(' OR ')})`);
       }
     }
@@ -989,8 +1158,11 @@ app.get('/api/stats', async (req, res) => {
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
-    let actConds = [], actParams = [], idx = 1;
-    let partConds = [], partParams = [];
+    let actConds = [],
+      actParams = [],
+      idx = 1;
+    let partConds = [],
+      partParams = [];
 
     if (red) {
       actConds.push(`red_asistencial ILIKE $${idx}`);
@@ -1016,9 +1188,18 @@ app.get('/api/stats', async (req, res) => {
     const queries = await Promise.all([
       pool.query(`SELECT COUNT(*) FROM datos_actividad ${actWhere}`, actParams),
       pool.query(`SELECT COUNT(*) FROM lista_participantes ${partWhere}`, partParams),
-      pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`, actParams),
-      pool.query(`SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`, actParams),
-      pool.query(`SELECT modalidad, COUNT(*) as total FROM datos_actividad ${actWhere} GROUP BY modalidad ORDER BY total DESC`, actParams),
+      pool.query(
+        `SELECT COALESCE(SUM(presupuesto_ejecutado),0) FROM datos_actividad ${actWhere}`,
+        actParams,
+      ),
+      pool.query(
+        `SELECT COUNT(DISTINCT red_asistencial) FROM datos_actividad ${actWhere}`,
+        actParams,
+      ),
+      pool.query(
+        `SELECT modalidad, COUNT(*) as total FROM datos_actividad ${actWhere} GROUP BY modalidad ORDER BY total DESC`,
+        actParams,
+      ),
     ]);
 
     const result = {
@@ -1044,10 +1225,24 @@ app.get('/api/dashboard', async (req, res) => {
     const ejeTematico = req.query.eje_tematico || '';
     const anio = req.query.anio || '';
 
-    const actConds = [], actParams = [];
-    if (red) { actConds.push(`red_asistencial ILIKE $${actParams.length + 1}`); actParams.push(`%${red}%`); }
-    if (ejeTematico) { actConds.push(`unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${actParams.length + 1}))`); actParams.push(`%${ejeTematico}%`); }
-    if (anio) { actConds.push(`EXTRACT(YEAR FROM COALESCE(fecha_fin, fecha_inicio)) = $${actParams.length + 1}`); actParams.push(parseInt(anio)); }
+    const actConds = [],
+      actParams = [];
+    if (red) {
+      actConds.push(`red_asistencial ILIKE $${actParams.length + 1}`);
+      actParams.push(`%${red}%`);
+    }
+    if (ejeTematico) {
+      actConds.push(
+        `unaccent(lower(eje_tematico)) ILIKE unaccent(lower($${actParams.length + 1}))`,
+      );
+      actParams.push(`%${ejeTematico}%`);
+    }
+    if (anio) {
+      actConds.push(
+        `EXTRACT(YEAR FROM COALESCE(fecha_fin, fecha_inicio)) = $${actParams.length + 1}`,
+      );
+      actParams.push(parseInt(anio));
+    }
     const whereActividad = actConds.length ? `WHERE ${actConds.join(' AND ')}` : '';
 
     const redBusqueda = red.replace(/^(RA|RP)\s+/i, '').trim();
@@ -1069,11 +1264,24 @@ app.get('/api/dashboard', async (req, res) => {
       pool.query('SELECT COUNT(*) total FROM datos_actividad'),
       pool.query('SELECT COUNT(*) total FROM lista_participantes'),
       pool.query(`SELECT COALESCE(SUM(presupuesto_ejecutado),0) total FROM datos_actividad`),
-      pool.query(`SELECT mes_termino, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY mes_termino ORDER BY total DESC`, actParams),
-      pool.query(`SELECT red, sexo, COUNT(*) total FROM lista_participantes ${whereParticipante} GROUP BY red, sexo`, participanteParams),
-      pool.query(`SELECT red, COUNT(*) total FROM lista_participantes GROUP BY red ORDER BY total DESC LIMIT 10`),
-      pool.query(`SELECT modalidad, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY modalidad`, actParams),
-      pool.query(`SELECT servicio_area, COUNT(*) total FROM datos_actividad GROUP BY servicio_area ORDER BY total DESC LIMIT 10`),
+      pool.query(
+        `SELECT mes_termino, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY mes_termino ORDER BY total DESC`,
+        actParams,
+      ),
+      pool.query(
+        `SELECT red, sexo, COUNT(*) total FROM lista_participantes ${whereParticipante} GROUP BY red, sexo`,
+        participanteParams,
+      ),
+      pool.query(
+        `SELECT red, COUNT(*) total FROM lista_participantes GROUP BY red ORDER BY total DESC LIMIT 10`,
+      ),
+      pool.query(
+        `SELECT modalidad, COUNT(*) total FROM datos_actividad ${whereActividad} GROUP BY modalidad`,
+        actParams,
+      ),
+      pool.query(
+        `SELECT servicio_area, COUNT(*) total FROM datos_actividad GROUP BY servicio_area ORDER BY total DESC LIMIT 10`,
+      ),
     ]);
 
     res.json({
@@ -1112,7 +1320,7 @@ app.post('/api/solicitudes', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO solicitudes_revision (datos, red_asistencial, ejecutor_nombre, ejecutor_dni)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [JSON.stringify(datos), red, ejecutor_nombre || null, ejecutor_dni || null]
+      [JSON.stringify(datos), red, ejecutor_nombre || null, ejecutor_dni || null],
     );
     res.status(201).json(rows[0]);
 
@@ -1122,14 +1330,14 @@ app.post('/api/solicitudes', async (req, res) => {
       `${ejecutor_nombre || 'Ejecutor'} envió solicitud de capacitación "${actNombre}" — ${red || 'Sin red'}, a la espera de revisión del sectorista`,
       ejecutor_nombre,
       'Ejecutor',
-      actNombre
+      actNombre,
     );
 
     // Notificar a sectoristas de la red (sin bloquear la respuesta)
     if (red) {
       const { rows: sectoristas } = await pool.query(
         `SELECT email FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
-        [`%${red}%`]
+        [`%${red}%`],
       );
       if (sectoristas.length) {
         const emails = sectoristas.map((s) => s.email);
@@ -1142,7 +1350,7 @@ app.post('/api/solicitudes', async (req, res) => {
              <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${datos.nombreActividad || datos.nombre_actividad || '-'}</td></tr>
              <tr><td style="padding:8px;color:#6b7280">DNI Ejecutor:</td><td style="padding:8px">${ejecutor_dni || '-'}</td></tr>
            </table>
-           <p>Ingrese al <strong>Sistema PDP</strong> para revisar esta solicitud.</p>`
+           <p>Ingrese al <strong>Sistema PDP</strong> para revisar esta solicitud.</p>`,
         );
         enviarCorreo(emails, '📋 Nueva solicitud de revisión — Sistema PDP', html);
       }
@@ -1160,7 +1368,7 @@ app.get('/api/solicitudes/mis-envios', async (req, res) => {
       `SELECT id, datos, red_asistencial, estado, motivo_rechazo, created_at, reviewed_at,
               correccion_pendiente, seccion_correccion
        FROM solicitudes_revision WHERE ejecutor_dni = $1 ORDER BY created_at DESC LIMIT 50`,
-      [dni]
+      [dni],
     );
     res.json(rows);
   } catch (err) {
@@ -1175,21 +1383,24 @@ app.get('/api/solicitudes', async (req, res) => {
     let params = [estado];
     let idx = 2;
     if (red) {
-      const redes = String(red).split(',').map(r => r.trim()).filter(Boolean);
+      const redes = String(red)
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
       if (redes.length === 1) {
         conditions.push(`red_asistencial ILIKE $${idx}`);
         params.push(`%${redes[0]}%`);
       } else {
         const orClauses = redes.map((_, i) => `red_asistencial ILIKE $${idx + i}`).join(' OR ');
         conditions.push(`(${orClauses})`);
-        params.push(...redes.map(r => `%${r}%`));
+        params.push(...redes.map((r) => `%${r}%`));
       }
     }
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const { rows } = await pool.query(
       `SELECT id, datos, red_asistencial, ejecutor_nombre, ejecutor_dni, estado, motivo_rechazo, created_at
        FROM solicitudes_revision ${where} ORDER BY created_at DESC`,
-      params
+      params,
     );
     res.json(rows);
   } catch (err) {
@@ -1216,7 +1427,7 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
       `UPDATE solicitudes_revision
        SET estado=$1, motivo_rechazo=$2, reviewed_at=NOW()
        WHERE id=$3 RETURNING *`,
-      [estado, motivo_rechazo || null, parseInt(req.params.id)]
+      [estado, motivo_rechazo || null, parseInt(req.params.id)],
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrada' });
 
@@ -1239,14 +1450,29 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
            ruc_proveedor=$18, nombre_proveedor=$19, sector_proveedor=$20,
            presupuesto_ejecutado=$21, eje_tematico=$22`,
         [
-          f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino,
-          f.redAsistencial, f.servicioArea, f.nombreActividad,
-          f.totalHoras || null, f.horasFueraHorario || null, f.frecuencia,
-          f.horaInicio || null, f.horaTermino || null, f.modalidad, f.publico,
-          f.nivelEvaluacion, f.objetivoEstrategico || null, f.totalParticipantes || null,
-          f.rucProveedor, f.nombreProveedor, f.sectorProveedor,
-          f.presupuestoEjecutado || null, f.ejeTematico,
-        ]
+          f.codigoAct,
+          f.fechaInicio || null,
+          f.fechaFin || null,
+          f.mesTermino,
+          f.redAsistencial,
+          f.servicioArea,
+          f.nombreActividad,
+          f.totalHoras || null,
+          f.horasFueraHorario || null,
+          f.frecuencia,
+          f.horaInicio || null,
+          f.horaTermino || null,
+          f.modalidad,
+          f.publico,
+          f.nivelEvaluacion,
+          f.objetivoEstrategico || null,
+          f.totalParticipantes || null,
+          f.rucProveedor,
+          f.nombreProveedor,
+          f.sectorProveedor,
+          f.presupuestoEjecutado || null,
+          f.ejeTematico,
+        ],
       );
       // Limpiar participantes previos del mismo código antes de reinsertar (evita duplicados en re-aprobación)
       if (f.codigoAct) {
@@ -1273,7 +1499,7 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
             p.servicio_area || null,
             p.cargo || null,
             p.regimen_laboral || null,
-          ]
+          ],
         );
       }
 
@@ -1282,10 +1508,11 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
 
     // Notificar al ejecutor y a los administradores
     const solicitud = rows[0];
-    const esAprobado  = estado === 'aprobado';
+    const esAprobado = estado === 'aprobado';
     const esObservado = estado === 'observado';
-    const esExcluido  = estado === 'excluido';
-    const actividadNombre = solicitud.datos?.nombreActividad || solicitud.datos?.nombre_actividad || '-';
+    const esExcluido = estado === 'excluido';
+    const actividadNombre =
+      solicitud.datos?.nombreActividad || solicitud.datos?.nombre_actividad || '-';
     const red = solicitud.red_asistencial || '-';
 
     // Configuración visual por estado
@@ -1296,12 +1523,11 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
         : { color: '#dc2626', icono: '🚫', etiqueta: 'EXCLUIDA' };
 
     const [{ rows: ejecutores }, { rows: admins }] = await Promise.all([
+      pool.query(`SELECT email, nombre FROM usuarios_sistema WHERE dni=$1 AND email != ''`, [
+        solicitud.ejecutor_dni,
+      ]),
       pool.query(
-        `SELECT email, nombre FROM usuarios_sistema WHERE dni=$1 AND email != ''`,
-        [solicitud.ejecutor_dni]
-      ),
-      pool.query(
-        `SELECT email FROM usuarios_sistema WHERE rol='Administrador' AND estado='Activo' AND email != ''`
+        `SELECT email FROM usuarios_sistema WHERE rol='Administrador' AND estado='Activo' AND email != ''`,
       ),
     ]);
 
@@ -1318,12 +1544,12 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
            <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actividadNombre}</td></tr>
            <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
            ${filaMotivo}
-         </table>`
+         </table>`,
       );
       enviarCorreo(
         ejecutores[0].email,
         `${cfg.icono} Solicitud ${cfg.etiqueta.toLowerCase()} — Sistema PDP`,
-        htmlEjecutor
+        htmlEjecutor,
       );
     }
 
@@ -1338,12 +1564,12 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
            <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px">${actividadNombre}</td></tr>
            <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
            ${esObservado ? `<tr><td style="padding:8px;color:#6b7280">Observación:</td><td style="padding:8px;color:#d97706">${motivo_rechazo || '-'}</td></tr>` : ''}
-         </table>`
+         </table>`,
       );
       enviarCorreo(
         admins.map((a) => a.email),
         `${cfg.icono} Solicitud ${estado} — Sistema PDP`,
-        htmlAdmin
+        htmlAdmin,
       );
     }
 
@@ -1378,7 +1604,7 @@ app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
        FROM solicitudes_revision s
        LEFT JOIN usuarios_sistema u ON u.dni = s.ejecutor_dni
        WHERE s.id = $1`,
-      [id]
+      [id],
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
 
@@ -1386,12 +1612,13 @@ app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
     const email = sol.ejecutor_email;
     const ejecutorNombre = sol.ejecutor_nombre || sol.ejecutor_nombre_real || 'Ejecutor';
     const actNombre = sol.datos?.nombreActividad || sol.datos?.nombre_actividad || 'Sin nombre';
-    const seccionLabel = seccion === 'formulario' ? 'Formulario de Capacitación' : 'Registro de Participantes';
+    const seccionLabel =
+      seccion === 'formulario' ? 'Formulario de Capacitación' : 'Registro de Participantes';
 
     // Marcar corrección pendiente en la solicitud
     await pool.query(
       `UPDATE solicitudes_revision SET correccion_pendiente=TRUE, seccion_correccion=$1 WHERE id=$2`,
-      [seccion, id]
+      [seccion, id],
     );
 
     if (email) {
@@ -1406,7 +1633,7 @@ app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
            <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${sol.red_asistencial || '-'}</td></tr>
            ${mensaje ? `<tr><td style="padding:8px;color:#6b7280">Indicaciones:</td><td style="padding:8px;color:#d97706">${mensaje}</td></tr>` : ''}
          </table>
-         <p>Ingresa al <strong>Sistema PDP</strong> y realiza las correcciones en la sección indicada antes de reenviar tu solicitud.</p>`
+         <p>Ingresa al <strong>Sistema PDP</strong> y realiza las correcciones en la sección indicada antes de reenviar tu solicitud.</p>`,
       );
       enviarCorreo(email, `📝 Corrección requerida: ${seccionLabel} — Sistema PDP`, htmlEjecutor);
     }
@@ -1416,7 +1643,7 @@ app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
       `${sectorista_nombre || 'Sectorista'} solicitó corrección en "${seccionLabel}" de la capacitación "${actNombre}" al ejecutor ${ejecutorNombre}`,
       sectorista_nombre,
       'Sectorista',
-      actNombre
+      actNombre,
     );
 
     res.json({ ok: true });
@@ -1435,7 +1662,7 @@ app.put('/api/solicitudes/:id/reenviar', async (req, res) => {
       `UPDATE solicitudes_revision
        SET datos=$1, estado='pendiente', correccion_pendiente=FALSE, seccion_correccion=NULL, reviewed_at=NULL, motivo_rechazo=NULL
        WHERE id=$2 RETURNING *`,
-      [JSON.stringify(datos), id]
+      [JSON.stringify(datos), id],
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
 
@@ -1455,38 +1682,65 @@ app.put('/api/solicitudes/:id/reenviar', async (req, res) => {
          WHERE codigo_act=$1`,
         [
           codigoAct,
-          datos.fechaInicio || null, datos.fechaFin || null, datos.mesTermino || null,
-          datos.redAsistencial || null, datos.servicioArea || null, datos.nombreActividad || null,
-          datos.totalHoras || null, datos.horasFueraHorario || null, datos.frecuencia || null,
-          datos.horaInicio || null, datos.horaTermino || null, datos.modalidad || null,
-          datos.publico || null, datos.nivelEvaluacion || null, datos.objetivoEstrategico || null,
-          (Array.isArray(datos.participantesDetalle) ? datos.participantesDetalle.length : null) || datos.totalParticipantes || null, datos.rucProveedor || null,
-          datos.nombreProveedor || null, datos.sectorProveedor || null,
-          datos.presupuestoEjecutado || null, datos.ejeTematico || null,
-        ]
+          datos.fechaInicio || null,
+          datos.fechaFin || null,
+          datos.mesTermino || null,
+          datos.redAsistencial || null,
+          datos.servicioArea || null,
+          datos.nombreActividad || null,
+          datos.totalHoras || null,
+          datos.horasFueraHorario || null,
+          datos.frecuencia || null,
+          datos.horaInicio || null,
+          datos.horaTermino || null,
+          datos.modalidad || null,
+          datos.publico || null,
+          datos.nivelEvaluacion || null,
+          datos.objetivoEstrategico || null,
+          (Array.isArray(datos.participantesDetalle) ? datos.participantesDetalle.length : null) ||
+            datos.totalParticipantes ||
+            null,
+          datos.rucProveedor || null,
+          datos.nombreProveedor || null,
+          datos.sectorProveedor || null,
+          datos.presupuestoEjecutado || null,
+          datos.ejeTematico || null,
+        ],
       );
       invalidarCache();
     }
 
-    logEvento('solicitud_reenviada', `${ejecutor_nombre || 'Ejecutor'} reenvió la solicitud corregida "${actNombre}"`, ejecutor_nombre, 'Ejecutor', actNombre);
+    logEvento(
+      'solicitud_reenviada',
+      `${ejecutor_nombre || 'Ejecutor'} reenvió la solicitud corregida "${actNombre}"`,
+      ejecutor_nombre,
+      'Ejecutor',
+      actNombre,
+    );
 
     // Notificar sectoristas de la red
     const red = rows[0].red_asistencial;
     if (red) {
       const { rows: sectoristas } = await pool.query(
         `SELECT email FROM usuarios_sistema WHERE rol='Sectorista' AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
-        [`%${red}%`]
+        [`%${red}%`],
       );
       if (sectoristas.length) {
-        const html = htmlBase('#16a34a', '✅ Solicitud corregida y reenviada',
+        const html = htmlBase(
+          '#16a34a',
+          '✅ Solicitud corregida y reenviada',
           `<p>El ejecutor <strong>${ejecutor_nombre || 'Sin nombre'}</strong> ha reenviado una solicitud corregida.</p>
            <table style="width:100%;border-collapse:collapse;margin:16px 0">
              <tr><td style="padding:8px;color:#6b7280">Actividad:</td><td style="padding:8px;font-weight:bold">${actNombre}</td></tr>
              <tr><td style="padding:8px;color:#6b7280">Red:</td><td style="padding:8px">${red}</td></tr>
            </table>
-           <p>Ingrese al Sistema PDP para revisar la solicitud actualizada.</p>`
+           <p>Ingrese al Sistema PDP para revisar la solicitud actualizada.</p>`,
         );
-        enviarCorreo(sectoristas.map(s => s.email), '✅ Solicitud corregida — Sistema PDP', html);
+        enviarCorreo(
+          sectoristas.map((s) => s.email),
+          '✅ Solicitud corregida — Sistema PDP',
+          html,
+        );
       }
     }
 
@@ -1509,20 +1763,25 @@ app.post('/api/auth/login', async (req, res) => {
     const { dni, password } = req.body;
     const { rows } = await pool.query(
       'SELECT * FROM usuarios_sistema WHERE dni=$1 AND password=$2',
-      [dni, password]
+      [dni, password],
     );
     if (!rows.length) return res.status(401).json({ error: 'Credenciales incorrectas' });
     const u = rows[0];
-    if (u.estado === 'Inactivo') return res.status(403).json({ error: 'Cuenta desactivada. Contacte al administrador.' });
-    const roles = (u.roles && u.roles.trim())
-      ? u.roles.split(',').map((s) => s.trim()).filter(Boolean)
-      : [u.rol];
+    if (u.estado === 'Inactivo')
+      return res.status(403).json({ error: 'Cuenta desactivada. Contacte al administrador.' });
+    const roles =
+      u.roles && u.roles.trim()
+        ? u.roles
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [u.rol];
     res.json({
       id: u.id,
       dni: u.dni,
       nombre: u.nombre,
-      rol: u.rol,          // rol principal (compatibilidad)
-      roles,               // todos los roles del usuario
+      rol: u.rol, // rol principal (compatibilidad)
+      roles, // todos los roles del usuario
       cargo: u.cargo,
       estado: u.estado,
       sedes: u.sedes ? u.sedes.split(',').filter(Boolean) : [],
@@ -1536,7 +1795,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/usuarios', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email FROM usuarios_sistema ORDER BY rol,nombre'
+      'SELECT id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email FROM usuarios_sistema ORDER BY rol,nombre',
     );
     res.json(rows);
   } catch (err) {
@@ -1546,21 +1805,58 @@ app.get('/api/usuarios', async (req, res) => {
 
 app.post('/api/usuarios', async (req, res) => {
   try {
-    const { dni, nombre, password, rol, roles, cargo, estado, sedes, numero_plantilla, email, actor_nombre, actor_rol } = req.body;
-    const rolesArr = (Array.isArray(roles) ? roles : (roles ? String(roles).split(',') : (rol ? [rol] : [])))
-      .map((s) => String(s).trim()).filter(Boolean);
+    const {
+      dni,
+      nombre,
+      password,
+      rol,
+      roles,
+      cargo,
+      estado,
+      sedes,
+      numero_plantilla,
+      email,
+      actor_nombre,
+      actor_rol,
+    } = req.body;
+    const rolesArr = (
+      Array.isArray(roles) ? roles : roles ? String(roles).split(',') : rol ? [rol] : []
+    )
+      .map((s) => String(s).trim())
+      .filter(Boolean);
     const rolesStr = rolesArr.join(',');
     const rolPrincipal = rolesArr[0] || '';
-    if (!dni || !nombre || !password || !rolPrincipal) return res.status(400).json({ error: 'dni, nombre, password y al menos un rol son requeridos' });
+    if (!dni || !nombre || !password || !rolPrincipal)
+      return res
+        .status(400)
+        .json({ error: 'dni, nombre, password y al menos un rol son requeridos' });
     const { rows } = await pool.query(
       `INSERT INTO usuarios_sistema (dni,nombre,password,rol,roles,cargo,estado,sedes,numero_plantilla,email)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email`,
-      [dni, nombre, password, rolPrincipal, rolesStr, cargo || '', estado || 'Activo', sedes || '', numero_plantilla || '', email || '']
+      [
+        dni,
+        nombre,
+        password,
+        rolPrincipal,
+        rolesStr,
+        cargo || '',
+        estado || 'Activo',
+        sedes || '',
+        numero_plantilla || '',
+        email || '',
+      ],
     );
-    logEvento('usuario_creado', `${actor_nombre || 'Administrador'} creó el usuario ${nombre} (${rolesStr})`, actor_nombre, actor_rol || 'Administrador', nombre);
+    logEvento(
+      'usuario_creado',
+      `${actor_nombre || 'Administrador'} creó el usuario ${nombre} (${rolesStr})`,
+      actor_nombre,
+      actor_rol || 'Administrador',
+      nombre,
+    );
     res.status(201).json(rows[0]);
   } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'Ya existe un usuario con ese DNI.' });
+    if (err.code === '23505')
+      return res.status(409).json({ error: 'Ya existe un usuario con ese DNI.' });
     res.status(500).json({ error: err.message });
   }
 });
@@ -1570,13 +1866,27 @@ app.put('/api/usuarios/:dni', async (req, res) => {
     const { actor_nombre, actor_rol } = req.body;
     // Multi-rol: si viene 'roles', se actualiza también 'rol' (principal = primero)
     if (req.body.roles !== undefined) {
-      const rolesArr = (Array.isArray(req.body.roles) ? req.body.roles : String(req.body.roles).split(','))
-        .map((s) => String(s).trim()).filter(Boolean);
+      const rolesArr = (
+        Array.isArray(req.body.roles) ? req.body.roles : String(req.body.roles).split(',')
+      )
+        .map((s) => String(s).trim())
+        .filter(Boolean);
       req.body.roles = rolesArr.join(',');
       req.body.rol = rolesArr[0] || req.body.rol || '';
     }
-    const campos = ['nombre','password','rol','roles','cargo','estado','sedes','numero_plantilla','email'];
-    const sets = [], params = [];
+    const campos = [
+      'nombre',
+      'password',
+      'rol',
+      'roles',
+      'cargo',
+      'estado',
+      'sedes',
+      'numero_plantilla',
+      'email',
+    ];
+    const sets = [],
+      params = [];
     let idx = 1;
     for (const campo of campos) {
       if (req.body[campo] !== undefined && !(campo === 'password' && !req.body[campo])) {
@@ -1588,10 +1898,16 @@ app.put('/api/usuarios/:dni', async (req, res) => {
     params.push(req.params.dni);
     const { rows } = await pool.query(
       `UPDATE usuarios_sistema SET ${sets.join(',')} WHERE dni=$${idx} RETURNING id,dni,nombre,rol,roles,cargo,estado,sedes,numero_plantilla,email`,
-      params
+      params,
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
-    logEvento('usuario_editado', `${actor_nombre || 'Administrador'} editó el usuario ${rows[0].nombre} (${rows[0].roles || rows[0].rol})`, actor_nombre, actor_rol || 'Administrador', rows[0].nombre);
+    logEvento(
+      'usuario_editado',
+      `${actor_nombre || 'Administrador'} editó el usuario ${rows[0].nombre} (${rows[0].roles || rows[0].rol})`,
+      actor_nombre,
+      actor_rol || 'Administrador',
+      rows[0].nombre,
+    );
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1607,7 +1923,7 @@ app.get('/api/audit-log', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, tipo, descripcion, actor_nombre, actor_rol, referencia, created_at
        FROM audit_log ORDER BY created_at DESC LIMIT $1`,
-      [limit]
+      [limit],
     );
     res.json(rows);
   } catch (err) {
@@ -1621,7 +1937,7 @@ app.get('/api/audit-log', async (req, res) => {
 app.get('/api/presupuesto-redes', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT red, techo, anio FROM presupuesto_redes ORDER BY red'
+      'SELECT red, techo, anio FROM presupuesto_redes ORDER BY red',
     );
     res.json(rows);
   } catch (err) {
@@ -1638,7 +1954,7 @@ app.put('/api/presupuesto-redes/:red', async (req, res) => {
       `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, $2, $3)
        ON CONFLICT (red) DO UPDATE SET techo = EXCLUDED.techo, anio = EXCLUDED.anio
        RETURNING *`,
-      [red, techo, anio || 2025]
+      [red, techo, anio || 2025],
     );
     res.json(rows[0]);
   } catch (err) {
@@ -1652,15 +1968,32 @@ app.put('/api/presupuesto-redes/:red', async (req, res) => {
 app.post('/api/solicitudes-presupuesto', async (req, res) => {
   try {
     const { tipo, red, red_destino, monto, motivo, solicitante_dni, solicitante_nombre } = req.body;
-    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo)) return res.status(400).json({ error: 'tipo inválido' });
-    if (!red || !monto || Number(monto) <= 0) return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
-    if (tipo === 'reasignacion' && !red_destino) return res.status(400).json({ error: 'red_destino requerida para reasignación' });
+    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo))
+      return res.status(400).json({ error: 'tipo inválido' });
+    if (!red || !monto || Number(monto) <= 0)
+      return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
+    if (tipo === 'reasignacion' && !red_destino)
+      return res.status(400).json({ error: 'red_destino requerida para reasignación' });
     const { rows } = await pool.query(
       `INSERT INTO solicitud_presupuesto (tipo, red, red_destino, monto, motivo, solicitante_dni, solicitante_nombre)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [tipo, red, tipo === 'reasignacion' ? red_destino : null, monto, motivo || '', solicitante_dni || '', solicitante_nombre || ''],
+      [
+        tipo,
+        red,
+        tipo === 'reasignacion' ? red_destino : null,
+        monto,
+        motivo || '',
+        solicitante_dni || '',
+        solicitante_nombre || '',
+      ],
     );
-    logEvento('presupuesto_solicitado', `${solicitante_nombre || 'Presupuesto'} solicitó ${tipo} de S/ ${monto} en ${red}`, solicitante_nombre, 'Presupuesto', red);
+    logEvento(
+      'presupuesto_solicitado',
+      `${solicitante_nombre || 'Presupuesto'} solicitó ${tipo} de S/ ${monto} en ${red}`,
+      solicitante_nombre,
+      'Presupuesto',
+      red,
+    );
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1670,13 +2003,21 @@ app.post('/api/solicitudes-presupuesto', async (req, res) => {
 app.get('/api/solicitudes-presupuesto', async (req, res) => {
   try {
     const { estado, solicitante_dni } = req.query;
-    const cond = [], params = [];
+    const cond = [],
+      params = [];
     let i = 1;
-    if (estado) { cond.push(`estado=$${i++}`); params.push(estado); }
-    if (solicitante_dni) { cond.push(`solicitante_dni=$${i++}`); params.push(String(solicitante_dni)); }
+    if (estado) {
+      cond.push(`estado=$${i++}`);
+      params.push(estado);
+    }
+    if (solicitante_dni) {
+      cond.push(`solicitante_dni=$${i++}`);
+      params.push(String(solicitante_dni));
+    }
     const where = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
     const { rows } = await pool.query(
-      `SELECT * FROM solicitud_presupuesto ${where} ORDER BY created_at DESC`, params,
+      `SELECT * FROM solicitud_presupuesto ${where} ORDER BY created_at DESC`,
+      params,
     );
     res.json(rows);
   } catch (err) {
@@ -1688,24 +2029,38 @@ app.put('/api/solicitudes-presupuesto/:id/revisar', async (req, res) => {
   const client = await pool.connect();
   try {
     const { decision, revisor_dni, revisor_nombre, respuesta } = req.body; // 'aprobado' | 'denegado'
-    if (!['aprobado', 'denegado'].includes(decision)) return res.status(400).json({ error: 'decision inválida' });
+    if (!['aprobado', 'denegado'].includes(decision))
+      return res.status(400).json({ error: 'decision inválida' });
 
     await client.query('BEGIN');
-    const { rows } = await client.query('SELECT * FROM solicitud_presupuesto WHERE id=$1 FOR UPDATE', [req.params.id]);
-    if (!rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Solicitud no encontrada' }); }
+    const { rows } = await client.query(
+      'SELECT * FROM solicitud_presupuesto WHERE id=$1 FOR UPDATE',
+      [req.params.id],
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Solicitud no encontrada' });
+    }
     const s = rows[0];
-    if (s.estado !== 'pendiente') { await client.query('ROLLBACK'); return res.status(409).json({ error: 'La solicitud ya fue resuelta.' }); }
+    if (s.estado !== 'pendiente') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'La solicitud ya fue resuelta.' });
+    }
 
     if (decision === 'aprobado') {
       const monto = Number(s.monto);
-      const ajustar = (red, delta) => client.query(
-        `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
+      const ajustar = (red, delta) =>
+        client.query(
+          `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
          ON CONFLICT (red) DO UPDATE SET techo = GREATEST(presupuesto_redes.techo + $2, 0)`,
-        [red, delta, new Date().getFullYear()],
-      );
+          [red, delta, new Date().getFullYear()],
+        );
       if (s.tipo === 'aumento') await ajustar(s.red, monto);
       else if (s.tipo === 'reduccion') await ajustar(s.red, -monto);
-      else if (s.tipo === 'reasignacion') { await ajustar(s.red, -monto); await ajustar(s.red_destino, monto); }
+      else if (s.tipo === 'reasignacion') {
+        await ajustar(s.red, -monto);
+        await ajustar(s.red_destino, monto);
+      }
     }
 
     const upd = await client.query(
@@ -1715,7 +2070,13 @@ app.put('/api/solicitudes-presupuesto/:id/revisar', async (req, res) => {
       [decision, revisor_dni || '', revisor_nombre || '', respuesta || '', req.params.id],
     );
     await client.query('COMMIT');
-    logEvento('presupuesto_revisado', `${revisor_nombre || 'Administrador'} ${decision} la solicitud de ${s.tipo} en ${s.red}`, revisor_nombre, 'Administrador', s.red);
+    logEvento(
+      'presupuesto_revisado',
+      `${revisor_nombre || 'Administrador'} ${decision} la solicitud de ${s.tipo} en ${s.red}`,
+      revisor_nombre,
+      'Administrador',
+      s.red,
+    );
     res.json(upd.rows[0]);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
@@ -1779,7 +2140,7 @@ app.post('/api/documentos', upload.single('archivo'), async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO documentos (codigo_act, nombre_archivo, tipo_archivo, ruta_storage, tamano_kb)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [codigo_act, req.file.originalname, tipo, ruta, Math.round(req.file.size / 1024)]
+      [codigo_act, req.file.originalname, tipo, ruta, Math.round(req.file.size / 1024)],
     );
 
     res.status(201).json(rows[0]);
@@ -1795,7 +2156,7 @@ app.get('/api/documentos', async (req, res) => {
     const params = codigo_act ? [codigo_act] : [];
     const { rows } = await pool.query(
       `SELECT * FROM documentos ${where} ORDER BY fecha_subida DESC`,
-      params
+      params,
     );
     res.json(rows);
   } catch (err) {
@@ -1838,7 +2199,8 @@ app.delete('/api/documentos/:id', async (req, res) => {
 // Flujo: SOMOS-frontend genera token -> POST aquí -> validamos contra SOMOS
 //        -> resolvemos rol PDP por DNI -> redirigimos al frontend con la sesión.
 // ──────────────────────────────────────────────
-const SOMOS_API_URL = process.env.SOMOS_API_URL || 'https://appsqa.essalud.gob.pe/marcaciones-service/api';
+const SOMOS_API_URL =
+  process.env.SOMOS_API_URL || 'https://appsqa.essalud.gob.pe/marcaciones-service/api';
 const PDP_FRONTEND_URL = process.env.PDP_FRONTEND_URL || 'http://localhost:4200';
 // FASE DE PRUEBAS: si el DNI no existe como usuario PDP, entra como 'Administrador'.
 // Cambiar a 'denegar' cuando exista el Administrador General que asigna roles.
@@ -1850,12 +2212,20 @@ app.post('/api/sso/ingreso', async (req, res) => {
     if (!token) return res.status(400).send('Falta el token de ingreso.');
 
     // 1. Validar el token contra SOMOS y obtener los datos del trabajador
-    const resp = await fetch(`${SOMOS_API_URL}/personal/validar-token?token=${encodeURIComponent(token)}`, {
-      method: 'POST',
-    });
+    const resp = await fetch(
+      `${SOMOS_API_URL}/personal/validar-token?token=${encodeURIComponent(token)}`,
+      {
+        method: 'POST',
+      },
+    );
     const datos = await resp.json();
     if (!datos || !datos.success) {
-      return res.status(401).send('No se pudo validar la sesión de SOMOS: ' + (datos && datos.mensaje ? datos.mensaje : 'token inválido'));
+      return res
+        .status(401)
+        .send(
+          'No se pudo validar la sesión de SOMOS: ' +
+            (datos && datos.mensaje ? datos.mensaje : 'token inválido'),
+        );
     }
 
     const dni = datos.dni;
@@ -1867,11 +2237,15 @@ app.post('/api/sso/ingreso', async (req, res) => {
     if (rows.length) {
       usuarioPdp = rows[0];
       if (usuarioPdp.estado === 'Inactivo') {
-        return res.status(403).send('Su cuenta de PDP está desactivada. Contacte al administrador.');
+        return res
+          .status(403)
+          .send('Su cuenta de PDP está desactivada. Contacte al administrador.');
       }
     } else {
       if (SSO_USUARIO_NO_REGISTRADO === 'denegar') {
-        return res.status(403).send('No tiene acceso a PDP. Solicite al administrador que le asigne un rol.');
+        return res
+          .status(403)
+          .send('No tiene acceso a PDP. Solicite al administrador que le asigne un rol.');
       }
       // Alta automática (solo fase de pruebas)
       const nombre = `${datos.nombres || ''} ${datos.apellidos || ''}`.trim() || dni;
@@ -1879,10 +2253,25 @@ app.post('/api/sso/ingreso', async (req, res) => {
         `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
          VALUES ($1,$2,$3,$4,$5,'Activo',$6,$7,$8)
          RETURNING id,dni,nombre,rol,cargo,estado,sedes,numero_plantilla,email`,
-        [dni, nombre, '__sso__', SSO_USUARIO_NO_REGISTRADO, datos.cargo || '', datos.dependencia || '', datos.codigoPlanilla || '', datos.correo || '']
+        [
+          dni,
+          nombre,
+          '__sso__',
+          SSO_USUARIO_NO_REGISTRADO,
+          datos.cargo || '',
+          datos.dependencia || '',
+          datos.codigoPlanilla || '',
+          datos.correo || '',
+        ],
       );
       usuarioPdp = ins.rows[0];
-      logEvento('usuario_creado', `Alta automática por SSO: ${nombre} (${SSO_USUARIO_NO_REGISTRADO})`, 'SSO SOMOS', 'Sistema', nombre);
+      logEvento(
+        'usuario_creado',
+        `Alta automática por SSO: ${nombre} (${SSO_USUARIO_NO_REGISTRADO})`,
+        'SSO SOMOS',
+        'Sistema',
+        nombre,
+      );
     }
 
     // 3. Construir la sesión que el frontend guardará en localStorage.usuario
@@ -1891,12 +2280,15 @@ app.post('/api/sso/ingreso', async (req, res) => {
       dni: usuarioPdp.dni,
       nombre: usuarioPdp.nombre,
       rol: usuarioPdp.rol,
-<<<<<<< HEAD
-=======
-      roles: (usuarioPdp.roles && String(usuarioPdp.roles).trim())
-        ? String(usuarioPdp.roles).split(',').map((s) => s.trim()).filter(Boolean)
-        : [usuarioPdp.rol],
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
+
+      roles:
+        usuarioPdp.roles && String(usuarioPdp.roles).trim()
+          ? String(usuarioPdp.roles)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [usuarioPdp.rol],
+
       cargo: usuarioPdp.cargo,
       estado: usuarioPdp.estado,
       sedes: usuarioPdp.sedes ? String(usuarioPdp.sedes).split(',').filter(Boolean) : [],

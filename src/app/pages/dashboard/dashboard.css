@@ -2740,3 +2740,47 @@ tr:hover td {
   font-size: 14px;
   font-weight: 500;
 }
+
+.meta-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.meta-icono {
+  width: 58px;
+  height: 58px;
+  background: #f3f6fc;
+  border-radius: 16px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  flex-shrink: 0;
+}
+
+.meta-icono img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.meta-texto {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.meta-titulo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0d47a1;
+  line-height: 1.2;
+}
+
+.meta-subtitulo {
+  font-size: 18px;
+  color: #0d47a1;
+  margin-top: 4px;
+}

@@ -1,27 +1,27 @@
 <div class="app-layout">
- <!-- ===== NAVBAR ===== -->
- <nav class="app-nav">
- <div class="nav-izq">
- <button class="nav-hamburger">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <line x1="3" y1="6" x2="21" y2="6"></line>
- <line x1="3" y1="12" x2="21" y2="12"></line>
- <line x1="3" y1="18" x2="21" y2="18"></line>
- </svg>
- </button>
+  <!-- ===== NAVBAR ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
 
- <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
 
- <div class="nav-brand">
- <div class="nav-brand-title">Sistema de Gestión PDP</div>
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
 
- <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
- </div>
- </div>
+        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
+      </div>
+    </div>
 
- <div class="nav-der">
- <span class="nav-fecha">{{ fechaHoy }}</span>
- <div class="perfil-wrap">
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
 
         @if (mostrarPerfilMenu) {
@@ -36,1416 +36,1408 @@
             </div>
 
             <div class="perfil-menu-datos">
-              <div class="perfil-dato"><span>DNI</span><strong>{{ usuarioActual?.dni || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Correo</span><strong>{{ usuarioActual?.somos?.correo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuarioActual?.cargo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuarioActual?.somos?.codigoPlanilla || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuarioActual?.somos?.regimen || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuarioActual?.somos?.dependencia || '—' }}</strong></div>
+              <div class="perfil-dato">
+                <span>DNI</span><strong>{{ usuarioActual?.dni || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Correo</span><strong>{{ usuarioActual?.somos?.correo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Cargo</span><strong>{{ usuarioActual?.cargo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Planilla</span
+                ><strong>{{ usuarioActual?.somos?.codigoPlanilla || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Régimen</span><strong>{{ usuarioActual?.somos?.regimen || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Dependencia</span
+                ><strong>{{ usuarioActual?.somos?.dependencia || '—' }}</strong>
+              </div>
             </div>
 
             <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
         }
       </div>
- </div>
- </nav>
-
- <!-- ===== MENÚ SUPERIOR ===== -->
- <div class="perfil-superior">
- <nav class="menu-superior">
- <div class="menu-item activo">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M3 10.5L12 3l9 7.5" />
- <path d="M5 9.5V21h14V9.5" />
- </svg>
- <span>Inicio</span>
- </div>
-
- <div class="menu-item" (click)="irModulo('Expedientes')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
- <polyline points="14 2 14 8 20 8" />
- </svg>
- <span>Expedientes</span>
- </div>
-
- <div class="menu-item" (click)="irModulo('Hoja de Ruta')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="6" cy="18" r="2" />
- <circle cx="18" cy="6" r="2" />
- <path d="M8 18c6 0 8-4 8-10" />
- </svg>
- <span>Hoja de Ruta</span>
- </div>
-
- @if (esAdministrador) {
- <div class="menu-item" (click)="irModulo('Personal')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
- <circle cx="9" cy="7" r="4" />
- <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
- <path d="M16 3.13a4 4 0 0 1 0 7.75" />
- </svg>
- <span>Personal</span>
- </div>
-
- <div class="menu-item" (click)="irModulo('Participantes')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
- <circle cx="9" cy="7" r="4" />
- <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
- <path d="M16 3.13a4 4 0 0 1 0 7.75" />
- </svg>
- <span>Participantes</span>
- </div>
-
- <div class="menu-item" (click)="irModulo('Historial')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="12" cy="12" r="10" />
- <polyline points="12 6 12 12 16 14" />
- </svg>
- <span>Historial</span>
- </div>
-
-<<<<<<< HEAD
-=======
- <div class="menu-item" (click)="irModulo('Presupuesto')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <line x1="12" y1="1" x2="12" y2="23" />
- <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
- </svg>
- <span>Presupuesto</span>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div class="menu-item" (click)="irModulo('Administración')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="12" cy="12" r="3" />
- <path
- d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"
- />
- </svg>
- <span>Administración</span>
- </div>
- }
-
- <div class="menu-item cerrar" (click)="cerrarSesion()">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
- <polyline points="16 17 21 12 16 7" />
- <line x1="21" y1="12" x2="9" y2="12" />
- </svg>
- <span>Salir</span>
- </div>
- </nav>
- </div>
-
- <div class="app-cuerpo">
- <!-- ===== SIDEBAR OCULTO ===== -->
- <aside class="sidebar"></aside>
-
- <!-- ===== CONTENIDO ===== -->
- <main class="app-contenido">
- <div class="contenido-encabezado">
- <div class="titulo-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <rect x="3" y="3" width="7" height="7"></rect>
- <rect x="14" y="3" width="7" height="7"></rect>
- <rect x="3" y="14" width="7" height="7"></rect>
- <rect x="14" y="14" width="7" height="7"></rect>
- </svg>
- </div>
-
- <div class="titulo-texto">
- <h1>Panel de Control</h1>
- <p>Plan de Desarrollo de Personas</p>
- </div>
-
- <div class="periodo-pill">
- <span></span>
- <select id="periodoActivo" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
- @for (a of aniosDisponibles; track a) {
- <option [value]="a">{{ a }}</option>
- }
- </select>
- <button class="btn-buscar-periodo" (click)="cambiarAnio()">Buscar</button>
- </div>
- </div>
-
- <div class="welcome-banner">
- <h3>Bienvenido al Sistema de Gestión PDP</h3>
- <p>
- Gestione expedientes, hojas de ruta, personal y seguimiento del Plan de Desarrollo de
- Personas de manera centralizada.
- </p>
- </div>
-
- <!-- BARRA DE FILTROS -->
- @if (esAdministrador) {
- <div class="filtro-red-bar" [class.filtro-red-activo]="busquedaRed">
- <div class="filtro-red-label">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
- </svg>
- <span>Red Asistencial</span>
- </div>
-
- <div class="filtro-red-selector">
- @if (cargandoResumen) {
- <div class="filtro-red-cargando">Cargando redes...</div>
- } @else {
- <select
- [(ngModel)]="busquedaRed"
- (change)="filtrarPorRed(busquedaRed)"
- (change)="seleccionarDepartamentoDesdeRed()"
- >
- <option value="">Todas las Redes ({{ resumenRedes.length }})</option>
- @for (red of redesDisponibles; track red) {
- <option [value]="red">{{ red }}</option>
- }
- </select>
- }
- </div>
-
- <div class="dash-card redes-departamento-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Redes del Departamento</div>
- </div>
- </div>
-
- @if (redesDepartamento.length > 0) {
- @for (red of redesDepartamento; track red.red; let i = $index) {
- <div class="ranking-item">
- <span>
- @if (i === 0) {
- 
- }
- @if (i === 1) {
- 
- }
- @if (i === 2) {
- 
- }
- @if (i > 2) {
- 
- }
-
- {{ red.red }}
- </span>
-
- <strong>
- {{ red.participantes | number }}
- </strong>
- </div>
- }
- } @else {
- <div class="detalle-vacio">No existen redes para mostrar.</div>
- }
- </div>
-
- @if (busquedaRed) {
- <div class="filtro-red-badge">
- <span>Filtrando: {{ busquedaRed }}</span>
- </div>
- <button class="filtro-red-limpiar" (click)="filtrarPorRed('')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
- <line x1="18" y1="6" x2="6" y2="18" />
- <line x1="6" y1="6" x2="18" y2="18" />
- </svg>
- Limpiar
- </button>
- }
- </div>
-
- <div
- class="filtro-red-bar"
- [class.filtro-red-activo]="filtroTematico"
- style="margin-top: 8px"
- >
- <div class="filtro-red-label">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M4 6h16M4 12h10M4 18h6" />
- </svg>
- <span>Eje Temático</span>
- </div>
-
- <div class="filtro-red-selector">
- <select [(ngModel)]="filtroTematico" (change)="filtrarPorTema(filtroTematico)">
- <option value="">Todos los Ejes Temáticos</option>
- @for (eje of ejesTematicos; track eje) {
- <option [value]="eje">{{ eje }}</option>
- }
- </select>
- </div>
-
- @if (filtroTematico) {
- <div class="filtro-red-badge">
- <span>Filtrando: {{ filtroTematico }}</span>
- </div>
- <button class="filtro-red-limpiar" (click)="filtrarPorTema('')">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
- <line x1="18" y1="6" x2="6" y2="18" />
- <line x1="6" y1="6" x2="18" y2="18" />
- </svg>
- Limpiar
- </button>
- }
- </div>
- }
-
- <!-- KPIs ADMINISTRADOR -->
- @if (esAdministrador) {
- <div class="kpi-grid">
- @if (cargandoKpis) {
- <div class="kpi-card kpi-skel">
- <div class="skel-icono"></div>
- <div class="kpi-info">
- <div class="skel-val"></div>
- <div class="skel-lbl"></div>
- </div>
- </div>
- <div class="kpi-card kpi-skel">
- <div class="skel-icono"></div>
- <div class="kpi-info">
- <div class="skel-val"></div>
- <div class="skel-lbl"></div>
- </div>
- </div>
- <div class="kpi-card kpi-skel">
- <div class="skel-icono"></div>
- <div class="kpi-info">
- <div class="skel-val"></div>
- <div class="skel-lbl"></div>
- </div>
- </div>
- <div class="kpi-card kpi-skel">
- <div class="skel-icono"></div>
- <div class="kpi-info">
- <div class="skel-val"></div>
- <div class="skel-lbl"></div>
- </div>
- </div>
- } @else {
- <div class="kpi-card">
- <div class="kpi-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
- <polyline points="14 2 14 8 20 8" />
- </svg>
- </div>
- <div class="kpi-info">
- <span class="kpi-valor">
- {{
- (busquedaRed || filtroTematico
- ? totalCapacitacionesFiltrado
- : statsGlobal.actividades
- ) | number
- }}
- </span>
- <span class="kpi-label">Capacitaciones PDP</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-icono kpi-icono-verde">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
- <circle cx="9" cy="7" r="4" />
- <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
- <path d="M16 3.13a4 4 0 0 1 0 7.75" />
- </svg>
- </div>
-
- <div class="kpi-info">
- <span class="kpi-valor">
- {{
- (busquedaRed || filtroTematico ? totalParticipantes : statsGlobal.participantes)
- | number
- }}
- </span>
- <span class="kpi-label">Participantes Totales</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-icono kpi-icono-naranja">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <line x1="12" y1="1" x2="12" y2="23" />
- <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
- </svg>
- </div>
-
- <div class="kpi-info">
- <span class="kpi-valor">
- {{
- (busquedaRed || filtroTematico
- ? totalPresupuestoFiltrado
- : statsGlobal.presupuesto_total
- ) | number: '1.0-0'
- }}
- </span>
- <span class="kpi-label">Presupuesto Total (S/.)</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-icono" style="background: #eff6ff">
- <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
- <circle cx="12" cy="12" r="10" />
- <line x1="2" y1="12" x2="22" y2="12" />
- <path
- d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
- />
- </svg>
- </div>
- <div class="kpi-info">
- <span class="kpi-valor">{{
- (busquedaRed || filtroTematico ? resumenRedesFiltrado.length : statsGlobal.redes)
- | number
- }}</span>
- <span class="kpi-label">Redes Asistenciales</span>
- </div>
- </div>
- }
- </div>
- }
-
- <div class="insights-grid">
- <div class="insight-card">
-<<<<<<< HEAD
- <div class="insight-icon"></div>
-=======
- <div class="insight-icon">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
- <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
- <path d="M4 22h16" />
- <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
- <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
- <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div class="insight-info">
- <div class="insight-valor">{{ mejorRed }}</div>
- <div class="insight-label">Mejor Red</div>
- <div class="insight-extra">{{ mejorRedParticipantes | number }} participantes</div>
- </div>
- </div>
-
- <div class="insight-card">
-<<<<<<< HEAD
- <div class="insight-icon"></div>
-=======
- <div class="insight-icon">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
- <line x1="16" y1="2" x2="16" y2="6" />
- <line x1="8" y1="2" x2="8" y2="6" />
- <line x1="3" y1="10" x2="21" y2="10" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div class="insight-info">
- <div class="insight-valor">{{ mejorMes }}</div>
- <div class="insight-label">Mejor Mes</div>
- <div class="insight-extra">{{ mejorMesActividades }} actividades</div>
- </div>
- </div>
-
- <div class="insight-card">
-<<<<<<< HEAD
- <div class="insight-icon"></div>
-=======
- <div class="insight-icon">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="12" cy="12" r="10" />
- <circle cx="12" cy="12" r="6" />
- <circle cx="12" cy="12" r="2" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div class="insight-info">
- <div class="insight-valor">{{ modalidadDominante }}</div>
- <div class="insight-label">Modalidad Líder</div>
- <div class="insight-extra">{{ modalidadDominantePorcentaje }}%</div>
- </div>
- </div>
-
- <div class="insight-card">
-<<<<<<< HEAD
- <div class="insight-icon"></div>
-=======
- <div class="insight-icon">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
- <circle cx="9" cy="7" r="4" />
- <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
- <path d="M16 3.13a4 4 0 0 1 0 7.75" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
- <div class="insight-info">
- <div class="insight-valor">{{ promedioParticipantesActividad }}</div>
- <div class="insight-label">Promedio</div>
- <div class="insight-extra">participantes por actividad</div>
- </div>
- </div>
- </div>
- <div class="dashboard-nacional-grid">
- <!-- MAPA -->
-
- <div class="dash-card mapa-peru-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Distribución Nacional PDP</div>
- </div>
- </div>
-
- <div
- echarts
- [options]="chartConfigMapaPeru"
- (chartInit)="onChartInit($event)"
- class="mapa-peru"
- ></div>
- </div>
-
- <!-- DETALLE -->
-
- <div class="dash-card departamento-detalle-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Departamento Seleccionado</div>
- </div>
- </div>
-
- @if (departamentoSeleccionado?.nombre) {
- <div class="detalle-header">
- <h2>{{ departamentoSeleccionado.red }}</h2>
-
- <div class="subtitulo-departamento">
- Departamento: {{ departamentoSeleccionado.nombre }}
- </div>
-
- <span class="ranking-badge"> #{{ departamentoSeleccionado.ranking }} </span>
- </div>
-
- <div class="detalle-grid">
- <div class="detalle-kpi">
- <span> Red Asistencial</span>
- <strong>{{ departamentoSeleccionado.red }}</strong>
- </div>
-
- <div class="detalle-kpi">
- <span> Participantes de la Red</span>
- <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
- </div>
-
- <div class="detalle-kpi">
- <span> Participantes del Departamento</span>
- <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
- </div>
-
- <div class="detalle-kpi">
- <span> Participación Nacional</span>
- <strong>
- {{
- (departamentoSeleccionado.participantesRed * 100) /
- coberturaNacional.participantes | number: '1.1-1'
- }}%
- </strong>
- </div>
- </div>
-
- <div class="detalle-resumen">
- <p>
- <strong>{{ departamentoSeleccionado.nombre }}</strong>
-
- ocupa el puesto
-
- <strong>#{{ departamentoSeleccionado.ranking }}</strong>
-
- a nivel nacional con
-
- <strong>
- {{
- departamentoSeleccionado.participantesRed ||
- departamentoSeleccionado.participantes | number
- }}
- </strong>
-
- participantes registrados.
- </p>
- </div>
- } @else {
- <div class="detalle-vacio">
- Haz clic en un departamento del mapa para visualizar sus indicadores.
- </div>
- }
- </div>
-
- <!-- TOP -->
-
- <div class="dash-card top-departamentos-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Top Departamentos PDP</div>
- </div>
- </div>
-
- @for (dep of topDepartamentos; track dep.name) {
- <div class="ranking-item">
- <span>
- @if ($index === 0) {
- 
- }
- @if ($index === 1) {
- 
- }
- @if ($index === 2) {
- 
- }
- @if ($index > 2) {
- 
- }
-
- {{ dep.name }}
- </span>
-
- <strong>
- {{ dep.value | number }}
- </strong>
- </div>
- }
- </div>
-
- <!-- COBERTURA -->
-
- <div class="dash-card cobertura-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Cobertura Nacional PDP</div>
- </div>
- </div>
-
- <div class="cobertura-grid">
- <div class="cobertura-item">
- <span> Departamentos</span>
- <strong>{{ coberturaNacional.departamentos }}</strong>
- </div>
-
- <div class="cobertura-item">
- <span> Redes</span>
- <strong>{{ coberturaNacional.redes }}</strong>
- </div>
-
- <div class="cobertura-item">
- <span> Participantes</span>
- <strong>{{ coberturaNacional.participantes | number }}</strong>
- </div>
-
- <div class="cobertura-item">
- <span> Capacitaciones</span>
- <strong>{{ coberturaNacional.capacitaciones | number }}</strong>
- </div>
- </div>
- </div>
- </div>
-
- @if (departamentoLider) {
- <div class="dash-card departamento-lider-card">
- <div class="lider-contenido">
-<<<<<<< HEAD
- <div class="lider-icono"></div>
-=======
- <div class="lider-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
-
- <div class="lider-info">
- <div class="lider-titulo">Departamento Líder</div>
-
- <div class="lider-nombre">
- {{ departamentoLider.name }}
- </div>
-
- <div class="lider-valor">
- {{ departamentoLider.value | number }}
- <span>participantes</span>
- </div>
- </div>
- </div>
- </div>
- }
-
- <!-- KPIs OTROS ROLES -->
- @if (!esAdministrador) {
- <div class="kpi-grid">
- <div class="kpi-card">
- <div class="kpi-info">
- <span class="kpi-valor">120</span>
- <span class="kpi-label">Acciones PDP</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-info">
- <span class="kpi-valor">35</span>
- <span class="kpi-label">En TDR</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-info">
- <span class="kpi-valor">22</span>
- <span class="kpi-label">En Logística</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-info">
- <span class="kpi-valor">18</span>
- <span class="kpi-label">Convocatoria</span>
- </div>
- </div>
-
- <div class="kpi-card">
- <div class="kpi-info">
- <span class="kpi-valor">45</span>
- <span class="kpi-label">Finalizadas</span>
- </div>
- </div>
- </div>
- }
-
- <div class="resumen-ejecutivo">
- <!-- META -->
- <!-- META -->
- <div class="meta-ejecutiva">
- <div class="meta-header">
- <div class="meta-icono"></div>
-
- <div>
- <div class="meta-titulo">Meta Cumplida</div>
- <div class="meta-subtitulo">Participantes capacitados</div>
- </div>
- </div>
-
- <div class="meta-valor">{{ porcentajeMeta }}%</div>
-
- <div class="meta-barra">
- <div class="meta-fill" [style.width.%]="porcentajeMeta"></div>
- </div>
-
- <div class="meta-info">
- <span>{{ totalParticipantes | number }} participantes</span>
- <span>Meta: {{ metaParticipantes | number }}</span>
- </div>
-
- <button class="btn-editar-meta" (click)="abrirModalMeta()"> Editar Meta</button>
-
- <!-- Modal -->
- <div class="modal-backdrop" *ngIf="mostrarModalMeta">
- <div class="modal-meta">
- <h3>Editar Meta de Participantes</h3>
-
- <p>Define la cantidad objetivo de participantes.</p>
-
- <input type="number" [(ngModel)]="nuevaMeta" min="1" class="input-meta" />
-
- <div class="modal-actions">
- <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
-
- <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
- </div>
- </div>
- </div>
- </div>
-
- <!-- TOP REDES -->
- @if (resumenRedesOrdenado.length > 0) {
- <div class="top-redes">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Top Redes Asistenciales</div>
- <div class="subtitulo-top">Redes con mayor participación</div>
- </div>
- </div>
-
- @if (resumenRedesOrdenado[0]) {
- <div class="top-red-card oro">
- <div class="top-red-contenido">
- <div class="top-red-info">
- <div class="medalla"></div>
-
- <div>
- <h4>{{ resumenRedesOrdenado[0].red }}</h4>
-
- <span>
- {{ resumenRedesOrdenado[0].participantes | number }}
- participantes
- </span>
- </div>
- </div>
-
- <div class="top-red-total">
- {{ resumenRedesOrdenado[0].participantes | number }}
- </div>
- </div>
-
- <div class="mini-barra">
- <div class="mini-fill oro-fill" style="width: 100%"></div>
- </div>
- </div>
- }
-
- @if (resumenRedesOrdenado[1]) {
- <div class="top-red-card plata">
- <div class="top-red-contenido">
- <div class="top-red-info">
- <div class="medalla"></div>
-
- <div>
- <h4>{{ resumenRedesOrdenado[1].red }}</h4>
-
- <span>
- {{ resumenRedesOrdenado[1].participantes | number }}
- participantes
- </span>
- </div>
- </div>
-
- <div class="top-red-total">
- {{ resumenRedesOrdenado[1].participantes | number }}
- </div>
- </div>
-
- <div class="mini-barra">
- <div
- class="mini-fill plata-fill"
- [style.width.%]="
- (resumenRedesOrdenado[1].participantes /
- resumenRedesOrdenado[0].participantes) *
- 100
- "
- ></div>
- </div>
- </div>
- }
-
- @if (resumenRedesOrdenado[2]) {
- <div class="top-red-card bronce">
- <div class="top-red-contenido">
- <div class="top-red-info">
- <div class="medalla"></div>
-
- <div>
- <h4>{{ resumenRedesOrdenado[2].red }}</h4>
-
- <span>
- {{ resumenRedesOrdenado[2].participantes | number }}
- participantes
- </span>
- </div>
- </div>
-
- <div class="top-red-total">
- {{ resumenRedesOrdenado[2].participantes | number }}
- </div>
- </div>
-
- <div class="mini-barra">
- <div
- class="mini-fill bronce-fill"
- [style.width.%]="
- (resumenRedesOrdenado[2].participantes /
- resumenRedesOrdenado[0].participantes) *
- 100
- "
- ></div>
- </div>
- </div>
- }
- </div>
- }
-
- @if (esAdministrador) {
- <div class="graficos-container">
- <!-- Sexo -->
- <div class="dash-card grafico-box sexo-card">
- <h3>Participantes por Sexo</h3>
-
- @if (chartConfigSexo) {
- <canvas
- baseChart
- [type]="chartConfigSexo.type"
- [data]="chartConfigSexo.data"
- [options]="chartConfigSexo.options"
- ></canvas>
- }
- </div>
-
- <!-- Top Redes -->
- <div class="dash-card grafico-box top-redes-card">
- <h3> Top Redes por Participantes</h3>
-
- @if (chartConfigParticipantesRed) {
- <canvas
- baseChart
- [type]="chartConfigParticipantesRed.type"
- [data]="chartConfigParticipantesRed.data"
- [options]="chartConfigParticipantesRed.options"
- style="height: 260px"
- ></canvas>
- }
- </div>
-
- <!-- Modalidad -->
- <div class="dash-card modalidad-card">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Distribución por Modalidad</div>
- </div>
- </div>
-
- @for (item of modalidadesResumen; track item.nombre) {
- <div class="modalidad-item">
- <div class="modalidad-header">
- <span>{{ item.nombre }}</span>
- <strong>{{ item.porcentaje }}%</strong>
- </div>
-
- <div class="modalidad-barra">
- <div class="modalidad-fill" [style.width.%]="item.porcentaje"></div>
- </div>
- </div>
- }
- </div>
-
- <!-- Actividades -->
- <div class="dash-card grafico-box actividades-card">
- <h3>Actividades por Mes</h3>
-
- @if (chartConfigMeses) {
- <canvas
- baseChart
- [type]="chartConfigMeses.type"
- [data]="chartConfigMeses.data"
- [options]="chartConfigMeses.options"
- ></canvas>
- }
- </div>
- </div>
- <!-- cierre graficos-container -->
- }
- @if (esAdministrador) {
- <div class="grafico-full-width">
- <div class="dash-card cumplimiento-presupuesto-card ancho-completo">
- <div class="top-redes-header">
- <div>
- <div class="titulo-top"> Cumplimiento Presupuestal por Red</div>
- </div>
- </div>
- <div class="presupuesto-control">
- <label>Red Asistencial</label>
-
- <select
- [(ngModel)]="redSeleccionada"
- (change)="actualizarCumplimientoPresupuesto()"
- >
- <option value="">Todas las Redes</option>
-
- @for (red of redesDisponibles; track red) {
- <option [value]="red">
- {{ red }}
- </option>
- }
- </select>
- </div>
-
- <div class="presupuesto-kpis">
- <div class="kpi-item">
- <span class="label">Asignado</span>
- <span class="valor"> S/ {{ presupuestoAsignado | number: '1.0-0' }} </span>
- </div>
-
- <div class="kpi-item">
- <span class="label">Ejecutado</span>
- <span class="valor"> S/ {{ presupuestoEjecutado | number: '1.0-0' }} </span>
- </div>
- </div>
-
- <div class="progress-container">
- <div class="progress-fill" [style.width.%]="porcentajeCumplimiento"></div>
- </div>
-
- <div class="porcentaje-texto">
- {{ porcentajeCumplimiento | number: '1.0-1' }}% ejecutado
- </div>
-
- <div class="saldo-texto">Saldo: S/ {{ saldoDisponible | number: '1.0-0' }}</div>
- </div>
- </div>
- }
-
- @if (esAdministrador) {
- <div class="grafico-full-width">
- <div class="dash-card grafico-box presupuesto-card">
- <h3>Presupuesto Ejecutado por Red Asistencial</h3>
-
- @if (chartConfigPresupuestoRed) {
- <div class="chart-scroll">
- <canvas
- baseChart
- [type]="chartConfigPresupuestoRed.type"
- [data]="chartConfigPresupuestoRed.data"
- [options]="chartConfigPresupuestoRed.options"
- [style.min-width.px]="chartConfigPresupuestoRed.data.labels.length * 50"
- ></canvas>
- </div>
- }
- </div>
- </div>
- }
- <!-- Participantes vs Presupuesto -->
- @if (esAdministrador) {
- <div class="grafico-full-width">
- <div class="dash-card grafico-box eficiencia-card ancho-completo">
- <h3> Participantes vs Presupuesto</h3>
-
- @if (chartConfigEficienciaRed) {
- <div class="chart-wrapper">
- <canvas
- baseChart
- [type]="chartConfigEficienciaRed.type"
- [data]="chartConfigEficienciaRed.data"
- [options]="chartConfigEficienciaRed.options"
- ></canvas>
- </div>
- }
- </div>
- </div>
- }
-
- <!-- Costo por Participante -->
- @if (esAdministrador) {
- <div class="grafico-full-width">
- <div class="dash-card grafico-box costo-card">
- <h3>Costo por Participante por Red</h3>
-
- @if (chartConfigCostoParticipante) {
- <canvas
- baseChart
- [type]="chartConfigCostoParticipante.type"
- [data]="chartConfigCostoParticipante.data"
- [options]="chartConfigCostoParticipante.options"
- ></canvas>
- }
- </div>
- </div>
- }
-
- <!-- RESUMEN POR RED ASISTENCIAL -->
- @if (esAdministrador) {
- <div class="dash-card estadisticas-responsable-box">
- <div class="box-header">
- <h3>Resumen por Red Asistencial</h3>
- @if (cargandoResumen) {
- <span class="cargando-badge">Cargando...</span>
- } @else {
- <span class="total-badge"
- >{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span
- >
- }
- </div>
-
- @if (cargandoResumen) {
- <div class="tabla-cargando">
- <div class="spinner-sm"></div>
- <span>Cargando datos de la base de datos...</span>
- </div>
- } @else if (resumenRedes.length === 0) {
- <div class="tabla-vacia">
-<<<<<<< HEAD
- <div class="vacio-icono"></div>
-=======
- <div class="vacio-icono">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <line x1="18" y1="20" x2="18" y2="10" />
- <line x1="12" y1="20" x2="12" y2="4" />
- <line x1="6" y1="20" x2="6" y2="14" />
- </svg>
- </div>
->>>>>>> a80a6f488cc5dc2839edc28c40612c09b2bc27d5
-
- <h4>No hay datos disponibles</h4>
-
- <p>
- Verifique la conexión con la base de datos para visualizar las estadísticas del
- sistema.
- </p>
- </div>
- } @else {
- <div class="tabla-scroll">
- <table class="tabla-resumen">
- <thead>
- <tr>
- <th>#</th>
- <th>Red Asistencial</th>
- <th>Capacitaciones</th>
- <th>Total Horas</th>
- <th>Participantes</th>
- <th>Presupuesto Ejecutado</th>
- </tr>
- </thead>
-
- <tbody>
- @if (resumenRedesFiltrado.length === 0) {
- <tr>
- <td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px">
- Sin resultados para "{{ busquedaRed }}"
- </td>
- </tr>
- }
- @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
- <tr>
- <td class="td-num">
- {{ i + 1 }}
- </td>
-
- <td class="td-red">
- <span class="red-nombre">
- {{ item.red }}
- </span>
- </td>
-
- <td class="td-num">
- <span class="badge-cap">
- {{ item.capacitaciones }}
- </span>
- </td>
-
- <td class="td-num">
- {{ item.horas | number: '1.0-1' }}
- </td>
-
- <td class="td-num">
- {{ item.participantes | number }}
- </td>
-
- <td class="td-monto">
- {{ formatMoneda(item.presupuesto) }}
- </td>
- </tr>
- }
- </tbody>
-
- <tfoot>
- <tr class="fila-total">
- <td colspan="2">
- TOTAL {{ busquedaRed || filtroTematico ? '(filtrado)' : '' }}
- </td>
- <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
- <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
- <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
- <td class="td-monto">{{ formatMoneda(totalPresupuestoFiltrado) }}</td>
- </tr>
- </tfoot>
- </table>
- </div>
- }
- </div>
- }
- </div>
- <!-- ASIGNACIÓN PRESUPUESTAL (ADMIN) -->
- @if (esAdministrador && presupuestoConEjecutado.length > 0) {
- <div class="dash-card estadisticas-responsable-box" style="margin-top: 24px">
- <div class="box-header">
- <h3> Asignación Presupuestal 2025</h3>
- <span class="total-badge">Techo total: {{ formatMoneda(totalTechoPresupuestal) }}</span>
- </div>
- <div class="tabla-scroll">
- <table class="tabla-resumen tabla-presupuesto">
- <thead>
- <tr>
- <th>#</th>
- <th>Dependencia</th>
- <th>Techo (S/.)</th>
- <th>Ejecutado (S/.)</th>
- <th>Disponible (S/.)</th>
- <th style="min-width: 160px">% Ejecutado</th>
- </tr>
- </thead>
- <tbody>
- @for (p of presupuestoConEjecutado; track p.red; let i = $index) {
- <tr>
- <td class="td-num">{{ i + 1 }}</td>
- <td class="td-red">
- <span class="red-nombre">{{ p.red }}</span>
- </td>
- <td class="td-monto">{{ formatMoneda(p.techo) }}</td>
- <td class="td-monto">{{ formatMoneda(p.ejecutado) }}</td>
- <td class="td-monto" [style.color]="p.disponible < 0 ? '#dc2626' : '#16a34a'">
- {{ formatMoneda(p.disponible) }}
- </td>
- <td class="td-pct">
- <div class="pres-barra-wrap">
- <div class="pres-barra">
- <div
- class="pres-fill"
- [style.width.%]="p.porcentaje"
- [style.background]="
- p.porcentaje >= 90
- ? '#dc2626'
- : p.porcentaje >= 70
- ? '#f59e0b'
- : '#16a34a'
- "
- ></div>
- </div>
- <span class="pres-pct-label">{{ p.porcentaje }}%</span>
- </div>
- </td>
- </tr>
- }
- </tbody>
- <tfoot>
- <tr class="fila-total">
- <td colspan="2">TOTAL</td>
- <td class="td-monto">{{ formatMoneda(totalTechoPresupuestal) }}</td>
- <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
- <td
- class="td-monto"
- [style.color]="
- totalTechoPresupuestal - totalPresupuesto < 0 ? '#dc2626' : '#16a34a'
- "
- >
- {{ formatMoneda(totalTechoPresupuestal - totalPresupuesto) }}
- </td>
- <td></td>
- </tr>
- </tfoot>
- </table>
- </div>
- </div>
- }
- </main>
- </div>
+    </div>
+  </nav>
+
+  <!-- ===== MENÚ SUPERIOR ===== -->
+  <div class="perfil-superior">
+    <nav class="menu-superior">
+      <div class="menu-item activo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 10.5L12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
+        </svg>
+        <span>Inicio</span>
+      </div>
+
+      <div class="menu-item" (click)="irModulo('Expedientes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>Expedientes</span>
+      </div>
+
+      <div class="menu-item" (click)="irModulo('Hoja de Ruta')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="6" cy="18" r="2" />
+          <circle cx="18" cy="6" r="2" />
+          <path d="M8 18c6 0 8-4 8-10" />
+        </svg>
+        <span>Hoja de Ruta</span>
+      </div>
+
+      @if (esAdministrador) {
+        <div class="menu-item" (click)="irModulo('Personal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Personal</span>
+        </div>
+
+        <div class="menu-item" (click)="irModulo('Participantes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Participantes</span>
+        </div>
+
+        <div class="menu-item" (click)="irModulo('Historial')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Historial</span>
+        </div>
+
+        <div class="menu-item" (click)="irModulo('Presupuesto')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+          <span>Presupuesto</span>
+        </div>
+
+        <div class="menu-item" (click)="irModulo('Administración')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"
+            />
+          </svg>
+          <span>Administración</span>
+        </div>
+      }
+
+      <div class="menu-item cerrar" (click)="cerrarSesion()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        <span>Salir</span>
+      </div>
+    </nav>
+  </div>
+
+  <div class="app-cuerpo">
+    <!-- ===== SIDEBAR OCULTO ===== -->
+    <aside class="sidebar"></aside>
+
+    <!-- ===== CONTENIDO ===== -->
+    <main class="app-contenido">
+      <div class="contenido-encabezado">
+        <div class="titulo-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+          </svg>
+        </div>
+
+        <div class="titulo-texto">
+          <h1>Panel de Control</h1>
+          <p>Plan de Desarrollo de Personas</p>
+        </div>
+
+        <div class="periodo-pill">
+          <span></span>
+          <select id="periodoActivo" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+            @for (a of aniosDisponibles; track a) {
+              <option [value]="a">{{ a }}</option>
+            }
+          </select>
+          <button class="btn-buscar-periodo" (click)="cambiarAnio()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="welcome-banner">
+        <h3>Bienvenido al Sistema de Gestión PDP</h3>
+        <p>
+          Gestione expedientes, hojas de ruta, personal y seguimiento del Plan de Desarrollo de
+          Personas de manera centralizada.
+        </p>
+      </div>
+
+      <!-- BARRA DE FILTROS -->
+      @if (esAdministrador) {
+        <div class="filtro-red-bar" [class.filtro-red-activo]="busquedaRed">
+          <div class="filtro-red-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span>Red Asistencial</span>
+          </div>
+
+          <div class="filtro-red-selector">
+            @if (cargandoResumen) {
+              <div class="filtro-red-cargando">Cargando redes...</div>
+            } @else {
+              <select
+                [(ngModel)]="busquedaRed"
+                (change)="filtrarPorRed(busquedaRed)"
+                (change)="seleccionarDepartamentoDesdeRed()"
+              >
+                <option value="">Todas las Redes ({{ resumenRedes.length }})</option>
+                @for (red of redesDisponibles; track red) {
+                  <option [value]="red">{{ red }}</option>
+                }
+              </select>
+            }
+          </div>
+
+          <div class="dash-card redes-departamento-card">
+            <div class="top-redes-header">
+              <div>
+                <div class="titulo-top">Redes del Departamento</div>
+              </div>
+            </div>
+
+            @if (redesDepartamento.length > 0) {
+              @for (red of redesDepartamento; track red.red; let i = $index) {
+                <div class="ranking-item">
+                  <span>
+                    @if (i === 0) {}
+                    @if (i === 1) {}
+                    @if (i === 2) {}
+                    @if (i > 2) {}
+
+                    {{ red.red }}
+                  </span>
+
+                  <strong>
+                    {{ red.participantes | number }}
+                  </strong>
+                </div>
+              }
+            } @else {
+              <div class="detalle-vacio">No existen redes para mostrar.</div>
+            }
+          </div>
+
+          @if (busquedaRed) {
+            <div class="filtro-red-badge">
+              <span>Filtrando: {{ busquedaRed }}</span>
+            </div>
+            <button class="filtro-red-limpiar" (click)="filtrarPorRed('')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Limpiar
+            </button>
+          }
+        </div>
+
+        <div
+          class="filtro-red-bar"
+          [class.filtro-red-activo]="filtroTematico"
+          style="margin-top: 8px"
+        >
+          <div class="filtro-red-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h10M4 18h6" />
+            </svg>
+            <span>Eje Temático</span>
+          </div>
+
+          <div class="filtro-red-selector">
+            <select [(ngModel)]="filtroTematico" (change)="filtrarPorTema(filtroTematico)">
+              <option value="">Todos los Ejes Temáticos</option>
+              @for (eje of ejesTematicos; track eje) {
+                <option [value]="eje">{{ eje }}</option>
+              }
+            </select>
+          </div>
+
+          @if (filtroTematico) {
+            <div class="filtro-red-badge">
+              <span>Filtrando: {{ filtroTematico }}</span>
+            </div>
+            <button class="filtro-red-limpiar" (click)="filtrarPorTema('')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Limpiar
+            </button>
+          }
+        </div>
+      }
+
+      <!-- KPIs ADMINISTRADOR -->
+      @if (esAdministrador) {
+        <div class="kpi-grid">
+          @if (cargandoKpis) {
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-skel">
+              <div class="skel-icono"></div>
+              <div class="kpi-info">
+                <div class="skel-val"></div>
+                <div class="skel-lbl"></div>
+              </div>
+            </div>
+          } @else {
+            <div class="kpi-card">
+              <div class="kpi-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed || filtroTematico
+                      ? totalCapacitacionesFiltrado
+                      : statsGlobal.actividades
+                    ) | number
+                  }}
+                </span>
+                <span class="kpi-label">Capacitaciones PDP</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icono kpi-icono-verde">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+
+              <div class="kpi-info">
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed || filtroTematico ? totalParticipantes : statsGlobal.participantes)
+                      | number
+                  }}
+                </span>
+                <span class="kpi-label">Participantes Totales</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icono kpi-icono-naranja">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+
+              <div class="kpi-info">
+                <span class="kpi-valor">
+                  {{
+                    (busquedaRed || filtroTematico
+                      ? totalPresupuestoFiltrado
+                      : statsGlobal.presupuesto_total
+                    ) | number: '1.0-0'
+                  }}
+                </span>
+                <span class="kpi-label">Presupuesto Total (S/.)</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icono" style="background: #eff6ff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path
+                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                  />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-valor">{{
+                  (busquedaRed || filtroTematico ? resumenRedesFiltrado.length : statsGlobal.redes)
+                    | number
+                }}</span>
+                <span class="kpi-label">Redes Asistenciales</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="insights-grid">
+        <div class="insight-card">
+          <div class="insight-icon"></div>
+
+          <div class="insight-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+              <path d="M4 22h16" />
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+            </svg>
+          </div>
+
+          <div class="insight-info">
+            <div class="insight-valor">{{ mejorRed }}</div>
+            <div class="insight-label">Mejor Red</div>
+            <div class="insight-extra">{{ mejorRedParticipantes | number }} participantes</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon"></div>
+
+          <div class="insight-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+
+          <div class="insight-info">
+            <div class="insight-valor">{{ mejorMes }}</div>
+            <div class="insight-label">Mejor Mes</div>
+            <div class="insight-extra">{{ mejorMesActividades }} actividades</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon"></div>
+
+          <div class="insight-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+          </div>
+
+          <div class="insight-info">
+            <div class="insight-valor">{{ modalidadDominante }}</div>
+            <div class="insight-label">Modalidad Líder</div>
+            <div class="insight-extra">{{ modalidadDominantePorcentaje }}%</div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-icon"></div>
+
+          <div class="insight-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+
+          <div class="insight-info">
+            <div class="insight-valor">{{ promedioParticipantesActividad }}</div>
+            <div class="insight-label">Promedio</div>
+            <div class="insight-extra">participantes por actividad</div>
+          </div>
+        </div>
+      </div>
+      <div class="dashboard-nacional-grid">
+        <!-- MAPA -->
+
+        <div class="dash-card mapa-peru-card">
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">Distribución Nacional PDP</div>
+            </div>
+          </div>
+
+          <div
+            echarts
+            [options]="chartConfigMapaPeru"
+            (chartInit)="onChartInit($event)"
+            class="mapa-peru"
+          ></div>
+        </div>
+
+        <!-- DETALLE -->
+
+        <div class="dash-card departamento-detalle-card">
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">Departamento Seleccionado</div>
+            </div>
+          </div>
+
+          @if (departamentoSeleccionado?.nombre) {
+            <div class="detalle-header">
+              <h2>{{ departamentoSeleccionado.red }}</h2>
+
+              <div class="subtitulo-departamento">
+                Departamento: {{ departamentoSeleccionado.nombre }}
+              </div>
+
+              <span class="ranking-badge"> #{{ departamentoSeleccionado.ranking }} </span>
+            </div>
+
+            <div class="detalle-grid">
+              <div class="detalle-kpi">
+                <span> Red Asistencial</span>
+                <strong>{{ departamentoSeleccionado.red }}</strong>
+              </div>
+
+              <div class="detalle-kpi">
+                <span> Participantes de la Red</span>
+                <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
+              </div>
+
+              <div class="detalle-kpi">
+                <span> Participantes del Departamento</span>
+                <strong>{{ departamentoSeleccionado.participantesRed | number }}</strong>
+              </div>
+
+              <div class="detalle-kpi">
+                <span> Participación Nacional</span>
+                <strong>
+                  {{
+                    (departamentoSeleccionado.participantesRed * 100) /
+                      coberturaNacional.participantes | number: '1.1-1'
+                  }}%
+                </strong>
+              </div>
+            </div>
+
+            <div class="detalle-resumen">
+              <p>
+                <strong>{{ departamentoSeleccionado.nombre }}</strong>
+
+                ocupa el puesto
+
+                <strong>#{{ departamentoSeleccionado.ranking }}</strong>
+
+                a nivel nacional con
+
+                <strong>
+                  {{
+                    departamentoSeleccionado.participantesRed ||
+                      departamentoSeleccionado.participantes | number
+                  }}
+                </strong>
+
+                participantes registrados.
+              </p>
+            </div>
+          } @else {
+            <div class="detalle-vacio">
+              Haz clic en un departamento del mapa para visualizar sus indicadores.
+            </div>
+          }
+        </div>
+
+        <!-- TOP -->
+
+        <div class="dash-card top-departamentos-card">
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">Top Departamentos PDP</div>
+            </div>
+          </div>
+
+          @for (dep of topDepartamentos; track dep.name) {
+            <div class="ranking-item">
+              <span>
+                @if ($index === 0) {}
+                @if ($index === 1) {}
+                @if ($index === 2) {}
+                @if ($index > 2) {}
+
+                {{ dep.name }}
+              </span>
+
+              <strong>
+                {{ dep.value | number }}
+              </strong>
+            </div>
+          }
+        </div>
+
+        <!-- COBERTURA -->
+
+        <div class="dash-card cobertura-card">
+          <div class="top-redes-header">
+            <div>
+              <div class="titulo-top">Cobertura Nacional PDP</div>
+            </div>
+          </div>
+
+          <div class="cobertura-grid">
+            <div class="cobertura-item">
+              <span> Departamentos</span>
+              <strong>{{ coberturaNacional.departamentos }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span> Redes</span>
+              <strong>{{ coberturaNacional.redes }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span> Participantes</span>
+              <strong>{{ coberturaNacional.participantes | number }}</strong>
+            </div>
+
+            <div class="cobertura-item">
+              <span> Capacitaciones</span>
+              <strong>{{ coberturaNacional.capacitaciones | number }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (departamentoLider) {
+        <div class="dash-card departamento-lider-card">
+          <div class="lider-contenido">
+            <div class="lider-icono"></div>
+
+            <div class="lider-icono">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
+            </div>
+
+            <div class="lider-info">
+              <div class="lider-titulo">Departamento Líder</div>
+
+              <div class="lider-nombre">
+                {{ departamentoLider.name }}
+              </div>
+
+              <div class="lider-valor">
+                {{ departamentoLider.value | number }}
+                <span>participantes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- KPIs OTROS ROLES -->
+      @if (!esAdministrador) {
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-valor">120</span>
+              <span class="kpi-label">Acciones PDP</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-valor">35</span>
+              <span class="kpi-label">En TDR</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-valor">22</span>
+              <span class="kpi-label">En Logística</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-valor">18</span>
+              <span class="kpi-label">Convocatoria</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-info">
+              <span class="kpi-valor">45</span>
+              <span class="kpi-label">Finalizadas</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="resumen-ejecutivo">
+        <!-- META -->
+        <!-- META -->
+        <div class="meta-ejecutiva">
+          <div class="meta-header">
+            <div class="meta-icono">
+              <img src="/OHÑO.jpg" alt="Meta" />
+            </div>
+
+            <div class="meta-texto">
+              <div class="meta-titulo">Meta Cumplida</div>
+              <div class="meta-subtitulo">Participantes capacitados</div>
+            </div>
+          </div>
+
+          <div class="meta-valor">{{ porcentajeMeta }}%</div>
+
+          <div class="meta-barra">
+            <div class="meta-fill" [style.width.%]="porcentajeMeta"></div>
+          </div>
+
+          <div class="meta-info">
+            <span>{{ totalParticipantes | number }} participantes</span>
+            <span>Meta: {{ metaParticipantes | number }}</span>
+          </div>
+
+          <button class="btn-editar-meta" (click)="abrirModalMeta()">Editar Meta</button>
+
+          <!-- Modal -->
+          <div class="modal-backdrop" *ngIf="mostrarModalMeta">
+            <div class="modal-meta">
+              <h3>Editar Meta de Participantes</h3>
+
+              <p>Define la cantidad objetivo de participantes.</p>
+
+              <input type="number" [(ngModel)]="nuevaMeta" min="1" class="input-meta" />
+
+              <div class="modal-actions">
+                <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
+
+                <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP REDES -->
+        @if (resumenRedesOrdenado.length > 0) {
+          <div class="top-redes">
+            <div class="top-redes-header">
+              <div>
+                <div class="titulo-top">Top Redes Asistenciales</div>
+                <div class="subtitulo-top">Redes con mayor participación</div>
+              </div>
+            </div>
+
+            @if (resumenRedesOrdenado[0]) {
+              <div class="top-red-card oro">
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla"></div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[0].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[0].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
+                    {{ resumenRedesOrdenado[0].participantes | number }}
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div class="mini-fill oro-fill" style="width: 100%"></div>
+                </div>
+              </div>
+            }
+
+            @if (resumenRedesOrdenado[1]) {
+              <div class="top-red-card plata">
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla"></div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[1].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[1].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
+                    {{ resumenRedesOrdenado[1].participantes | number }}
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div
+                    class="mini-fill plata-fill"
+                    [style.width.%]="
+                      (resumenRedesOrdenado[1].participantes /
+                        resumenRedesOrdenado[0].participantes) *
+                      100
+                    "
+                  ></div>
+                </div>
+              </div>
+            }
+
+            @if (resumenRedesOrdenado[2]) {
+              <div class="top-red-card bronce">
+                <div class="top-red-contenido">
+                  <div class="top-red-info">
+                    <div class="medalla"></div>
+
+                    <div>
+                      <h4>{{ resumenRedesOrdenado[2].red }}</h4>
+
+                      <span>
+                        {{ resumenRedesOrdenado[2].participantes | number }}
+                        participantes
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="top-red-total">
+                    {{ resumenRedesOrdenado[2].participantes | number }}
+                  </div>
+                </div>
+
+                <div class="mini-barra">
+                  <div
+                    class="mini-fill bronce-fill"
+                    [style.width.%]="
+                      (resumenRedesOrdenado[2].participantes /
+                        resumenRedesOrdenado[0].participantes) *
+                      100
+                    "
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (esAdministrador) {
+          <div class="graficos-container">
+            <!-- Sexo -->
+            <div class="dash-card grafico-box sexo-card">
+              <h3>Participantes por Sexo</h3>
+
+              @if (chartConfigSexo) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigSexo.type"
+                  [data]="chartConfigSexo.data"
+                  [options]="chartConfigSexo.options"
+                ></canvas>
+              }
+            </div>
+
+            <!-- Top Redes -->
+            <div class="dash-card grafico-box top-redes-card">
+              <h3>Top Redes por Participantes</h3>
+
+              @if (chartConfigParticipantesRed) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigParticipantesRed.type"
+                  [data]="chartConfigParticipantesRed.data"
+                  [options]="chartConfigParticipantesRed.options"
+                  style="height: 260px"
+                ></canvas>
+              }
+            </div>
+
+            <!-- Modalidad -->
+            <div class="dash-card modalidad-card">
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">Distribución por Modalidad</div>
+                </div>
+              </div>
+
+              @for (item of modalidadesResumen; track item.nombre) {
+                <div class="modalidad-item">
+                  <div class="modalidad-header">
+                    <span>{{ item.nombre }}</span>
+                    <strong>{{ item.porcentaje }}%</strong>
+                  </div>
+
+                  <div class="modalidad-barra">
+                    <div class="modalidad-fill" [style.width.%]="item.porcentaje"></div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Actividades -->
+            <div class="dash-card grafico-box actividades-card">
+              <h3>Actividades por Mes</h3>
+
+              @if (chartConfigMeses) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigMeses.type"
+                  [data]="chartConfigMeses.data"
+                  [options]="chartConfigMeses.options"
+                ></canvas>
+              }
+            </div>
+          </div>
+          <!-- cierre graficos-container -->
+        }
+        @if (esAdministrador) {
+          <div class="grafico-full-width">
+            <div class="dash-card cumplimiento-presupuesto-card ancho-completo">
+              <div class="top-redes-header">
+                <div>
+                  <div class="titulo-top">Cumplimiento Presupuestal por Red</div>
+                </div>
+              </div>
+              <div class="presupuesto-control">
+                <label>Red Asistencial</label>
+
+                <select
+                  [(ngModel)]="redSeleccionada"
+                  (change)="actualizarCumplimientoPresupuesto()"
+                >
+                  <option value="">Todas las Redes</option>
+
+                  @for (red of redesDisponibles; track red) {
+                    <option [value]="red">
+                      {{ red }}
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div class="presupuesto-kpis">
+                <div class="kpi-item">
+                  <span class="label">Asignado</span>
+                  <span class="valor"> S/ {{ presupuestoAsignado | number: '1.0-0' }} </span>
+                </div>
+
+                <div class="kpi-item">
+                  <span class="label">Ejecutado</span>
+                  <span class="valor"> S/ {{ presupuestoEjecutado | number: '1.0-0' }} </span>
+                </div>
+              </div>
+
+              <div class="progress-container">
+                <div class="progress-fill" [style.width.%]="porcentajeCumplimiento"></div>
+              </div>
+
+              <div class="porcentaje-texto">
+                {{ porcentajeCumplimiento | number: '1.0-1' }}% ejecutado
+              </div>
+
+              <div class="saldo-texto">Saldo: S/ {{ saldoDisponible | number: '1.0-0' }}</div>
+            </div>
+          </div>
+        }
+
+        @if (esAdministrador) {
+          <div class="grafico-full-width">
+            <div class="dash-card grafico-box presupuesto-card">
+              <h3>Presupuesto Ejecutado por Red Asistencial</h3>
+
+              @if (chartConfigPresupuestoRed) {
+                <div class="chart-scroll">
+                  <canvas
+                    baseChart
+                    [type]="chartConfigPresupuestoRed.type"
+                    [data]="chartConfigPresupuestoRed.data"
+                    [options]="chartConfigPresupuestoRed.options"
+                    [style.min-width.px]="chartConfigPresupuestoRed.data.labels.length * 50"
+                  ></canvas>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        <!-- Participantes vs Presupuesto -->
+        @if (esAdministrador) {
+          <div class="grafico-full-width">
+            <div class="dash-card grafico-box eficiencia-card ancho-completo">
+              <h3>Participantes vs Presupuesto</h3>
+
+              @if (chartConfigEficienciaRed) {
+                <div class="chart-wrapper">
+                  <canvas
+                    baseChart
+                    [type]="chartConfigEficienciaRed.type"
+                    [data]="chartConfigEficienciaRed.data"
+                    [options]="chartConfigEficienciaRed.options"
+                  ></canvas>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Costo por Participante -->
+        @if (esAdministrador) {
+          <div class="grafico-full-width">
+            <div class="dash-card grafico-box costo-card">
+              <h3>Costo por Participante por Red</h3>
+
+              @if (chartConfigCostoParticipante) {
+                <canvas
+                  baseChart
+                  [type]="chartConfigCostoParticipante.type"
+                  [data]="chartConfigCostoParticipante.data"
+                  [options]="chartConfigCostoParticipante.options"
+                ></canvas>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- RESUMEN POR RED ASISTENCIAL -->
+        @if (esAdministrador) {
+          <div class="dash-card estadisticas-responsable-box">
+            <div class="box-header">
+              <h3>Resumen por Red Asistencial</h3>
+              @if (cargandoResumen) {
+                <span class="cargando-badge">Cargando...</span>
+              } @else {
+                <span class="total-badge"
+                  >{{ resumenRedesFiltrado.length }} / {{ resumenRedes.length }} redes</span
+                >
+              }
+            </div>
+
+            @if (cargandoResumen) {
+              <div class="tabla-cargando">
+                <div class="spinner-sm"></div>
+                <span>Cargando datos de la base de datos...</span>
+              </div>
+            } @else if (resumenRedes.length === 0) {
+              <div class="tabla-vacia">
+                <div class="vacio-icono"></div>
+                =======
+                <div class="vacio-icono">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                </div>
+
+                <h4>No hay datos disponibles</h4>
+
+                <p>
+                  Verifique la conexión con la base de datos para visualizar las estadísticas del
+                  sistema.
+                </p>
+              </div>
+            } @else {
+              <div class="tabla-scroll">
+                <table class="tabla-resumen">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Red Asistencial</th>
+                      <th>Capacitaciones</th>
+                      <th>Total Horas</th>
+                      <th>Participantes</th>
+                      <th>Presupuesto Ejecutado</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    @if (resumenRedesFiltrado.length === 0) {
+                      <tr>
+                        <td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px">
+                          Sin resultados para "{{ busquedaRed }}"
+                        </td>
+                      </tr>
+                    }
+                    @for (item of resumenRedesFiltrado; track item.red; let i = $index) {
+                      <tr>
+                        <td class="td-num">
+                          {{ i + 1 }}
+                        </td>
+
+                        <td class="td-red">
+                          <span class="red-nombre">
+                            {{ item.red }}
+                          </span>
+                        </td>
+
+                        <td class="td-num">
+                          <span class="badge-cap">
+                            {{ item.capacitaciones }}
+                          </span>
+                        </td>
+
+                        <td class="td-num">
+                          {{ item.horas | number: '1.0-1' }}
+                        </td>
+
+                        <td class="td-num">
+                          {{ item.participantes | number }}
+                        </td>
+
+                        <td class="td-monto">
+                          {{ formatMoneda(item.presupuesto) }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+
+                  <tfoot>
+                    <tr class="fila-total">
+                      <td colspan="2">
+                        TOTAL {{ busquedaRed || filtroTematico ? '(filtrado)' : '' }}
+                      </td>
+                      <td class="td-num">{{ totalCapacitacionesFiltrado | number }}</td>
+                      <td class="td-num">{{ totalHorasFiltrado | number: '1.0-1' }}</td>
+                      <td class="td-num">{{ totalParticipantesFiltrado | number }}</td>
+                      <td class="td-monto">{{ formatMoneda(totalPresupuestoFiltrado) }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <!-- ASIGNACIÓN PRESUPUESTAL (ADMIN) -->
+      @if (esAdministrador && presupuestoConEjecutado.length > 0) {
+        <div class="dash-card estadisticas-responsable-box" style="margin-top: 24px">
+          <div class="box-header">
+            <h3>Asignación Presupuestal 2025</h3>
+            <span class="total-badge">Techo total: {{ formatMoneda(totalTechoPresupuestal) }}</span>
+          </div>
+          <div class="tabla-scroll">
+            <table class="tabla-resumen tabla-presupuesto">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Dependencia</th>
+                  <th>Techo (S/.)</th>
+                  <th>Ejecutado (S/.)</th>
+                  <th>Disponible (S/.)</th>
+                  <th style="min-width: 160px">% Ejecutado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of presupuestoConEjecutado; track p.red; let i = $index) {
+                  <tr>
+                    <td class="td-num">{{ i + 1 }}</td>
+                    <td class="td-red">
+                      <span class="red-nombre">{{ p.red }}</span>
+                    </td>
+                    <td class="td-monto">{{ formatMoneda(p.techo) }}</td>
+                    <td class="td-monto">{{ formatMoneda(p.ejecutado) }}</td>
+                    <td class="td-monto" [style.color]="p.disponible < 0 ? '#dc2626' : '#16a34a'">
+                      {{ formatMoneda(p.disponible) }}
+                    </td>
+                    <td class="td-pct">
+                      <div class="pres-barra-wrap">
+                        <div class="pres-barra">
+                          <div
+                            class="pres-fill"
+                            [style.width.%]="p.porcentaje"
+                            [style.background]="
+                              p.porcentaje >= 90
+                                ? '#dc2626'
+                                : p.porcentaje >= 70
+                                  ? '#f59e0b'
+                                  : '#16a34a'
+                            "
+                          ></div>
+                        </div>
+                        <span class="pres-pct-label">{{ p.porcentaje }}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="fila-total">
+                  <td colspan="2">TOTAL</td>
+                  <td class="td-monto">{{ formatMoneda(totalTechoPresupuestal) }}</td>
+                  <td class="td-monto">{{ formatMoneda(totalPresupuesto) }}</td>
+                  <td
+                    class="td-monto"
+                    [style.color]="
+                      totalTechoPresupuestal - totalPresupuesto < 0 ? '#dc2626' : '#16a34a'
+                    "
+                  >
+                    {{ formatMoneda(totalTechoPresupuestal - totalPresupuesto) }}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
 </div>
 
 <!-- ===== MODAL HISTORIAL ===== -->
 @if (mostrarHistorial) {
- <div class="hist-overlay" (click)="cerrarHistorial()">
- <div class="hist-modal hist-modal-wide" (click)="$event.stopPropagation()">
- <div class="hist-header">
- <div class="hist-titulo">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="12" cy="12" r="10" />
- <polyline points="12 6 12 12 16 14" />
- </svg>
- <h3>Historial de Actividad — Sistema PDP</h3>
- </div>
- <button class="hist-cerrar" (click)="cerrarHistorial()">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
- <line x1="18" y1="6" x2="6" y2="18" />
- <line x1="6" y1="6" x2="18" y2="18" />
- </svg>
- </button>
- </div>
+  <div class="hist-overlay" (click)="cerrarHistorial()">
+    <div class="hist-modal hist-modal-wide" (click)="$event.stopPropagation()">
+      <div class="hist-header">
+        <div class="hist-titulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <h3>Historial de Actividad — Sistema PDP</h3>
+        </div>
+        <button class="hist-cerrar" (click)="cerrarHistorial()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
 
- <div class="hist-buscador">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="11" cy="11" r="8" />
- <line x1="21" y1="21" x2="16.65" y2="16.65" />
- </svg>
- <input
- type="text"
- [(ngModel)]="filtroHistorial"
- placeholder="Filtrar por usuario, rol, tipo de acción o descripción..."
- />
- </div>
+      <div class="hist-buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="filtroHistorial"
+          placeholder="Filtrar por usuario, rol, tipo de acción o descripción..."
+        />
+      </div>
 
- <div class="hist-cuerpo">
- @if (cargandoHistorial) {
- <div class="hist-vacio"><p>Cargando historial...</p></div>
- } @else if (historial.length === 0) {
- <div class="hist-vacio">
- <svg
- viewBox="0 0 24 24"
- fill="none"
- stroke="currentColor"
- stroke-width="1.5"
- width="52"
- height="52"
- >
- <circle cx="12" cy="12" r="10" />
- <polyline points="12 6 12 12 16 14" />
- </svg>
- <p>Aún no hay actividad registrada.</p>
- <small
- >Aquí aparecerán solicitudes, revisiones, ediciones de usuarios y
- capacitaciones.</small
- >
- </div>
- } @else if (historialFiltrado.length === 0) {
- <div class="hist-vacio"><p>No se encontraron registros con ese filtro.</p></div>
- } @else {
- <table class="hist-tabla">
- <thead>
- <tr>
- <th>Fecha y hora</th>
- <th>Usuario</th>
- <th>Rol</th>
- <th>Tipo</th>
- <th>Descripción</th>
- </tr>
- </thead>
- <tbody>
- @for (e of historialFiltrado; track $index) {
- <tr>
- <td class="hist-fecha" style="white-space: nowrap; font-size: 0.82rem">
- {{ e.created_at | date: 'dd/MM/yyyy' }}<br />
- <span class="hist-hora">{{ e.created_at | date: 'HH:mm:ss' }}</span>
- </td>
- <td class="hist-usuario">
- <div class="usuario-chip">
- <span class="usuario-avatar-mini">{{
- e.actor_nombre?.charAt(0) || '?'
- }}</span>
- {{ e.actor_nombre || '—' }}
- </div>
- </td>
- <td>
- <span class="badge-rol-hist">{{ e.actor_rol || '—' }}</span>
- </td>
- <td>
- <span
- class="badge-tipo-hist"
- [class.tipo-solicitud-enviada]="e.tipo === 'solicitud_enviada'"
- [class.tipo-solicitud-aprobado]="e.tipo === 'solicitud_aprobado'"
- [class.tipo-solicitud-observado]="e.tipo === 'solicitud_observado'"
- [class.tipo-solicitud-excluido]="e.tipo === 'solicitud_excluido'"
- [class.tipo-usuario]="
- e.tipo === 'usuario_creado' || e.tipo === 'usuario_editado'
- "
- [class.tipo-capacitacion]="e.tipo === 'capacitacion_editada'"
- [class.tipo-expediente]="e.tipo === 'expediente_editado'"
- >
- @if (e.tipo === 'solicitud_enviada') {
- Solicitud enviada
- } @else if (e.tipo === 'solicitud_aprobado') {
- Aprobado
- } @else if (e.tipo === 'solicitud_observado') {
- Observado
- } @else if (e.tipo === 'solicitud_excluido') {
- Excluido
- } @else if (e.tipo === 'usuario_creado') {
- Usuario creado
- } @else if (e.tipo === 'usuario_editado') {
- Usuario editado
- } @else if (e.tipo === 'capacitacion_editada') {
- Capacitación editada
- } @else if (e.tipo === 'expediente_editado') {
- Expediente
- } @else {
- {{ e.tipo }}
- }
- </span>
- </td>
- <td class="hist-detalle">{{ e.descripcion }}</td>
- </tr>
- }
- </tbody>
- </table>
- }
- </div>
+      <div class="hist-cuerpo">
+        @if (cargandoHistorial) {
+          <div class="hist-vacio"><p>Cargando historial...</p></div>
+        } @else if (historial.length === 0) {
+          <div class="hist-vacio">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              width="52"
+              height="52"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <p>Aún no hay actividad registrada.</p>
+            <small
+              >Aquí aparecerán solicitudes, revisiones, ediciones de usuarios y
+              capacitaciones.</small
+            >
+          </div>
+        } @else if (historialFiltrado.length === 0) {
+          <div class="hist-vacio"><p>No se encontraron registros con ese filtro.</p></div>
+        } @else {
+          <table class="hist-tabla">
+            <thead>
+              <tr>
+                <th>Fecha y hora</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of historialFiltrado; track $index) {
+                <tr>
+                  <td class="hist-fecha" style="white-space: nowrap; font-size: 0.82rem">
+                    {{ e.created_at | date: 'dd/MM/yyyy' }}<br />
+                    <span class="hist-hora">{{ e.created_at | date: 'HH:mm:ss' }}</span>
+                  </td>
+                  <td class="hist-usuario">
+                    <div class="usuario-chip">
+                      <span class="usuario-avatar-mini">{{
+                        e.actor_nombre?.charAt(0) || '?'
+                      }}</span>
+                      {{ e.actor_nombre || '—' }}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge-rol-hist">{{ e.actor_rol || '—' }}</span>
+                  </td>
+                  <td>
+                    <span
+                      class="badge-tipo-hist"
+                      [class.tipo-solicitud-enviada]="e.tipo === 'solicitud_enviada'"
+                      [class.tipo-solicitud-aprobado]="e.tipo === 'solicitud_aprobado'"
+                      [class.tipo-solicitud-observado]="e.tipo === 'solicitud_observado'"
+                      [class.tipo-solicitud-excluido]="e.tipo === 'solicitud_excluido'"
+                      [class.tipo-usuario]="
+                        e.tipo === 'usuario_creado' || e.tipo === 'usuario_editado'
+                      "
+                      [class.tipo-capacitacion]="e.tipo === 'capacitacion_editada'"
+                      [class.tipo-expediente]="e.tipo === 'expediente_editado'"
+                    >
+                      @if (e.tipo === 'solicitud_enviada') {
+                        Solicitud enviada
+                      } @else if (e.tipo === 'solicitud_aprobado') {
+                        Aprobado
+                      } @else if (e.tipo === 'solicitud_observado') {
+                        Observado
+                      } @else if (e.tipo === 'solicitud_excluido') {
+                        Excluido
+                      } @else if (e.tipo === 'usuario_creado') {
+                        Usuario creado
+                      } @else if (e.tipo === 'usuario_editado') {
+                        Usuario editado
+                      } @else if (e.tipo === 'capacitacion_editada') {
+                        Capacitación editada
+                      } @else if (e.tipo === 'expediente_editado') {
+                        Expediente
+                      } @else {
+                        {{ e.tipo }}
+                      }
+                    </span>
+                  </td>
+                  <td class="hist-detalle">{{ e.descripcion }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
 
- <div class="hist-footer">
- <span class="hist-total">{{ historialFiltrado.length }} registro(s)</span>
- <button class="hist-btn-cerrar" (click)="cerrarHistorial()">Cerrar</button>
- </div>
- </div>
- </div>
+      <div class="hist-footer">
+        <span class="hist-total">{{ historialFiltrado.length }} registro(s)</span>
+        <button class="hist-btn-cerrar" (click)="cerrarHistorial()">Cerrar</button>
+      </div>
+    </div>
+  </div>
 }
 
 <!-- MODAL EDITAR PERFIL -->
 @if (mostrarEditarPerfil) {
- <div class="hist-overlay">
- <div class="hist-modal">
- <div class="hist-header"><h3> Editar Perfil de Usuario</h3></div>
- <div style="padding: 20px">
- <div class="modal-group">
- <label>Nombre Completo</label>
- <input type="text" [(ngModel)]="perfilEditado.nombre" />
- </div>
- <div class="modal-group">
- <label>Correo Electrónico</label>
- <input type="email" [(ngModel)]="perfilEditado.correo" />
- </div>
- <div class="modal-group">
- <label>Teléfono</label>
- <input type="text" [(ngModel)]="perfilEditado.telefono" />
- </div>
- <div class="modal-group">
- <label>Cargo</label>
- <input type="text" [value]="usuarioActual?.rol" disabled />
- </div>
- </div>
- <div class="modal-footer">
- <button class="btn-cancelar" (click)="cerrarEditarPerfil()"> Cancelar</button>
- <button class="btn-guardar" (click)="guardarPerfil()"> Guardar Cambios</button>
- </div>
- </div>
- </div>
+  <div class="hist-overlay">
+    <div class="hist-modal">
+      <div class="hist-header"><h3>Editar Perfil de Usuario</h3></div>
+      <div style="padding: 20px">
+        <div class="modal-group">
+          <label>Nombre Completo</label>
+          <input type="text" [(ngModel)]="perfilEditado.nombre" />
+        </div>
+        <div class="modal-group">
+          <label>Correo Electrónico</label>
+          <input type="email" [(ngModel)]="perfilEditado.correo" />
+        </div>
+        <div class="modal-group">
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="perfilEditado.telefono" />
+        </div>
+        <div class="modal-group">
+          <label>Cargo</label>
+          <input type="text" [value]="usuarioActual?.rol" disabled />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancelar" (click)="cerrarEditarPerfil()">Cancelar</button>
+        <button class="btn-guardar" (click)="guardarPerfil()">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
 }
 
 @if (mostrarModalMeta) {
- <div class="modal-overlay">
- <div class="modal-meta">
- <h3> Actualizar Meta</h3>
+  <div class="modal-overlay">
+    <div class="modal-meta">
+      <h3>Actualizar Meta</h3>
 
- <p>
- Meta actual:
- <strong>{{ metaParticipantes | number }}</strong>
- </p>
+      <p>
+        Meta actual:
+        <strong>{{ metaParticipantes | number }}</strong>
+      </p>
 
- <input type="number" [(ngModel)]="nuevaMeta" placeholder="Ingrese nueva meta" />
+      <input type="number" [(ngModel)]="nuevaMeta" placeholder="Ingrese nueva meta" />
 
- <div class="acciones-modal">
- <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
+      <div class="acciones-modal">
+        <button class="btn-cancelar" (click)="cerrarModalMeta()">Cancelar</button>
 
- <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
- </div>
- </div>
- </div>
+        <button class="btn-guardar" (click)="guardarMeta()">Guardar</button>
+      </div>
+    </div>
+  </div>
 }
 
 <!-- MODAL CAMBIAR PASSWORD -->
 @if (mostrarCambiarPassword) {
- <div class="hist-overlay">
- <div class="hist-modal">
- <div class="hist-header"><h3> Cambiar Contraseña</h3></div>
- <div style="padding: 20px">
- <div class="modal-group">
- <label>Contraseña actual</label
- ><input type="password" [(ngModel)]="passwordData.actual" />
- </div>
- <div class="modal-group">
- <label>Nueva Contraseña</label><input type="password" [(ngModel)]="passwordData.nueva" />
- </div>
- <div class="modal-group">
- <label>Confirmar Contraseña</label
- ><input type="password" [(ngModel)]="passwordData.confirmar" />
- </div>
- </div>
- <div class="modal-footer">
- <button class="btn-cancelar" (click)="cerrarCambiarPassword()"> Cancelar</button>
- <button class="btn-guardar" (click)="guardarPassword()"> Actualizar</button>
- </div>
- </div>
- </div>
+  <div class="hist-overlay">
+    <div class="hist-modal">
+      <div class="hist-header"><h3>Cambiar Contraseña</h3></div>
+      <div style="padding: 20px">
+        <div class="modal-group">
+          <label>Contraseña actual</label
+          ><input type="password" [(ngModel)]="passwordData.actual" />
+        </div>
+        <div class="modal-group">
+          <label>Nueva Contraseña</label><input type="password" [(ngModel)]="passwordData.nueva" />
+        </div>
+        <div class="modal-group">
+          <label>Confirmar Contraseña</label
+          ><input type="password" [(ngModel)]="passwordData.confirmar" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancelar" (click)="cerrarCambiarPassword()">Cancelar</button>
+        <button class="btn-guardar" (click)="guardarPassword()">Actualizar</button>
+      </div>
+    </div>
+  </div>
 }
