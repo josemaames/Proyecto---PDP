@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { rolesDe, homeDeRol } from '../../utils/roles.util';
 
 @Component({
  selector: 'app-login',
@@ -48,17 +49,7 @@ export class Login {
  next: (usuario) => {
  this.cargando = false;
  localStorage.setItem('usuario', JSON.stringify(usuario));
- switch (usuario.rol) {
- case 'Administrador':
- case 'Administrativo':
- this.router.navigate(['/dashboard']); break;
- case 'Sectorista':
- this.router.navigate(['/sectorista']); break;
- case 'Ejecutor':
- this.router.navigate(['/ejecutor']); break;
- default:
- this.router.navigate(['/dashboard']);
- }
+ this.router.navigate([homeDeRol(rolesDe(usuario)[0])]);
  },
  error: (err) => {
  this.cargando = false;

@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { rolesDe, homeDeRol } from '../utils/roles.util';
 
 export function roleGuard(rolesPermitidos: string[]): CanActivateFn {
   return () => {
@@ -8,20 +9,13 @@ export function roleGuard(rolesPermitidos: string[]): CanActivateFn {
     if (!raw) { router.navigate(['/login']); return false; }
 
     const usuario = JSON.parse(raw);
-    if (rolesPermitidos.includes(usuario.rol)) return true;
+    const roles = rolesDe(usuario);
 
-    // Redirigir al home correcto según el rol real
-    switch (usuario.rol) {
-      case 'Administrador':
-      case 'Administrativo':
-        router.navigate(['/dashboard']); break;
-      case 'Sectorista':
-        router.navigate(['/sectorista']); break;
-      case 'Ejecutor':
-        router.navigate(['/ejecutor']); break;
-      default:
-        router.navigate(['/login']);
-    }
+    // Permite si el usuario tiene AL MENOS uno de los roles requeridos
+    if (roles.some((r) => rolesPermitidos.includes(r))) return true;
+
+    // Si no, lo mandamos al home de su primer rol
+    router.navigate([homeDeRol(roles[0])]);
     return false;
   };
 }

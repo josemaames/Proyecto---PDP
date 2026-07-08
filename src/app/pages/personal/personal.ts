@@ -27,6 +27,8 @@ export class Personal implements OnInit {
 
  redesDisponibles: string[] = [];
  sedesSeleccionadas: string[] = [];
+ rolesDisponibles = ['Administrador', 'Sectorista', 'Ejecutor', 'Presupuesto', 'Administrativo'];
+ rolesSeleccionados: string[] = [];
  mostrarPassword = false;
 
  nuevoUsuarioData = {
@@ -95,6 +97,7 @@ export class Personal implements OnInit {
  nuevoUsuario() {
  this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
  this.sedesSeleccionadas = [];
+ this.rolesSeleccionados = [];
  this.mostrarPassword = false;
  this.modoEdicion = false;
  this.mostrarFormulario = true;
@@ -108,18 +111,22 @@ export class Personal implements OnInit {
  ? usuario.sedes.join(',')
  : (usuario.sedes || '');
 
+ this.rolesSeleccionados = (usuario.roles && String(usuario.roles).trim())
+ ? String(usuario.roles).split(',').map((s: string) => s.trim()).filter(Boolean)
+ : (usuario.rol ? [usuario.rol] : []);
+
  this.nuevoUsuarioData = {
  dni: usuario.dni,
  nombre: usuario.nombre,
  cargo: usuario.cargo,
  rol: usuario.rol,
  estado: usuario.estado,
- sedes: usuario.rol === 'Ejecutor' ? sedesStr : '',
+ sedes: this.rolesSeleccionados.includes('Ejecutor') ? sedesStr : '',
  password: usuario.password || '',
  email: usuario.email || '',
  };
 
- this.sedesSeleccionadas = usuario.rol === 'Sectorista'
+ this.sedesSeleccionadas = this.rolesSeleccionados.includes('Sectorista')
  ? sedesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
  : [];
 
@@ -151,6 +158,16 @@ export class Personal implements OnInit {
  this.mostrarDetalle = false;
  }
 
+ toggleRolSel(rol: string) {
+ const i = this.rolesSeleccionados.indexOf(rol);
+ if (i === -1) this.rolesSeleccionados.push(rol);
+ else this.rolesSeleccionados.splice(i, 1);
+ }
+
+ rolSelMarcado(rol: string): boolean {
+ return this.rolesSeleccionados.includes(rol);
+ }
+
  toggleSede(red: string) {
  const idx = this.sedesSeleccionadas.indexOf(red);
  if (idx === -1) this.sedesSeleccionadas.push(red);
@@ -162,10 +179,10 @@ export class Personal implements OnInit {
  }
 
  guardarUsuario() {
- const rol = this.nuevoUsuarioData.rol;
- if (rol === 'Sectorista') {
+ if (this.rolesSeleccionados.length === 0) { alert('Seleccione al menos un rol.'); return; }
+ if (this.rolesSeleccionados.includes('Sectorista')) {
  this.nuevoUsuarioData.sedes = this.sedesSeleccionadas.join(',');
- } else if (rol === 'Administrador' || rol === 'Administrativo') {
+ } else if (!this.rolesSeleccionados.includes('Ejecutor')) {
  this.nuevoUsuarioData.sedes = '';
  }
 
@@ -174,7 +191,8 @@ export class Personal implements OnInit {
  dni: this.nuevoUsuarioData.dni,
  nombre: this.nuevoUsuarioData.nombre,
  password: this.nuevoUsuarioData.password,
- rol: this.nuevoUsuarioData.rol,
+ rol: this.rolesSeleccionados[0],
+ roles: this.rolesSeleccionados,
  cargo: this.nuevoUsuarioData.cargo,
  estado: this.nuevoUsuarioData.estado,
  sedes: this.nuevoUsuarioData.sedes,
@@ -192,6 +210,7 @@ export class Personal implements OnInit {
  this.cargarUsuarios();
  this.nuevoUsuarioData = { dni: '', nombre: '', cargo: '', rol: 'Ejecutor', estado: 'Activo', sedes: '', password: '', email: '' };
  this.sedesSeleccionadas = [];
+ this.rolesSeleccionados = [];
  this.mostrarPassword = false;
  this.mostrarFormulario = false;
  this.modoEdicion = false;

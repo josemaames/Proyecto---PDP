@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin, firstValueFrom } from 'rxjs';
 import { PdpDataService, Actividad, Participante } from '../../services/pdp-data.service';
+import { tieneRol } from '../../utils/roles.util';
 import * as ExcelJS from 'exceljs';
 
 @Component({
@@ -23,6 +24,7 @@ export class Sectorista implements OnInit {
  usuario: any = {};
  fechaHoy = '';
  inicialUsuario = 'U';
+ tienePresupuesto = false;
  mostrarPerfilMenu = false;
 
  cargandoRuc = false;
@@ -207,6 +209,7 @@ export class Sectorista implements OnInit {
  ngOnInit() {
  this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
  this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+ this.tienePresupuesto = tieneRol(this.usuario, 'Presupuesto');
  const f = new Date().toLocaleDateString('es-PE', {
  weekday: 'long',
  day: 'numeric',
@@ -585,6 +588,10 @@ export class Sectorista implements OnInit {
 
  togglePerfilMenu() {
  this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+ }
+
+ irAPresupuesto() {
+ this.router.navigate(['/presupuesto']);
  }
 
  cerrarSesion() {

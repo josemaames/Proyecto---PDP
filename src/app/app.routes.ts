@@ -13,10 +13,12 @@ import { Ejecutor } from './pages/ejecutor/ejecutor';
 import { ListaParticipantes } from './pages/lista-participantes/lista-participantes';
 import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
 import { Documentos } from './pages/documentos/documentos';
+import { Presupuesto } from './pages/presupuesto/presupuesto';
 
 const ADMIN = ['Administrador', 'Administrativo'];
 const SECTORISTA = ['Sectorista'];
 const EJECUTOR = ['Ejecutor'];
+const PRESUPUESTO = ['Presupuesto'];
 const TODOS = [...ADMIN, ...SECTORISTA, ...EJECUTOR];
 
 export const routes: Routes = [
@@ -88,6 +90,12 @@ export const routes: Routes = [
     path: 'personal',
     component: Personal,
     canActivate: [authGuard, roleGuard(ADMIN)],
+  },
+
+  {
+    path: 'presupuesto',
+    component: Presupuesto,
+    canActivate: [authGuard, roleGuard([...ADMIN, ...PRESUPUESTO])],
   },
 
   {

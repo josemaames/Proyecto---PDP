@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { rolesDe, homeDeRol } from '../../utils/roles.util';
 
 /**
  * Aterrizaje del SSO desde SOMOS.
@@ -35,24 +36,11 @@ export class Sso implements OnInit {
       const json = decodeURIComponent(escape(atob(u)));
       const usuario = JSON.parse(json);
       localStorage.setItem('usuario', JSON.stringify(usuario));
-      this.redirigir(usuario.rol);
+      const rolPrincipal = rolesDe(usuario)[0];
+      this.router.navigate([homeDeRol(rolPrincipal)]);
     } catch {
       this.mensaje = 'No se pudo procesar el ingreso.';
       this.router.navigate(['/login']);
-    }
-  }
-
-  private redirigir(rol: string): void {
-    switch (rol) {
-      case 'Administrador':
-      case 'Administrativo':
-        this.router.navigate(['/dashboard']); break;
-      case 'Sectorista':
-        this.router.navigate(['/sectorista']); break;
-      case 'Ejecutor':
-        this.router.navigate(['/ejecutor']); break;
-      default:
-        this.router.navigate(['/dashboard']);
     }
   }
 }

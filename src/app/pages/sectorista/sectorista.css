@@ -1457,6 +1457,19 @@
   stroke: #2b4c9b;
 }
 
+.btn-cambiar-vista {
+  background: #1a3d7c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+}
+.btn-cambiar-vista:hover { background: #142f61; }
+
 .filtro-red-row {
   display: flex;
   align-items: center;

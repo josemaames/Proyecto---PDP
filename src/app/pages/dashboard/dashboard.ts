@@ -1139,6 +1139,9 @@ export class Dashboard implements OnInit, OnDestroy {
  case 'Reportes':
  alert(' Módulo Reportes en desarrollo');
  break;
+ case 'Presupuesto':
+ this.router.navigate(['/presupuesto']);
+ break;
  case 'Administración':
  this.router.navigate(['/personal']);
  break;

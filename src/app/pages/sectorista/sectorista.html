@@ -16,6 +16,9 @@
  </div>
  </div>
  <div class="nav-der">
+ @if (tienePresupuesto) {
+ <button class="btn-cambiar-vista" (click)="irAPresupuesto()">Cambiar a Presupuesto</button>
+ }
  <span class="nav-fecha">{{ fechaHoy }}</span>
  <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
