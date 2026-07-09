@@ -1,0 +1,156 @@
+<div class="notas-layout">
+  <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger" (click)="volver()" title="Volver a Expedientes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Resultados de la capacitación</div>
+      </div>
+    </div>
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
+            </div>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <main class="notas-main">
+    <div *ngIf="cargando" class="notas-centro">Cargando…</div>
+
+    <ng-container *ngIf="!cargando && data">
+      <div class="notas-titulo">
+        <h1>{{ data.nombre_actividad }}</h1>
+        <span class="notas-codigo">{{ codigoAct }}</span>
+      </div>
+
+      <!-- BANNER DE VENTANA -->
+      <div class="banner"
+           [class.b-ok]="data.ventana.estado === 'abierto' && !data.ventana.modoPrueba"
+           [class.b-warn]="data.ventana.estado === 'fuera_plazo' || data.ventana.modoPrueba"
+           [class.b-info]="data.ventana.estado === 'no_termina' || data.ventana.estado === 'sin_fecha'">
+        @if (data.ventana.modoPrueba) {
+          <strong>Modo de prueba activo:</strong> la subida de notas está habilitada sin restricción de fechas (solo para pruebas).
+        } @else {
+          @switch (data.ventana.estado) {
+            @case ('no_termina') { La capacitación aún no termina. Podrás subir las notas cuando llegue su fecha de fin. }
+            @case ('abierto') { Subida de notas habilitada. Plazo hasta el {{ data.ventana.cierre | date: 'dd/MM/yyyy' }}. }
+            @case ('fuera_plazo') { El plazo venció el {{ data.ventana.cierre | date: 'dd/MM/yyyy' }}. Aún puedes subir, pero quedará marcado como <strong>fuera de plazo</strong>. }
+            @case ('sin_fecha') { La actividad no tiene fecha de fin definida. }
+          }
+        }
+      </div>
+
+      <!-- SUBIDA (solo ejecutor y si la ventana lo permite) -->
+      <div class="card" *ngIf="puedeSubir">
+        <div class="card-titulo">Subir notas</div>
+        <p class="card-sub">1) Descarga la plantilla (ya trae a los participantes). 2) Llena la columna <strong>Nota</strong>. 3) Súbela.</p>
+        <div class="subida-btns">
+          <button class="btn-plantilla" (click)="descargarPlantilla()">Descargar plantilla (.xlsx)</button>
+          <label class="btn-subir" [class.disabled]="subiendo">
+            {{ subiendo ? 'Procesando…' : 'Subir notas llenadas' }}
+            <input type="file" accept=".xlsx" (change)="onArchivo($event)" [disabled]="subiendo" hidden />
+          </label>
+        </div>
+        <p class="msg-ok" *ngIf="mensaje">{{ mensaje }}</p>
+        <p class="msg-err" *ngIf="errorSubida">{{ errorSubida }}</p>
+        <div class="no-encontrados" *ngIf="noEncontrados.length">
+          <strong>Filas no aplicadas ({{ noEncontrados.length }}):</strong>
+          <span *ngFor="let n of noEncontrados">DNI {{ n.dni || '—' }} ({{ n.motivo }})</span>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-val">{{ data.total }}</div><div class="kpi-lbl">Participantes</div></div>
+        <div class="kpi"><div class="kpi-val">{{ data.calificados }}</div><div class="kpi-lbl">Calificados</div></div>
+        <div class="kpi ok"><div class="kpi-val">{{ data.aprobados }}</div><div class="kpi-lbl">Aprobados</div></div>
+        <div class="kpi bad"><div class="kpi-val">{{ data.desaprobados }}</div><div class="kpi-lbl">Desaprobados</div></div>
+        <div class="kpi"><div class="kpi-val">{{ data.promedio }}</div><div class="kpi-lbl">Promedio</div></div>
+      </div>
+
+      @if (data.calificados > 0) {
+        <div class="graficos">
+          <!-- DONA aprobación -->
+          <div class="card grafico">
+            <div class="card-titulo">Aprobación</div>
+            <div class="dona-wrap">
+              <div class="dona" [style.background]="gradoDona">
+                <div class="dona-centro">
+                  <div class="dona-pct">{{ data.pctAprobacion }}%</div>
+                  <div class="dona-txt">aprobación</div>
+                </div>
+              </div>
+              <div class="dona-leyenda">
+                <span><i class="dot ok"></i> Aprobados ({{ data.aprobados }})</span>
+                <span><i class="dot bad"></i> Desaprobados ({{ data.desaprobados }})</span>
+                <span class="min">Nota mínima: {{ data.notaMinima }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTOGRAMA -->
+          <div class="card grafico">
+            <div class="card-titulo">Distribución de notas</div>
+            <div class="histo">
+              <div class="histo-col" *ngFor="let b of data.distribucion">
+                <div class="histo-barra">
+                  <div class="histo-fill" [class.aprob]="b.rango === '13-16' || b.rango === '17-20'"
+                       [style.height.%]="(b.cantidad / maxBucket) * 100"></div>
+                </div>
+                <div class="histo-num">{{ b.cantidad }}</div>
+                <div class="histo-rango">{{ b.rango }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TABLA -->
+      <div class="card">
+        <div class="card-titulo">Detalle por participante</div>
+        <div class="tabla-scroll">
+          <table class="tabla-notas">
+            <thead>
+              <tr><th>#</th><th>Nombre</th><th>DNI</th><th class="c">Nota</th><th class="c">Condición</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of data.participantes; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ p.nombre || '—' }}</td>
+                <td>{{ p.dni }}</td>
+                <td class="c">{{ p.nota ?? '—' }}</td>
+                <td class="c">
+                  <span *ngIf="p.condicion" class="cond" [class.ok]="p.condicion === 'Aprobado'" [class.bad]="p.condicion === 'Desaprobado'">
+                    {{ p.condicion }}<span *ngIf="p.fuera_de_plazo" class="fp" title="Fuera de plazo">*</span>
+                  </span>
+                  <span *ngIf="!p.condicion" class="pend">Sin nota</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+  </main>
+</div>

@@ -74,8 +74,8 @@
                   <div class="barra-bg"><div class="barra-fill" [class.exc]="r.pct >= 100" [style.width.%]="r.pct"></div></div>
                   <span class="barra-pct">{{ r.pct }}%</span>
                 </td>
-                <td *ngIf="esPresupuesto">
-                  <button class="pre-btn-sm" (click)="abrirSolicitud(r.red)">Solicitar</button>
+                <td *ngIf="puedeModificar">
+                  <button class="pre-btn-sm" (click)="abrirSolicitud(r.red)">Modificar presupuesto</button>
                 </td>
               </tr>
               <tr *ngIf="redes.length === 0"><td colspan="6" class="vacio">No hay presupuestos registrados.</td></tr>
@@ -84,40 +84,13 @@
         </div>
       </div>
 
-      <!-- ADMIN: solicitudes pendientes -->
-      <div class="pre-card" *ngIf="esAdmin">
-        <div class="pre-card-title">
-          Solicitudes de Presupuesto pendientes
-          <span class="pre-badge" *ngIf="pendientes.length">{{ pendientes.length }}</span>
-        </div>
-        <div class="tabla-scroll" *ngIf="pendientes.length; else sinPend">
+      <!-- HISTORIAL de cambios de presupuesto -->
+      <div class="pre-card">
+        <div class="pre-card-title">Historial de cambios de presupuesto</div>
+        <div class="tabla-scroll" *ngIf="misSolicitudes.length; else sinHist">
           <table class="pre-tabla">
             <thead>
-              <tr><th>Fecha</th><th>Solicitante</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Motivo</th><th></th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let s of pendientes">
-                <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ s.solicitante_nombre || '—' }}</td>
-                <td>{{ etiquetaTipo(s.tipo) }}</td>
-                <td>{{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span></td>
-                <td class="num">S/ {{ s.monto | number: '1.2-2' }}</td>
-                <td>{{ s.motivo || '—' }}</td>
-                <td><button class="pre-btn-sm" (click)="abrirRevisar(s)">Revisar</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ng-template #sinPend><p class="vacio">No hay solicitudes pendientes.</p></ng-template>
-      </div>
-
-      <!-- PRESUPUESTO: mis solicitudes -->
-      <div class="pre-card" *ngIf="esPresupuesto">
-        <div class="pre-card-title">Mis solicitudes</div>
-        <div class="tabla-scroll" *ngIf="misSolicitudes.length; else sinMias">
-          <table class="pre-tabla">
-            <thead>
-              <tr><th>Fecha</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Estado</th><th>Respuesta</th></tr>
+              <tr><th>Fecha</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Motivo</th><th>Por</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let s of misSolicitudes">
@@ -125,30 +98,28 @@
                 <td>{{ etiquetaTipo(s.tipo) }}</td>
                 <td>{{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span></td>
                 <td class="num">S/ {{ s.monto | number: '1.2-2' }}</td>
-                <td>
-                  <span class="estado" [class.ap]="s.estado === 'aprobado'" [class.de]="s.estado === 'denegado'">{{ s.estado }}</span>
-                </td>
-                <td>{{ s.respuesta || '—' }}</td>
+                <td>{{ s.motivo || '—' }}</td>
+                <td>{{ s.solicitante_nombre || '—' }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <ng-template #sinMias><p class="vacio">Aún no has hecho solicitudes.</p></ng-template>
+        <ng-template #sinHist><p class="vacio">Aún no hay cambios registrados.</p></ng-template>
       </div>
     </ng-container>
   </main>
 </div>
 
-<!-- MODAL: crear solicitud -->
+<!-- MODAL: modificar presupuesto -->
 <div class="pre-overlay" *ngIf="mostrarModal">
   <div class="pre-modal">
-    <h3>Nueva solicitud de presupuesto</h3>
+    <h3>Modificar presupuesto</h3>
     <div class="pre-campo">
       <label>Red</label>
       <input type="text" [value]="form.red" disabled />
     </div>
     <div class="pre-campo">
-      <label>Tipo de solicitud</label>
+      <label>Tipo de cambio</label>
       <select [(ngModel)]="form.tipo">
         <option value="aumento">Aumento de presupuesto</option>
         <option value="reduccion">Reducción de presupuesto</option>
@@ -168,35 +139,12 @@
     </div>
     <div class="pre-campo">
       <label>Motivo</label>
-      <textarea [(ngModel)]="form.motivo" rows="3" placeholder="Justificación de la solicitud"></textarea>
+      <textarea [(ngModel)]="form.motivo" rows="3" placeholder="Justificación del cambio"></textarea>
     </div>
     <p class="pre-error" *ngIf="errorModal">{{ errorModal }}</p>
     <div class="pre-modal-btns">
       <button class="pre-btn-sec" (click)="mostrarModal = false" [disabled]="enviando">Cancelar</button>
-      <button class="pre-btn" (click)="enviarSolicitud()" [disabled]="enviando">{{ enviando ? 'Enviando…' : 'Enviar solicitud' }}</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: revisar (admin) -->
-<div class="pre-overlay" *ngIf="mostrarRevisar && solicitudRevisar">
-  <div class="pre-modal">
-    <h3>Revisar solicitud</h3>
-    <div class="pre-resumen">
-      <div><span>Solicitante</span><strong>{{ solicitudRevisar.solicitante_nombre }}</strong></div>
-      <div><span>Tipo</span><strong>{{ etiquetaTipo(solicitudRevisar.tipo) }}</strong></div>
-      <div><span>Red</span><strong>{{ solicitudRevisar.red }}<span *ngIf="solicitudRevisar.tipo === 'reasignacion'"> → {{ solicitudRevisar.red_destino }}</span></strong></div>
-      <div><span>Monto</span><strong>S/ {{ solicitudRevisar.monto | number: '1.2-2' }}</strong></div>
-      <div class="full"><span>Motivo</span><strong>{{ solicitudRevisar.motivo || '—' }}</strong></div>
-    </div>
-    <div class="pre-campo">
-      <label>Respuesta / observación (opcional)</label>
-      <textarea [(ngModel)]="respuestaRevisar" rows="2"></textarea>
-    </div>
-    <div class="pre-modal-btns">
-      <button class="pre-btn-sec" (click)="mostrarRevisar = false" [disabled]="procesando">Cancelar</button>
-      <button class="pre-btn-den" (click)="decidir('denegado')" [disabled]="procesando">Denegar</button>
-      <button class="pre-btn-ap" (click)="decidir('aprobado')" [disabled]="procesando">Aprobar</button>
+      <button class="pre-btn" (click)="enviarSolicitud()" [disabled]="enviando">{{ enviando ? 'Aplicando…' : 'Aplicar cambio' }}</button>
     </div>
   </div>
 </div>

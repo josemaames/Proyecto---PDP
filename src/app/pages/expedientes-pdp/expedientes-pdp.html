@@ -128,7 +128,10 @@
  <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
  <td>{{ cap.presupuesto_ejecutado != null ? (cap.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</td>
  <td>
+ <div style="display:flex;gap:8px;flex-wrap:wrap">
  <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
+ <button class="btn-ver" (click)="verNotas(cap)" style="background:#0f6b3f">Resultados</button>
+ </div>
  </td>
  </tr>
  }

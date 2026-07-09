@@ -83,19 +83,15 @@ export class Presupuesto implements OnInit {
   }
 
   cargarSolicitudes(): void {
-    if (this.esAdmin) {
-      this.ps.getSolicitudes({ estado: 'pendiente' }).subscribe({
-        next: (s) => (this.pendientes = s),
-      });
-    }
-    if (this.esPresupuesto) {
-      this.ps.getSolicitudes({ solicitante_dni: this.usuario.dni }).subscribe({
-        next: (s) => { this.misSolicitudes = s; this.cargando = false; },
-        error: () => (this.cargando = false),
-      });
-    } else {
-      this.cargando = false;
-    }
+    // Historial de cambios de presupuesto (visible para todos los que entran a la página)
+    this.ps.getSolicitudes({}).subscribe({
+      next: (s) => { this.misSolicitudes = s; this.cargando = false; },
+      error: () => (this.cargando = false),
+    });
+  }
+
+  get puedeModificar(): boolean {
+    return this.esPresupuesto || this.esAdmin;
   }
 
   // ── Crear solicitud (rol Presupuesto) ──────────────
@@ -114,23 +110,23 @@ export class Presupuesto implements OnInit {
     if (!this.form.monto || this.form.monto <= 0) { this.errorModal = 'Ingrese un monto válido.'; return; }
     if (this.form.tipo === 'reasignacion' && !this.form.red_destino) { this.errorModal = 'Seleccione la red destino.'; return; }
     this.enviando = true;
-    this.ps.crearSolicitud({
+    this.ps.modificar({
       tipo: this.form.tipo,
       red: this.form.red,
       red_destino: this.form.tipo === 'reasignacion' ? this.form.red_destino : null,
       monto: this.form.monto,
       motivo: this.form.motivo,
-      solicitante_dni: this.usuario.dni,
-      solicitante_nombre: this.usuario.nombre,
+      actor_dni: this.usuario.dni,
+      actor_nombre: this.usuario.nombre,
     }).subscribe({
       next: () => {
         this.enviando = false;
         this.mostrarModal = false;
-        this.cargarSolicitudes();
+        this.cargar(); // recarga presupuestos (techo actualizado) + historial → se refleja al instante
       },
       error: (err) => {
         this.enviando = false;
-        this.errorModal = err.error?.error || 'No se pudo enviar la solicitud.';
+        this.errorModal = err.error?.error || 'No se pudo aplicar el cambio.';
       },
     });
   }

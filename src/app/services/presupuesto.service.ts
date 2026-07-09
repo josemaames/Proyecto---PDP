@@ -53,4 +53,17 @@ export class PresupuestoService {
   revisar(id: number, body: { decision: string; revisor_dni?: string; revisor_nombre?: string; respuesta?: string }): Observable<SolicitudPresupuesto> {
     return this.http.put<SolicitudPresupuesto>(`/api/solicitudes-presupuesto/${id}/revisar`, body);
   }
+
+  /** Modifica el presupuesto directamente (sin aprobación). */
+  modificar(body: {
+    tipo: string;
+    red: string;
+    red_destino?: string | null;
+    monto: number;
+    motivo?: string;
+    actor_dni?: string;
+    actor_nombre?: string;
+  }): Observable<any> {
+    return this.http.post<any>('/api/presupuesto/modificar', body);
+  }
 }

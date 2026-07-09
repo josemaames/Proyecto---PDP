@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { PdpDataService, Actividad } from '../../services/pdp-data.service';
@@ -12,6 +13,11 @@ import { PdpDataService, Actividad } from '../../services/pdp-data.service';
 })
 export class ExpedientesPdp implements OnInit {
  private pdpData = inject(PdpDataService);
+ private router = inject(Router);
+
+ verNotas(cap: any) {
+ this.router.navigate(['/notas', cap.codigo_act]);
+ }
 
  capacitaciones: Actividad[] = [];
  seleccionada: Actividad | null = null;

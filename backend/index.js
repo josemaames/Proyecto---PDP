@@ -461,6 +461,13 @@ async function crearTablas() {
   );
   console.log('✓ Columnas correccion_pendiente verificadas');
 
+  // Columnas de NOTAS en lista_participantes (el ejecutor las sube al terminar la capacitación)
+  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS nota NUMERIC(4,2)`);
+  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS condicion TEXT`);
+  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS nota_subida_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS fuera_de_plazo BOOLEAN NOT NULL DEFAULT FALSE`);
+  console.log('✓ Columnas de notas verificadas');
+
   console.log('✓ Tablas verificadas');
 }
 
@@ -2087,6 +2094,139 @@ app.put('/api/solicitudes-presupuesto/:id/revisar', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// MODIFICAR presupuesto directo (rol Presupuesto — ya no requiere aprobación del admin)
+// ──────────────────────────────────────────────
+app.post('/api/presupuesto/modificar', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { tipo, red, red_destino, monto, motivo, actor_dni, actor_nombre } = req.body;
+    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo)) return res.status(400).json({ error: 'tipo inválido' });
+    if (!red || !monto || Number(monto) <= 0) return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
+    if (tipo === 'reasignacion' && !red_destino) return res.status(400).json({ error: 'red_destino requerida para reasignación' });
+    const m = Number(monto);
+
+    await client.query('BEGIN');
+    const ajustar = (r, delta) => client.query(
+      `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
+       ON CONFLICT (red) DO UPDATE SET techo = GREATEST(presupuesto_redes.techo + $2, 0)`,
+      [r, delta, new Date().getFullYear()],
+    );
+    if (tipo === 'aumento') await ajustar(red, m);
+    else if (tipo === 'reduccion') await ajustar(red, -m);
+    else { await ajustar(red, -m); await ajustar(red_destino, m); }
+
+    // Historial (queda como 'aplicado', sin paso de aprobación)
+    await client.query(
+      `INSERT INTO solicitud_presupuesto (tipo, red, red_destino, monto, motivo, estado, solicitante_dni, solicitante_nombre, revisor_nombre, resolved_at)
+       VALUES ($1,$2,$3,$4,$5,'aplicado',$6,$7,$7,NOW())`,
+      [tipo, red, tipo === 'reasignacion' ? red_destino : null, m, motivo || '', actor_dni || '', actor_nombre || ''],
+    );
+    await client.query('COMMIT');
+    logEvento('presupuesto_modificado', `${actor_nombre || 'Presupuesto'} aplicó ${tipo} de S/ ${m} en ${red}${tipo === 'reasignacion' ? ' → ' + red_destino : ''}`, actor_nombre, 'Presupuesto', red);
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// ──────────────────────────────────────────────
+// NOTAS de participantes (el ejecutor sube al terminar la capacitación)
+// ──────────────────────────────────────────────
+const NOTA_MINIMA = 13;      // nota mínima aprobatoria (0–20). Cambiar aquí si varía.
+const PLAZO_NOTAS_DIAS = 5;  // días de plazo tras fecha_fin para subir notas.
+// TEMPORAL: ignora la ventana de fechas para poder probar la subida en cualquier actividad.
+// Poner en false para producción.
+const NOTAS_MODO_PRUEBA = true;
+
+function ventanaNotas(fecha_fin) {
+  if (NOTAS_MODO_PRUEBA) return { estado: 'abierto', puedeSubir: true, cierre: null, modoPrueba: true };
+  // La existencia en datos_actividad = actividad aprobada (el reloj corre desde fecha_fin).
+  if (!fecha_fin) return { estado: 'sin_fecha', puedeSubir: false, cierre: null };
+  const hoy = new Date();
+  const fin = new Date(fecha_fin);
+  const cierre = new Date(fin);
+  cierre.setDate(cierre.getDate() + PLAZO_NOTAS_DIAS);
+  if (hoy < fin) return { estado: 'no_termina', puedeSubir: false, cierre };
+  if (hoy <= cierre) return { estado: 'abierto', puedeSubir: true, cierre };
+  return { estado: 'fuera_plazo', puedeSubir: true, cierre };
+}
+
+app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
+  const codigo_act = req.params.codigo_act;
+  try {
+    const { notas, ejecutor_nombre } = req.body;
+    if (!Array.isArray(notas) || !notas.length) return res.status(400).json({ error: 'No hay notas para guardar.' });
+
+    const act = await pool.query('SELECT fecha_fin FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
+    if (!act.rows.length) return res.status(404).json({ error: 'La actividad no existe o aún no está aprobada.' });
+    const v = ventanaNotas(act.rows[0].fecha_fin);
+    if (!v.puedeSubir) return res.status(403).json({ error: 'La subida de notas aún no está habilitada (la capacitación no ha terminado).' });
+    const fueraPlazo = v.estado === 'fuera_plazo';
+
+    let actualizados = 0;
+    const noEncontrados = [];
+    for (const n of notas) {
+      const nota = Number(n.nota);
+      if (!n.dni || isNaN(nota) || nota < 0 || nota > 20) { noEncontrados.push({ dni: n.dni, motivo: 'nota inválida' }); continue; }
+      const condicion = nota >= NOTA_MINIMA ? 'Aprobado' : 'Desaprobado';
+      const upd = await pool.query(
+        `UPDATE lista_participantes SET nota=$1, condicion=$2, nota_subida_at=NOW(), fuera_de_plazo=$3
+         WHERE codigo_act=$4 AND dni_ce=$5`,
+        [nota, condicion, fueraPlazo, codigo_act, String(n.dni)],
+      );
+      if (upd.rowCount > 0) actualizados += upd.rowCount;
+      else noEncontrados.push({ dni: n.dni, motivo: 'DNI no está entre los participantes' });
+    }
+    logEvento('notas_subidas', `${ejecutor_nombre || 'Ejecutor'} subió notas de ${codigo_act} (${actualizados} participantes${fueraPlazo ? ', fuera de plazo' : ''})`, ejecutor_nombre, 'Ejecutor', codigo_act);
+    res.json({ ok: true, actualizados, noEncontrados, fueraPlazo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
+  const codigo_act = req.params.codigo_act;
+  try {
+    const act = await pool.query('SELECT nombre_actividad, fecha_fin FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
+    const fecha_fin = act.rows[0]?.fecha_fin || null;
+    const ventana = ventanaNotas(fecha_fin);
+
+    const { rows: parts } = await pool.query(
+      `SELECT dni_ce AS dni, TRIM(COALESCE(apellidos,'') || ' ' || COALESCE(nombre,'')) AS nombre, nota, condicion, fuera_de_plazo
+       FROM lista_participantes WHERE codigo_act=$1 ORDER BY apellidos, nombre`,
+      [codigo_act],
+    );
+    const conNota = parts.filter((p) => p.nota !== null && p.nota !== undefined);
+    const calificados = conNota.length;
+    const aprobados = conNota.filter((p) => Number(p.nota) >= NOTA_MINIMA).length;
+    const promedio = calificados ? conNota.reduce((s, p) => s + Number(p.nota), 0) / calificados : 0;
+    const buckets = [['0-5', 0, 5], ['6-10', 6, 10], ['11-12', 11, 12], ['13-16', 13, 16], ['17-20', 17, 20]];
+    const distribucion = buckets.map(([rango, min, max]) => ({
+      rango,
+      cantidad: conNota.filter((p) => Number(p.nota) >= min && Number(p.nota) <= max).length,
+    }));
+    res.json({
+      nombre_actividad: act.rows[0]?.nombre_actividad || codigo_act,
+      notaMinima: NOTA_MINIMA,
+      ventana,
+      total: parts.length,
+      calificados,
+      aprobados,
+      desaprobados: calificados - aprobados,
+      promedio: Math.round(promedio * 100) / 100,
+      pctAprobacion: calificados ? Math.round((aprobados / calificados) * 100) : 0,
+      distribucion,
+      participantes: parts,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
 // SUNAT — consulta por RUC
 // ──────────────────────────────────────────────
 app.get('/api/sunat/ruc', async (req, res) => {
@@ -2317,5 +2457,5 @@ app.post('/api/sso/ingreso', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Backend PDP corriendo en http://localhost:${PORT}`);
+  console.log(`Backend PDP corriendo en http://localhost:${PORT}`);
 });
