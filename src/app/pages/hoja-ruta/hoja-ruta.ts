@@ -97,7 +97,24 @@ export class HojaRuta implements OnInit {
 
  togglePaso(paso: { paso: string; completado: boolean }) {
  if (this.guardandoPaso) return;
+ const idx = this.pasos.findIndex((p) => p.paso === paso.paso);
  const nuevoEstado = !paso.completado;
+
+ // Los pasos se completan EN ORDEN.
+ if (nuevoEstado) {
+ // Para marcar: el paso anterior debe estar completado.
+ if (idx > 0 && !this.pasos[idx - 1].completado) {
+ alert('Debes completar los pasos en orden. Marca primero el paso anterior.');
+ return;
+ }
+ } else {
+ // Para desmarcar: el paso siguiente no debe estar completado (para no dejar huecos).
+ if (idx < this.pasos.length - 1 && this.pasos[idx + 1].completado) {
+ alert('Para desmarcar este paso, primero desmarca los pasos posteriores.');
+ return;
+ }
+ }
+
  this.guardandoPaso = paso.paso;
 
  const pasoEncoded = encodeURIComponent(paso.paso);

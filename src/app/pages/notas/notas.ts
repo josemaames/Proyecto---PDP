@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotasService } from '../../services/notas.service';
+import { CertificadoService } from '../../services/certificado.service';
 import { tieneRol } from '../../utils/roles.util';
 
 @Component({
@@ -13,6 +14,7 @@ import { tieneRol } from '../../utils/roles.util';
 })
 export class Notas implements OnInit {
   private ns = inject(NotasService);
+  private cert = inject(CertificadoService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -92,6 +94,28 @@ export class Notas implements OnInit {
       this.errorSubida = 'No se pudo leer el archivo. Usa la plantilla descargada (.xlsx).';
     }
     input.value = '';
+  }
+
+  get aprobados(): any[] {
+    return (this.data?.participantes || []).filter((p: any) => p.condicion === 'Aprobado');
+  }
+
+  private fechaCertificado(): string {
+    return new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  descargarCertificados(): void {
+    const fecha = this.fechaCertificado();
+    const datos = this.aprobados.map((p) => ({
+      nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha,
+    }));
+    this.cert.descargarCurso(datos, this.codigoAct);
+  }
+
+  descargarCertificado(p: any): void {
+    this.cert.descargarIndividual({
+      nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha: this.fechaCertificado(),
+    });
   }
 
   get gradoDona(): string {

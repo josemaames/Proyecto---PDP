@@ -128,11 +128,16 @@
 
       <!-- TABLA -->
       <div class="card">
-        <div class="card-titulo">Detalle por participante</div>
+        <div class="card-titulo notas-tabla-head">
+          <span>Detalle por participante</span>
+          <button *ngIf="aprobados.length" class="btn-cert" (click)="descargarCertificados()">
+            Descargar certificados de aprobados ({{ aprobados.length }})
+          </button>
+        </div>
         <div class="tabla-scroll">
           <table class="tabla-notas">
             <thead>
-              <tr><th>#</th><th>Nombre</th><th>DNI</th><th class="c">Nota</th><th class="c">Condición</th></tr>
+              <tr><th>#</th><th>Nombre</th><th>DNI</th><th class="c">Nota</th><th class="c">Condición</th><th class="c">Certificado</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let p of data.participantes; let i = index">
@@ -145,6 +150,10 @@
                     {{ p.condicion }}<span *ngIf="p.fuera_de_plazo" class="fp" title="Fuera de plazo">*</span>
                   </span>
                   <span *ngIf="!p.condicion" class="pend">Sin nota</span>
+                </td>
+                <td class="c">
+                  <button *ngIf="p.condicion === 'Aprobado'" class="btn-cert-mini" (click)="descargarCertificado(p)">Descargar</button>
+                  <span *ngIf="p.condicion !== 'Aprobado'" class="pend">—</span>
                 </td>
               </tr>
             </tbody>

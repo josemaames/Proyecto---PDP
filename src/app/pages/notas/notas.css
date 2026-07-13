@@ -56,6 +56,18 @@
 .histo-num { font-weight: 700; color: #1f2d3d; font-size: 13px; margin-top: 4px; }
 .histo-rango { font-size: 11px; color: #64748b; }
 
+.notas-tabla-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn-cert {
+  background: #0f6b3f; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-cert:hover { background: #0b512f; }
+.btn-cert-mini {
+  background: #fff; color: #0f6b3f; border: 1px solid #0f6b3f; border-radius: 7px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-cert-mini:hover { background: #ecfdf3; }
+
 .tabla-scroll { overflow-x: auto; }
 .tabla-notas { width: 100%; border-collapse: collapse; }
 .tabla-notas th, .tabla-notas td { padding: 9px 12px; text-align: left; font-size: 14px; border-bottom: 1px solid #eef1f5; }
