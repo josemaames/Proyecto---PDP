@@ -112,6 +112,46 @@
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
       @if (seccionActiva === 'inicio') {
+
+<!-- ASIGNACIÓN PRESUPUESTAL -->
+        @if (presupuestoMiRed.length > 0) {
+          <div class="card presupuesto-card">
+            <div class="card-section-title-row">
+              <span class="card-section-title"> Asignación Presupuestal</span>
+            </div>
+            <div class="presupuesto-grid">
+              @for (p of presupuestoMiRed; track p.red) {
+                <div class="presupuesto-red-item">
+                  <div class="presupuesto-red-nombre">{{ p.red }}</div>
+                  <div class="presupuesto-techo-row">
+                    <span class="presupuesto-anio">Techo {{ p.anio }}</span>
+                    <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="presupuesto-linea">
+                    <span class="presupuesto-etq">Ejecutado</span>
+                    <span class="presupuesto-ejec">S/ {{ p.ejecutado | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="presupuesto-linea">
+                    <span class="presupuesto-etq">Saldo disponible</span>
+                    <span class="presupuesto-saldo" [class.saldo-negativo]="p.saldo < 0"
+                      >S/ {{ p.saldo | number: '1.2-2' }}</span
+                    >
+                  </div>
+                  <div class="presupuesto-barra-bg">
+                    <div
+                      class="presupuesto-barra-fill"
+                      [class.barra-excedida]="p.pct >= 100"
+                      [style.width.%]="p.pct"
+                    ></div>
+                  </div>
+                  <div class="presupuesto-pct">{{ p.pct }}% ejecutado</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
         <!-- SOLICITUDES PENDIENTES -->
         <div class="card">
           <div class="card-section-title-row">
@@ -490,44 +530,6 @@
           }
         </div>
 
-        <!-- ASIGNACIÓN PRESUPUESTAL -->
-        @if (presupuestoMiRed.length > 0) {
-          <div class="card presupuesto-card">
-            <div class="card-section-title-row">
-              <span class="card-section-title"> Asignación Presupuestal</span>
-            </div>
-            <div class="presupuesto-grid">
-              @for (p of presupuestoMiRed; track p.red) {
-                <div class="presupuesto-red-item">
-                  <div class="presupuesto-red-nombre">{{ p.red }}</div>
-                  <div class="presupuesto-techo-row">
-                    <span class="presupuesto-anio">Techo {{ p.anio }}</span>
-                    <span class="presupuesto-monto">S/ {{ p.techo | number: '1.2-2' }}</span>
-                  </div>
-                  <div class="presupuesto-linea">
-                    <span class="presupuesto-etq">Ejecutado</span>
-                    <span class="presupuesto-ejec">S/ {{ p.ejecutado | number: '1.2-2' }}</span>
-                  </div>
-                  <div class="presupuesto-linea">
-                    <span class="presupuesto-etq">Saldo disponible</span>
-                    <span class="presupuesto-saldo" [class.saldo-negativo]="p.saldo < 0"
-                      >S/ {{ p.saldo | number: '1.2-2' }}</span
-                    >
-                  </div>
-                  <div class="presupuesto-barra-bg">
-                    <div
-                      class="presupuesto-barra-fill"
-                      [class.barra-excedida]="p.pct >= 100"
-                      [style.width.%]="p.pct"
-                    ></div>
-                  </div>
-                  <div class="presupuesto-pct">{{ p.pct }}% ejecutado</div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      }
       <!-- fin @if seccionActiva === 'inicio' -->
 
       @if (seccionActiva === 'sindicatos') {

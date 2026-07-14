@@ -31,11 +31,8 @@
 
 /* ── ASIGNACIÓN PRESUPUESTAL ─────────────────── */
 .presupuesto-card {
-  grid-column: 3;
-  grid-row: 1;
-}
-.presupuesto-card {
   border-top-color: #16a34a;
+  margin-bottom: 20px;
 }
 
 .presupuesto-grid {
