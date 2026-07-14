@@ -18,6 +18,24 @@ export class NotasService {
     });
   }
 
+  // ── Plantilla de certificado (.docx por capacitación) ──
+  getPlantillaInfo(codigoAct: string): Observable<any> {
+    return this.http.get<any>(`/api/actividades/${encodeURIComponent(codigoAct)}/plantilla-certificado/info`);
+  }
+
+  subirPlantilla(codigoAct: string, file: File, subidoPor: string): Observable<any> {
+    const fd = new FormData();
+    fd.append('archivo', file);
+    fd.append('subido_por', subidoPor || '');
+    return this.http.post<any>(`/api/actividades/${encodeURIComponent(codigoAct)}/plantilla-certificado`, fd);
+  }
+
+  getPlantillaBuffer(codigoAct: string): Observable<ArrayBuffer> {
+    return this.http.get(`/api/actividades/${encodeURIComponent(codigoAct)}/plantilla-certificado`, {
+      responseType: 'arraybuffer',
+    });
+  }
+
   /** Genera y descarga la plantilla de notas pre-llenada con los participantes. */
   async descargarPlantilla(codigoAct: string, nombreActividad: string, participantes: any[]): Promise<void> {
     const wb = new ExcelJS.Workbook();

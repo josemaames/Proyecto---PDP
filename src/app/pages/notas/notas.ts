@@ -33,6 +33,11 @@ export class Notas implements OnInit {
   errorSubida = '';
   noEncontrados: any[] = [];
 
+  plantillaInfo: any = null;
+  subiendoPlantilla = false;
+  mensajePlantilla = '';
+  marcadores = ['{{nombre}}', '{{dni}}', '{{nota}}', '{{curso}}', '{{fecha}}'];
+
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
@@ -40,7 +45,29 @@ export class Notas implements OnInit {
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.esEjecutor = tieneRol(this.usuario, 'Ejecutor');
     this.codigoAct = this.route.snapshot.paramMap.get('codigo_act') || '';
+    this.ns.getPlantillaInfo(this.codigoAct).subscribe({ next: (i) => (this.plantillaInfo = i) });
     this.cargar();
+  }
+
+  onPlantilla(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!/\.docx$/i.test(file.name)) { this.mensajePlantilla = 'La plantilla debe ser un archivo .docx'; input.value = ''; return; }
+    this.subiendoPlantilla = true;
+    this.mensajePlantilla = '';
+    this.ns.subirPlantilla(this.codigoAct, file, this.usuario.nombre).subscribe({
+      next: () => {
+        this.subiendoPlantilla = false;
+        this.mensajePlantilla = 'Plantilla subida. Los certificados usarán este formato.';
+        this.ns.getPlantillaInfo(this.codigoAct).subscribe({ next: (i) => (this.plantillaInfo = i) });
+      },
+      error: (err) => {
+        this.subiendoPlantilla = false;
+        this.mensajePlantilla = err.error?.error || 'No se pudo subir la plantilla.';
+      },
+    });
+    input.value = '';
   }
 
   cargar(): void {
@@ -109,13 +136,27 @@ export class Notas implements OnInit {
     const datos = this.aprobados.map((p) => ({
       nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha,
     }));
-    this.cert.descargarCurso(datos, this.codigoAct);
+    if (!datos.length) return;
+    if (this.plantillaInfo?.existe) {
+      this.ns.getPlantillaBuffer(this.codigoAct).subscribe({
+        next: (buf) => this.cert.descargarCursoDocx(buf, datos, this.codigoAct),
+        error: () => alert('No se pudo obtener la plantilla.'),
+      });
+    } else {
+      this.cert.descargarCurso(datos, this.codigoAct); // respaldo: PDF genérico
+    }
   }
 
   descargarCertificado(p: any): void {
-    this.cert.descargarIndividual({
-      nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha: this.fechaCertificado(),
-    });
+    const d = { nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha: this.fechaCertificado() };
+    if (this.plantillaInfo?.existe) {
+      this.ns.getPlantillaBuffer(this.codigoAct).subscribe({
+        next: (buf) => this.cert.descargarIndividualDocx(buf, d),
+        error: () => alert('No se pudo obtener la plantilla.'),
+      });
+    } else {
+      this.cert.descargarIndividual(d);
+    }
   }
 
   get gradoDona(): string {

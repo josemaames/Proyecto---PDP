@@ -80,6 +80,29 @@
         </div>
       </div>
 
+      <!-- PLANTILLA DE CERTIFICADO -->
+      <div class="card">
+        <div class="card-titulo">Plantilla del certificado</div>
+        <p class="card-sub" *ngIf="plantillaInfo?.existe">
+          Plantilla cargada: <strong>{{ plantillaInfo.filename }}</strong><span *ngIf="plantillaInfo.subido_por"> — por {{ plantillaInfo.subido_por }}</span>.
+          Los certificados se generarán con este formato (.docx).
+        </p>
+        <p class="card-sub" *ngIf="plantillaInfo && !plantillaInfo.existe">
+          No hay plantilla subida: se usará un certificado genérico (PDF). Sube un <strong>.docx</strong> para usar tu propio diseño.
+        </p>
+        <div class="subida-btns" *ngIf="esEjecutor">
+          <label class="btn-subir" [class.disabled]="subiendoPlantilla">
+            {{ subiendoPlantilla ? 'Subiendo…' : (plantillaInfo?.existe ? 'Reemplazar plantilla (.docx)' : 'Subir plantilla (.docx)') }}
+            <input type="file" accept=".docx" (change)="onPlantilla($event)" [disabled]="subiendoPlantilla" hidden />
+          </label>
+        </div>
+        <p class="hint-marcadores" *ngIf="esEjecutor">
+          En tu Word, escribe estos marcadores donde quieras que vaya cada dato:
+          <code *ngFor="let m of marcadores">{{ m }}</code>
+        </p>
+        <p class="msg-ok" *ngIf="mensajePlantilla">{{ mensajePlantilla }}</p>
+      </div>
+
       <!-- KPIs -->
       <div class="kpis">
         <div class="kpi"><div class="kpi-val">{{ data.total }}</div><div class="kpi-lbl">Participantes</div></div>

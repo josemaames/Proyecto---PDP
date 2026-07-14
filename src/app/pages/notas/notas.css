@@ -56,6 +56,11 @@
 .histo-num { font-weight: 700; color: #1f2d3d; font-size: 13px; margin-top: 4px; }
 .histo-rango { font-size: 11px; color: #64748b; }
 
+.hint-marcadores { font-size: 13px; color: #64748b; margin-top: 12px; line-height: 2; }
+.hint-marcadores code {
+  background: #eef2f7; color: #1a3d7c; border: 1px solid #dbe3ee; border-radius: 6px;
+  padding: 2px 7px; font-family: ui-monospace, monospace; font-size: 12.5px; margin: 0 3px;
+}
 .notas-tabla-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .btn-cert {
   background: #0f6b3f; color: #fff; border: none; border-radius: 8px;

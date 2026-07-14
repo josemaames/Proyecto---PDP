@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import * as echarts from 'echarts';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { NotasStatsService, NotasStats } from '../../services/notas-stats.service';
 
 type ResumenRed = {
   red: string;
@@ -860,7 +861,86 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (this.esAdministrador) {
       this.cargarDatosAdmin();
+      this.cargarNotasStats();
     }
+  }
+
+  // ── Resultados de notas (aprobados/desaprobados) ────────────
+  private notasStatsSrv = inject(NotasStatsService);
+  notasStats: NotasStats | null = null;
+  cargandoNotas = false;
+  filtroNotasRed = '';
+  filtroNotasCapacitacion = '';
+  filtroNotasSexo = '';
+
+  cargarNotasStats(): void {
+    this.cargandoNotas = true;
+    this.notasStatsSrv
+      .getStats({
+        red: this.filtroNotasRed,
+        codigo_act: this.filtroNotasCapacitacion,
+        sexo: this.filtroNotasSexo,
+      })
+      .subscribe({
+        next: (d) => {
+          this.notasStats = d;
+          this.cargandoNotas = false;
+          this.buscarCapacitaciones(); // refresca la lista del buscador con las capacitaciones disponibles
+        },
+        error: () => (this.cargandoNotas = false),
+      });
+  }
+
+  limpiarFiltrosNotas(): void {
+    this.filtroNotasRed = '';
+    this.filtroNotasCapacitacion = '';
+    this.filtroNotasSexo = '';
+    this.textoBusquedaCap = '';
+    this.cargarNotasStats();
+  }
+
+  // ── Buscador de capacitación (autocompletado) ──────────────
+  textoBusquedaCap = '';
+  mostrarSugerenciasCap = false;
+  capacitacionesFiltradas: { codigo_act: string; nombre_actividad: string }[] = [];
+
+  buscarCapacitaciones(): void {
+    const q = this.textoBusquedaCap.trim().toLowerCase();
+    const todas = this.notasStats?.capacitacionesDisponibles || [];
+    this.capacitacionesFiltradas = q
+      ? todas.filter((c) => c.nombre_actividad.toLowerCase().includes(q)).slice(0, 20)
+      : todas.slice(0, 20);
+  }
+
+  seleccionarCapacitacion(c: { codigo_act: string; nombre_actividad: string }): void {
+    this.filtroNotasCapacitacion = c.codigo_act;
+    this.textoBusquedaCap = c.nombre_actividad;
+    this.mostrarSugerenciasCap = false;
+    this.cargarNotasStats();
+  }
+
+  quitarFiltroCapacitacion(): void {
+    this.filtroNotasCapacitacion = '';
+    this.textoBusquedaCap = '';
+    this.cargarNotasStats();
+  }
+
+  ocultarSugerenciasCapConDelay(): void {
+    // pequeño delay para permitir que el (mousedown) de la sugerencia se dispare antes del blur
+    setTimeout(() => (this.mostrarSugerenciasCap = false), 150);
+  }
+
+  get notasMaxBucket(): number {
+    return Math.max(1, ...(this.notasStats?.distribucion || []).map((b) => b.cantidad));
+  }
+
+  get notasGradoDona(): string {
+    const pct = this.notasStats?.pctAprobacion || 0;
+    return `conic-gradient(#16a34a 0% ${pct}%, #dc2626 ${pct}% 100%)`;
+  }
+
+  pctFila(aprobados: number, total: number): number {
+    return total ? Math.round((aprobados / total) * 100) : 0;
   }
 
   ngOnDestroy() {

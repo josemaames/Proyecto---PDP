@@ -468,6 +468,18 @@ async function crearTablas() {
   await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS fuera_de_plazo BOOLEAN NOT NULL DEFAULT FALSE`);
   console.log('✓ Columnas de notas verificadas');
 
+  // Plantilla de certificado (.docx con marcadores) por capacitación
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS certificado_plantilla (
+      codigo_act  TEXT PRIMARY KEY,
+      filename    TEXT,
+      contenido   BYTEA NOT NULL,
+      subido_por  TEXT,
+      subido_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  console.log('✓ Tabla certificado_plantilla verificada');
+
   console.log('✓ Tablas verificadas');
 }
 
@@ -2221,6 +2233,140 @@ app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
       distribucion,
       participantes: parts,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// ESTADÍSTICAS DE NOTAS (dashboard admin) — aprobados/desaprobados, filtrable
+// ──────────────────────────────────────────────
+app.get('/api/notas/stats', async (req, res) => {
+  try {
+    const { red = '', codigo_act = '', sexo = '' } = req.query;
+    const cond = ['nota IS NOT NULL'], params = [];
+    let idx = 1;
+    if (red) { cond.push(`red ILIKE $${idx++}`); params.push(`%${red}%`); }
+    if (codigo_act) { cond.push(`codigo_act = $${idx++}`); params.push(codigo_act); }
+    if (sexo) { cond.push(`sexo = $${idx++}`); params.push(sexo); }
+    const where = `WHERE ${cond.join(' AND ')}`;
+
+    const [resumen, porRed, porCapacitacion, porSexo, distribucion, capacitaciones] = await Promise.all([
+      pool.query(
+        `SELECT COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
+                COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados,
+                COALESCE(AVG(nota),0)::numeric(4,2) AS promedio
+         FROM lista_participantes ${where}`, params),
+      pool.query(
+        `SELECT COALESCE(red,'Sin Red') AS red,
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
+                COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados
+         FROM lista_participantes ${where}
+         GROUP BY COALESCE(red,'Sin Red') ORDER BY total DESC LIMIT 15`, params),
+      pool.query(
+        `SELECT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad,
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE p.condicion='Aprobado')::int AS aprobados,
+                COUNT(*) FILTER (WHERE p.condicion='Desaprobado')::int AS desaprobados
+         FROM lista_participantes p
+         LEFT JOIN datos_actividad a ON a.codigo_act = p.codigo_act
+         ${where}
+         GROUP BY p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act)
+         ORDER BY total DESC LIMIT 15`, params),
+      pool.query(
+        `SELECT COALESCE(sexo,'No especificado') AS sexo,
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
+                COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados
+         FROM lista_participantes ${where}
+         GROUP BY COALESCE(sexo,'No especificado')`, params),
+      pool.query(
+        `SELECT
+           COUNT(*) FILTER (WHERE nota BETWEEN 0 AND 5)::int   AS b1,
+           COUNT(*) FILTER (WHERE nota BETWEEN 6 AND 10)::int  AS b2,
+           COUNT(*) FILTER (WHERE nota BETWEEN 11 AND 12)::int AS b3,
+           COUNT(*) FILTER (WHERE nota BETWEEN 13 AND 16)::int AS b4,
+           COUNT(*) FILTER (WHERE nota BETWEEN 17 AND 20)::int AS b5
+         FROM lista_participantes ${where}`, params),
+      // Para el <select> de capacitaciones del filtro (todas las que tienen notas, sin aplicar filtros)
+      pool.query(
+        `SELECT DISTINCT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad
+         FROM lista_participantes p
+         LEFT JOIN datos_actividad a ON a.codigo_act = p.codigo_act
+         WHERE p.nota IS NOT NULL ORDER BY 2`, []),
+    ]);
+
+    const r = resumen.rows[0];
+    res.json({
+      total: r.total,
+      aprobados: r.aprobados,
+      desaprobados: r.desaprobados,
+      promedio: Number(r.promedio),
+      pctAprobacion: r.total ? Math.round((r.aprobados / r.total) * 100) : 0,
+      porRed: porRed.rows,
+      porCapacitacion: porCapacitacion.rows,
+      porSexo: porSexo.rows,
+      distribucion: [
+        { rango: '0-5', cantidad: distribucion.rows[0].b1 },
+        { rango: '6-10', cantidad: distribucion.rows[0].b2 },
+        { rango: '11-12', cantidad: distribucion.rows[0].b3 },
+        { rango: '13-16', cantidad: distribucion.rows[0].b4 },
+        { rango: '17-20', cantidad: distribucion.rows[0].b5 },
+      ],
+      capacitacionesDisponibles: capacitaciones.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// PLANTILLA DE CERTIFICADO (.docx con marcadores) por capacitación — la sube el ejecutor
+// ──────────────────────────────────────────────
+app.post('/api/actividades/:codigo_act/plantilla-certificado', upload.single('archivo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se envió ningún archivo.' });
+    const nombre = req.file.originalname || 'plantilla.docx';
+    if (!/\.docx$/i.test(nombre)) return res.status(400).json({ error: 'La plantilla debe ser un archivo .docx' });
+    const { subido_por } = req.body;
+    await pool.query(
+      `INSERT INTO certificado_plantilla (codigo_act, filename, contenido, subido_por, subido_at)
+       VALUES ($1,$2,$3,$4,NOW())
+       ON CONFLICT (codigo_act) DO UPDATE SET filename=EXCLUDED.filename, contenido=EXCLUDED.contenido, subido_por=EXCLUDED.subido_por, subido_at=NOW()`,
+      [req.params.codigo_act, nombre, req.file.buffer, subido_por || ''],
+    );
+    logEvento('plantilla_certificado', `${subido_por || 'Ejecutor'} subió/actualizó la plantilla de certificado de ${req.params.codigo_act}`, subido_por, 'Ejecutor', req.params.codigo_act);
+    res.json({ ok: true, filename: nombre });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/actividades/:codigo_act/plantilla-certificado/info', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT filename, subido_por, subido_at FROM certificado_plantilla WHERE codigo_act=$1',
+      [req.params.codigo_act],
+    );
+    if (!rows.length) return res.json({ existe: false });
+    res.json({ existe: true, ...rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/actividades/:codigo_act/plantilla-certificado', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT filename, contenido FROM certificado_plantilla WHERE codigo_act=$1',
+      [req.params.codigo_act],
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No hay plantilla para esta actividad.' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${rows[0].filename || 'plantilla.docx'}"`);
+    res.send(rows[0].contenido);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
