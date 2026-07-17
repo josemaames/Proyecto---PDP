@@ -1,0 +1,96 @@
+<div class="cd-layout">
+  <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger" (click)="volver()" title="Volver al Inicio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Carpetas de Certificados en Drive</div>
+      </div>
+    </div>
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
+            </div>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <main class="cd-main">
+    <div class="cd-titulo">
+      <h1>Carpetas de Certificados en Drive</h1>
+      <p class="cd-sub">
+        Pega aquí el link de la carpeta de Google Drive de cada red. Los certificados se suben ahí
+        manualmente por el ejecutor (no se guardan en el servidor). Comparte la carpeta con el
+        ejecutor y sectorista de esa red antes de pegar el link.
+      </p>
+    </div>
+
+    <div *ngIf="cargando" class="cd-centro">Cargando…</div>
+
+    <div class="cd-card" *ngIf="!cargando">
+      <table class="cd-tabla">
+        <thead>
+          <tr><th>Red</th><th>Link de Drive</th><th class="c">Actualizado</th><th class="c">Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <td class="cd-red">{{ f.red }}</td>
+            <td class="cd-link-cell">
+              <ng-container *ngIf="!f.editando">
+                <a *ngIf="f.drive_url" [href]="f.drive_url" target="_blank" class="cd-link">{{ f.drive_url }}</a>
+                <span *ngIf="!f.drive_url" class="cd-sin-link">Sin carpeta configurada</span>
+              </ng-container>
+              <input
+                *ngIf="f.editando"
+                type="text"
+                [(ngModel)]="f.borrador"
+                placeholder="https://drive.google.com/drive/folders/..."
+                class="cd-input"
+              />
+            </td>
+            <td class="c cd-fecha">
+              <ng-container *ngIf="f.actualizado_at">
+                {{ f.actualizado_at | date: 'dd/MM/yyyy' }}<br />
+                <span class="cd-por">{{ f.actualizado_por || '—' }}</span>
+              </ng-container>
+              <span *ngIf="!f.actualizado_at">—</span>
+            </td>
+            <td class="c cd-acciones">
+              <ng-container *ngIf="!f.editando">
+                <button class="cd-btn-sm" (click)="editar(f)">{{ f.drive_url ? 'Editar' : 'Agregar' }}</button>
+                <button class="cd-btn-sm cd-btn-abrir" *ngIf="f.drive_url" (click)="abrir(f)">Abrir</button>
+              </ng-container>
+              <ng-container *ngIf="f.editando">
+                <button class="cd-btn-sm cd-btn-guardar" (click)="guardar(f)" [disabled]="guardandoRed === f.red">
+                  {{ guardandoRed === f.red ? 'Guardando…' : 'Guardar' }}
+                </button>
+                <button class="cd-btn-sm" (click)="cancelar(f)" [disabled]="guardandoRed === f.red">Cancelar</button>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="filas.length === 0"><td colspan="4" class="cd-vacio">No hay redes registradas.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>

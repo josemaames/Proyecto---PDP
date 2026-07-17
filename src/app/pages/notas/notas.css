@@ -62,6 +62,7 @@
   padding: 2px 7px; font-family: ui-monospace, monospace; font-size: 12.5px; margin: 0 3px;
 }
 .notas-tabla-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.notas-tabla-head-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn-cert {
   background: #0f6b3f; color: #fff; border: none; border-radius: 8px;
   padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
@@ -72,6 +73,17 @@
   padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
 }
 .btn-cert-mini:hover { background: #ecfdf3; }
+.btn-drive {
+  background: #fff; color: #1a3d7c; border: 1.5px solid #1a3d7c; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-drive:hover { background: #eef4fc; }
+.drive-sin-config { font-size: 12px; color: #9a3412; margin: 12px 0 0; }
+.drive-subida-box {
+  margin-top: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.drive-desc { font-size: 13px; color: #64748b; margin: 0; max-width: 520px; }
 
 .tabla-scroll { overflow-x: auto; }
 .tabla-notas { width: 100%; border-collapse: collapse; }

@@ -80,27 +80,21 @@
         </div>
       </div>
 
-      <!-- PLANTILLA DE CERTIFICADO -->
+      <!-- SUBIR CERTIFICADOS -->
       <div class="card">
-        <div class="card-titulo">Plantilla del certificado</div>
-        <p class="card-sub" *ngIf="plantillaInfo?.existe">
-          Plantilla cargada: <strong>{{ plantillaInfo.filename }}</strong><span *ngIf="plantillaInfo.subido_por"> — por {{ plantillaInfo.subido_por }}</span>.
-          Los certificados se generarán con este formato (.docx).
-        </p>
-        <p class="card-sub" *ngIf="plantillaInfo && !plantillaInfo.existe">
-          No hay plantilla subida: se usará un certificado genérico (PDF). Sube un <strong>.docx</strong> para usar tu propio diseño.
-        </p>
-        <div class="subida-btns" *ngIf="esEjecutor">
-          <label class="btn-subir" [class.disabled]="subiendoPlantilla">
-            {{ subiendoPlantilla ? 'Subiendo…' : (plantillaInfo?.existe ? 'Reemplazar plantilla (.docx)' : 'Subir plantilla (.docx)') }}
-            <input type="file" accept=".docx" (change)="onPlantilla($event)" [disabled]="subiendoPlantilla" hidden />
-          </label>
+        <div class="card-titulo">Subir Certificados</div>
+
+        <div class="drive-subida-box" *ngIf="carpetaDriveUrl">
+          <p class="drive-desc">
+            Una vez descargados los certificados de los aprobados, ábrelos en la carpeta de Drive
+            de esta red. Dentro, crea (o entra a) la subcarpeta con el código de esta capacitación
+            <strong>{{ codigoAct }}</strong> y sube ahí los certificados, para mantenerlos organizados.
+          </p>
+          <button class="btn-drive" (click)="abrirCarpetaDrive()">Abrir carpeta de Drive</button>
         </div>
-        <p class="hint-marcadores" *ngIf="esEjecutor">
-          En tu Word, escribe estos marcadores donde quieras que vaya cada dato:
-          <code *ngFor="let m of marcadores">{{ m }}</code>
+        <p class="drive-sin-config" *ngIf="!carpetaDriveUrl">
+          Esta red aún no tiene carpeta de Drive configurada (el administrador la agrega en "Carpetas Drive").
         </p>
-        <p class="msg-ok" *ngIf="mensajePlantilla">{{ mensajePlantilla }}</p>
       </div>
 
       <!-- KPIs -->

@@ -19,7 +19,9 @@
     "express": "^4.19.2",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.0",
-    "pg": "^8.11.5"
+    "oracledb": "^7.0.1",
+    "pg": "^8.11.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

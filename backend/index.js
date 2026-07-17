@@ -52,6 +52,18 @@ function expandirRed(r) {
   return u;
 }
 
+// Reduce cualquier variante del nombre de una red a su "núcleo" para comparar
+// ("RP ALMENARA", "RA ALMENARA", "RED PRESTACIONAL ALMENARA" → "ALMENARA").
+function normalizarRedKey(r) {
+  if (!r) return '';
+  return r
+    .toString()
+    .trim()
+    .toUpperCase()
+    .replace(/^RED (ASISTENCIAL|PRESTACIONAL)\s+/, '')
+    .replace(/^(RA|RP)\s+/, '');
+}
+
 // ──────────────────────────────────────────────
 // Caché en memoria (evita queries repetidas)
 // ──────────────────────────────────────────────
@@ -447,9 +459,6 @@ async function crearTablas() {
       UNIQUE(actividad_id, paso_nombre)
     )
   `);
-  await pool.query(
-    `CREATE INDEX IF NOT EXISTS idx_hoja_ruta_actividad ON hoja_ruta_pasos(actividad_id)`,
-  );
   console.log('✓ Tabla hoja_ruta_pasos verificada');
 
   // Columnas de corrección en solicitudes_revision
@@ -468,17 +477,20 @@ async function crearTablas() {
   await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS fuera_de_plazo BOOLEAN NOT NULL DEFAULT FALSE`);
   console.log('✓ Columnas de notas verificadas');
 
-  // Plantilla de certificado (.docx con marcadores) por capacitación
+  // Carpeta de Drive por red, donde se guardan los certificados (subida manual por el ejecutor)
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS certificado_plantilla (
-      codigo_act  TEXT PRIMARY KEY,
-      filename    TEXT,
-      contenido   BYTEA NOT NULL,
-      subido_por  TEXT,
-      subido_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    CREATE TABLE IF NOT EXISTS certificado_carpeta_drive (
+      red             TEXT PRIMARY KEY,
+      drive_url       TEXT NOT NULL,
+      actualizado_por TEXT,
+      actualizado_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
-  console.log('✓ Tabla certificado_plantilla verificada');
+  console.log('✓ Tabla certificado_carpeta_drive verificada');
+
+  // Funcionalidad de plantilla .docx retirada (se reemplazó por subida manual a Drive).
+  // Se elimina la tabla para liberar el espacio que ocupaban los .docx guardados.
+  await pool.query(`DROP TABLE IF EXISTS certificado_plantilla`);
 
   console.log('✓ Tablas verificadas');
 }
@@ -501,6 +513,21 @@ async function logEvento(
 }
 
 async function crearIndices() {
+  // Limpieza: índices redundantes que ya quedan cubiertos por una UNIQUE
+  // constraint existente (ver database/schema.sql). Se borran si ya existen
+  // de instalaciones previas de la app.
+  const limpieza = [
+    `DROP INDEX IF EXISTS idx_personal_dni`,       // cubierto por personal_dni_ce_unique
+    `DROP INDEX IF EXISTS idx_hoja_ruta_actividad`, // cubierto por UNIQUE(actividad_id, paso_nombre)
+  ];
+  for (const sql of limpieza) {
+    try {
+      await pool.query(sql);
+    } catch (err) {
+      console.warn('⚠ Limpieza de índice omitida:', err.message.split('\n')[0]);
+    }
+  }
+
   const indices = [
     // Filtros por red (RBAC y resumen-redes)
     `CREATE INDEX IF NOT EXISTS idx_actividad_red ON datos_actividad(red_asistencial)`,
@@ -524,9 +551,6 @@ async function crearIndices() {
 
     // Ordenación eficiente de actividades (paginación sin filtro de red — admin)
     `CREATE INDEX IF NOT EXISTS idx_actividad_numero ON datos_actividad(numero NULLS LAST)`,
-
-    // Búsqueda por DNI en personal
-    `CREATE INDEX IF NOT EXISTS idx_personal_dni ON personal(dni_ce)`,
 
     // Extensiones de texto
     `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
@@ -580,12 +604,16 @@ async function crearConstraints() {
      END $$`,
 
     // FK: lista_participantes.codigo_act → datos_actividad.codigo_act
+    // ON DELETE SET NULL: los participantes son trabajadores reales y deben
+    // seguir existiendo aunque se borre la capacitación (solo pierden el vínculo).
+    // Se borra y recrea siempre por si ya existía con el ON DELETE anterior (CASCADE).
     `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_actividad') THEN
-         ALTER TABLE lista_participantes
-           ADD CONSTRAINT fk_participantes_actividad
-           FOREIGN KEY (codigo_act) REFERENCES datos_actividad(codigo_act) ON DELETE CASCADE;
+       IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_actividad') THEN
+         ALTER TABLE lista_participantes DROP CONSTRAINT fk_participantes_actividad;
        END IF;
+       ALTER TABLE lista_participantes
+         ADD CONSTRAINT fk_participantes_actividad
+         FOREIGN KEY (codigo_act) REFERENCES datos_actividad(codigo_act) ON DELETE SET NULL;
      END $$`,
 
     // FK: lista_participantes.dni_ce → personal.dni_ce
@@ -611,6 +639,69 @@ async function crearConstraints() {
          ALTER TABLE solicitudes_revision
            ADD CONSTRAINT fk_solicitudes_ejecutor
            FOREIGN KEY (ejecutor_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
+       END IF;
+     END $$`,
+
+    // Backfill: si alguna 'red' usada en solicitud_presupuesto o
+    // certificado_carpeta_drive no existe aún en presupuesto_redes, se crea
+    // con techo 0 para que las FK de abajo no fallen sobre datos existentes.
+    `INSERT INTO presupuesto_redes (red, techo)
+       SELECT DISTINCT red, 0 FROM solicitud_presupuesto
+       WHERE red IS NOT NULL AND red NOT IN (SELECT red FROM presupuesto_redes)
+       ON CONFLICT (red) DO NOTHING`,
+    `INSERT INTO presupuesto_redes (red, techo)
+       SELECT DISTINCT red_destino, 0 FROM solicitud_presupuesto
+       WHERE red_destino IS NOT NULL AND red_destino NOT IN (SELECT red FROM presupuesto_redes)
+       ON CONFLICT (red) DO NOTHING`,
+    `INSERT INTO presupuesto_redes (red, techo)
+       SELECT DISTINCT red, 0 FROM certificado_carpeta_drive
+       WHERE red IS NOT NULL AND red NOT IN (SELECT red FROM presupuesto_redes)
+       ON CONFLICT (red) DO NOTHING`,
+
+    // FK: solicitud_presupuesto.red → presupuesto_redes.red
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_red') THEN
+         ALTER TABLE solicitud_presupuesto
+           ADD CONSTRAINT fk_solpres_red
+           FOREIGN KEY (red) REFERENCES presupuesto_redes(red);
+       END IF;
+     END $$`,
+
+    // FK: solicitud_presupuesto.red_destino → presupuesto_redes.red (nullable, solo en 'reasignacion')
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_red_destino') THEN
+         ALTER TABLE solicitud_presupuesto
+           ADD CONSTRAINT fk_solpres_red_destino
+           FOREIGN KEY (red_destino) REFERENCES presupuesto_redes(red);
+       END IF;
+     END $$`,
+
+    // FK: solicitud_presupuesto.solicitante_dni → usuarios_sistema.dni
+    // (siempre es el usuario logueado que hace clic en "Modificar presupuesto")
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_solicitante') THEN
+         ALTER TABLE solicitud_presupuesto
+           ADD CONSTRAINT fk_solpres_solicitante
+           FOREIGN KEY (solicitante_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
+       END IF;
+     END $$`,
+
+    // FK: solicitud_presupuesto.revisor_dni → usuarios_sistema.dni
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_revisor') THEN
+         ALTER TABLE solicitud_presupuesto
+           ADD CONSTRAINT fk_solpres_revisor
+           FOREIGN KEY (revisor_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
+       END IF;
+     END $$`,
+
+    // FK: certificado_carpeta_drive.red → presupuesto_redes.red
+    // (red es a la vez PK de esta tabla y FK a presupuesto_redes — patrón "PF")
+    `DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_certcarpeta_red') THEN
+         ALTER TABLE certificado_carpeta_drive
+           ADD CONSTRAINT fk_certcarpeta_red
+           FOREIGN KEY (red) REFERENCES presupuesto_redes(red);
        END IF;
      END $$`,
   ];
@@ -2202,7 +2293,7 @@ app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
 app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
   const codigo_act = req.params.codigo_act;
   try {
-    const act = await pool.query('SELECT nombre_actividad, fecha_fin FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
+    const act = await pool.query('SELECT nombre_actividad, fecha_fin, red_asistencial FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
     const fecha_fin = act.rows[0]?.fecha_fin || null;
     const ventana = ventanaNotas(fecha_fin);
 
@@ -2222,6 +2313,7 @@ app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
     }));
     res.json({
       nombre_actividad: act.rows[0]?.nombre_actividad || codigo_act,
+      red_asistencial: act.rows[0]?.red_asistencial || null,
       notaMinima: NOTA_MINIMA,
       ventana,
       total: parts.length,
@@ -2323,50 +2415,43 @@ app.get('/api/notas/stats', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
-// PLANTILLA DE CERTIFICADO (.docx con marcadores) por capacitación — la sube el ejecutor
+// CARPETAS DE DRIVE por red (donde se guardan los certificados)
 // ──────────────────────────────────────────────
-app.post('/api/actividades/:codigo_act/plantilla-certificado', upload.single('archivo'), async (req, res) => {
+app.get('/api/certificados/carpetas', async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'No se envió ningún archivo.' });
-    const nombre = req.file.originalname || 'plantilla.docx';
-    if (!/\.docx$/i.test(nombre)) return res.status(400).json({ error: 'La plantilla debe ser un archivo .docx' });
-    const { subido_por } = req.body;
-    await pool.query(
-      `INSERT INTO certificado_plantilla (codigo_act, filename, contenido, subido_por, subido_at)
-       VALUES ($1,$2,$3,$4,NOW())
-       ON CONFLICT (codigo_act) DO UPDATE SET filename=EXCLUDED.filename, contenido=EXCLUDED.contenido, subido_por=EXCLUDED.subido_por, subido_at=NOW()`,
-      [req.params.codigo_act, nombre, req.file.buffer, subido_por || ''],
-    );
-    logEvento('plantilla_certificado', `${subido_por || 'Ejecutor'} subió/actualizó la plantilla de certificado de ${req.params.codigo_act}`, subido_por, 'Ejecutor', req.params.codigo_act);
-    res.json({ ok: true, filename: nombre });
+    const { rows } = await pool.query('SELECT * FROM certificado_carpeta_drive ORDER BY red');
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/actividades/:codigo_act/plantilla-certificado/info', async (req, res) => {
+app.get('/api/certificados/carpetas/:red', async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT filename, subido_por, subido_at FROM certificado_plantilla WHERE codigo_act=$1',
-      [req.params.codigo_act],
-    );
-    if (!rows.length) return res.json({ existe: false });
-    res.json({ existe: true, ...rows[0] });
+    const buscada = normalizarRedKey(decodeURIComponent(req.params.red));
+    const { rows } = await pool.query('SELECT * FROM certificado_carpeta_drive');
+    const match = rows.find((r) => normalizarRedKey(r.red) === buscada);
+    if (!match) return res.json({ existe: false });
+    res.json({ existe: true, ...match });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/actividades/:codigo_act/plantilla-certificado', async (req, res) => {
+app.put('/api/certificados/carpetas/:red', async (req, res) => {
   try {
+    const red = decodeURIComponent(req.params.red);
+    const { drive_url, actualizado_por } = req.body;
+    if (!drive_url || !drive_url.trim()) return res.status(400).json({ error: 'drive_url requerido' });
     const { rows } = await pool.query(
-      'SELECT filename, contenido FROM certificado_plantilla WHERE codigo_act=$1',
-      [req.params.codigo_act],
+      `INSERT INTO certificado_carpeta_drive (red, drive_url, actualizado_por, actualizado_at)
+       VALUES ($1,$2,$3,NOW())
+       ON CONFLICT (red) DO UPDATE SET drive_url=EXCLUDED.drive_url, actualizado_por=EXCLUDED.actualizado_por, actualizado_at=NOW()
+       RETURNING *`,
+      [red, drive_url.trim(), actualizado_por || ''],
     );
-    if (!rows.length) return res.status(404).json({ error: 'No hay plantilla para esta actividad.' });
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="${rows[0].filename || 'plantilla.docx'}"`);
-    res.send(rows[0].contenido);
+    logEvento('carpeta_drive_actualizada', `${actualizado_por || 'Administrador'} actualizó la carpeta de Drive de ${red}`, actualizado_por, 'Administrador', red);
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotasService } from '../../services/notas.service';
 import { CertificadoService } from '../../services/certificado.service';
+import { CarpetasDriveService } from '../../services/carpetas-drive.service';
 import { tieneRol } from '../../utils/roles.util';
 
 @Component({
@@ -15,8 +16,11 @@ import { tieneRol } from '../../utils/roles.util';
 export class Notas implements OnInit {
   private ns = inject(NotasService);
   private cert = inject(CertificadoService);
+  private cds = inject(CarpetasDriveService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+
+  carpetaDriveUrl: string | null = null;
 
   usuario: any = {};
   inicialUsuario = 'U';
@@ -33,11 +37,6 @@ export class Notas implements OnInit {
   errorSubida = '';
   noEncontrados: any[] = [];
 
-  plantillaInfo: any = null;
-  subiendoPlantilla = false;
-  mensajePlantilla = '';
-  marcadores = ['{{nombre}}', '{{dni}}', '{{nota}}', '{{curso}}', '{{fecha}}'];
-
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
@@ -45,37 +44,27 @@ export class Notas implements OnInit {
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.esEjecutor = tieneRol(this.usuario, 'Ejecutor');
     this.codigoAct = this.route.snapshot.paramMap.get('codigo_act') || '';
-    this.ns.getPlantillaInfo(this.codigoAct).subscribe({ next: (i) => (this.plantillaInfo = i) });
     this.cargar();
-  }
-
-  onPlantilla(ev: Event): void {
-    const input = ev.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!/\.docx$/i.test(file.name)) { this.mensajePlantilla = 'La plantilla debe ser un archivo .docx'; input.value = ''; return; }
-    this.subiendoPlantilla = true;
-    this.mensajePlantilla = '';
-    this.ns.subirPlantilla(this.codigoAct, file, this.usuario.nombre).subscribe({
-      next: () => {
-        this.subiendoPlantilla = false;
-        this.mensajePlantilla = 'Plantilla subida. Los certificados usarán este formato.';
-        this.ns.getPlantillaInfo(this.codigoAct).subscribe({ next: (i) => (this.plantillaInfo = i) });
-      },
-      error: (err) => {
-        this.subiendoPlantilla = false;
-        this.mensajePlantilla = err.error?.error || 'No se pudo subir la plantilla.';
-      },
-    });
-    input.value = '';
   }
 
   cargar(): void {
     this.cargando = true;
     this.ns.getResultados(this.codigoAct).subscribe({
-      next: (d) => { this.data = d; this.cargando = false; },
+      next: (d) => {
+        this.data = d;
+        this.cargando = false;
+        if (d.red_asistencial) {
+          this.cds.getPorRed(d.red_asistencial).subscribe({
+            next: (c) => (this.carpetaDriveUrl = c.existe ? c.drive_url! : null),
+          });
+        }
+      },
       error: () => { this.cargando = false; },
     });
+  }
+
+  abrirCarpetaDrive(): void {
+    if (this.carpetaDriveUrl) window.open(this.carpetaDriveUrl, '_blank');
   }
 
   get puedeSubir(): boolean {
@@ -131,32 +120,21 @@ export class Notas implements OnInit {
     return new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  // Certificado genérico en PDF — provisional para pruebas. En producción, cada
+  // ejecutor diseña su propio certificado y lo sube manualmente a Drive (ver
+  // abrirCarpetaDrive), así que este generador dejará de usarse.
   descargarCertificados(): void {
     const fecha = this.fechaCertificado();
     const datos = this.aprobados.map((p) => ({
       nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha,
     }));
     if (!datos.length) return;
-    if (this.plantillaInfo?.existe) {
-      this.ns.getPlantillaBuffer(this.codigoAct).subscribe({
-        next: (buf) => this.cert.descargarCursoDocx(buf, datos, this.codigoAct),
-        error: () => alert('No se pudo obtener la plantilla.'),
-      });
-    } else {
-      this.cert.descargarCurso(datos, this.codigoAct); // respaldo: PDF genérico
-    }
+    this.cert.descargarCurso(datos, this.codigoAct);
   }
 
   descargarCertificado(p: any): void {
     const d = { nombre: p.nombre, dni: p.dni, nota: p.nota, curso: this.data.nombre_actividad, fecha: this.fechaCertificado() };
-    if (this.plantillaInfo?.existe) {
-      this.ns.getPlantillaBuffer(this.codigoAct).subscribe({
-        next: (buf) => this.cert.descargarIndividualDocx(buf, d),
-        error: () => alert('No se pudo obtener la plantilla.'),
-      });
-    } else {
-      this.cert.descargarIndividual(d);
-    }
+    this.cert.descargarIndividual(d);
   }
 
   get gradoDona(): string {

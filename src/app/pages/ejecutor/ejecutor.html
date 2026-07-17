@@ -208,23 +208,7 @@
  </div>
  <div class="campo">
  <label>Red asistencial / Unidad orgánica solicitante</label>
- <select [(ngModel)]="formulario.redAsistencial" disabled>
- <option value="">Seleccione...</option>
- <option value="RA ALMENARA">RA ALMENARA</option>
- <option value="RA AREQUIPA">RA AREQUIPA</option>
- <option value="RA CAJAMARCA">RA CAJAMARCA</option>
- <option value="RA CUSCO">RA CUSCO</option>
- <option value="RA ICA">RA ICA</option>
- <option value="RA JUNIN">RA JUNIN</option>
- <option value="RA LA LIBERTAD">RA LA LIBERTAD</option>
- <option value="RA LAMBAYEQUE">RA LAMBAYEQUE</option>
- <option value="RA PIURA">RA PIURA</option>
- <option value="RA REBAGLIATI">RA REBAGLIATI</option>
- <option value="RA SABOGAL">RA SABOGAL</option>
- <option value="RA TACNA">RA TACNA</option>
- <option value="RP REBAGLIATI">RP REBAGLIATI</option>
- <option value="SEDE CENTRAL">SEDE CENTRAL</option>
- </select>
+ <input type="text" [value]="formulario.redAsistencial" disabled class="input-bloqueado" />
  </div>
  <div class="campo">
  <label>Servicio / Área solicitante</label>

@@ -15,6 +15,7 @@ import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
 import { Documentos } from './pages/documentos/documentos';
 import { Presupuesto } from './pages/presupuesto/presupuesto';
 import { Notas } from './pages/notas/notas';
+import { CarpetasDrive } from './pages/carpetas-drive/carpetas-drive';
 
 const ADMIN = ['Administrador', 'Administrativo'];
 const SECTORISTA = ['Sectorista'];
@@ -103,6 +104,12 @@ export const routes: Routes = [
     path: 'notas/:codigo_act',
     component: Notas,
     canActivate: [authGuard, roleGuard(TODOS)],
+  },
+
+  {
+    path: 'carpetas-drive',
+    component: CarpetasDrive,
+    canActivate: [authGuard, roleGuard(ADMIN)],
   },
 
   {
