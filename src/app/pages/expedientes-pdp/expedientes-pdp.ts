@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { PdpDataService, Actividad } from '../../services/pdp-data.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { PdpDataService, Actividad } from '../../services/pdp-data.service';
 export class ExpedientesPdp implements OnInit {
  private pdpData = inject(PdpDataService);
  private router = inject(Router);
+ private http = inject(HttpClient);
 
  verNotas(cap: any) {
  this.router.navigate(['/notas', cap.codigo_act]);
@@ -44,22 +46,17 @@ export class ExpedientesPdp implements OnInit {
  'Otros',
  ];
 
- // Gestión de ejecutores (solo sectorista)
+ // Gestión de ejecutores (solo sectorista) — refleja los usuarios reales
+ // (con su 'sedes') administrados en la pantalla de Administración. Por ahora
+ // es de solo lectura salvo para ejecutores que aún no tienen ninguna red
+ // asignada; reasignar/quitar una red ya asignada se hace desde Administración.
  rolUsuario = '';
  mostrarModalAsignar = false;
  redesSectorista: string[] = [];
  ejecutoresDisponibles: any[] = [];
- asignaciones: { red: string; ejecutorDni: string; ejecutorNombre: string }[] = [];
  asignRedSeleccionada = '';
  asignEjecutorDni = '';
  asigExito = false;
-
- private readonly BASE_EJECUTORES = [
- { dni: '22222222', nombre: 'Ricardo Mendoza García', rol: 'Ejecutor', estado: 'Activo' },
- { dni: '44444444', nombre: 'Carlos Alberto Huanca Torres', rol: 'Ejecutor', estado: 'Activo' },
- { dni: '59874123', nombre: 'Ana Lucía Rodríguez Vargas', rol: 'Ejecutor', estado: 'Activo' },
- { dni: '74125896', nombre: 'Carmen Rosa Delgado Silva', rol: 'Ejecutor', estado: 'Inactivo' },
- ];
 
  get totalPaginas(): number {
  return Math.max(1, Math.ceil(this.total / this.limit));
@@ -82,7 +79,6 @@ export class ExpedientesPdp implements OnInit {
  .map((r) => r.trim())
  .filter(Boolean);
  this.cargarEjecutores();
- this.cargarAsignaciones();
  }
  if (!this.redFiltro) {
  this.pdpData.getResumenRedes().subscribe((redes) => {
@@ -93,26 +89,29 @@ export class ExpedientesPdp implements OnInit {
  }
 
  private cargarEjecutores() {
- const adminUsers: any[] = JSON.parse(localStorage.getItem('usuarios') || '[]');
- const merged = this.BASE_EJECUTORES.map((b) => {
- const override = adminUsers.find((a: any) => a.dni === b.dni);
- return override ? { ...b, ...override } : b;
- });
- const nuevos = adminUsers.filter(
- (a: any) => !this.BASE_EJECUTORES.some((b) => b.dni === a.dni) && a.rol === 'Ejecutor',
- );
- this.ejecutoresDisponibles = [...merged, ...nuevos].filter(
+ this.http.get<any[]>('/api/usuarios').subscribe({
+ next: (usuarios) => {
+ this.ejecutoresDisponibles = usuarios.filter(
  (u) => u.rol === 'Ejecutor' && u.estado !== 'Inactivo',
  );
+ },
+ error: () => (this.ejecutoresDisponibles = []),
+ });
  }
 
- private cargarAsignaciones() {
- this.asignaciones = JSON.parse(localStorage.getItem('asignacionesEjecutor') || '[]');
+ private redesDe(ejecutor: any): string[] {
+ return (ejecutor.sedes || '')
+ .split(',')
+ .map((r: string) => r.trim())
+ .filter(Boolean);
+ }
+
+ get ejecutoresSinRed(): any[] {
+ return this.ejecutoresDisponibles.filter((e) => this.redesDe(e).length === 0);
  }
 
  abrirModalAsignar() {
  this.cargarEjecutores();
- this.cargarAsignaciones();
  this.asignRedSeleccionada = '';
  this.asignEjecutorDni = '';
  this.asigExito = false;
@@ -126,62 +125,34 @@ export class ExpedientesPdp implements OnInit {
  }
 
  getEjecutorAsignado(red: string): { nombre: string; dni: string } | null {
- const asig = this.asignaciones.find((a) => a.red === red);
- return asig ? { nombre: asig.ejecutorNombre, dni: asig.ejecutorDni } : null;
+ const ejecutor = this.ejecutoresDisponibles.find((e) => this.redesDe(e).includes(red));
+ return ejecutor ? { nombre: ejecutor.nombre, dni: ejecutor.dni } : null;
  }
 
+ // Solo se puede asignar una red que todavía no tiene ejecutor, y solo a un
+ // ejecutor que todavía no está a cargo de ninguna red (ver ejecutoresSinRed).
+ // Reasignar una red ya cubierta se hace desde Administración por ahora.
  prepararAsignacion(red: string) {
+ if (this.getEjecutorAsignado(red)) return;
  this.asignRedSeleccionada = red;
- const actual = this.asignaciones.find((a) => a.red === red);
- this.asignEjecutorDni = actual ? actual.ejecutorDni : '';
+ this.asignEjecutorDni = '';
  this.asigExito = false;
  }
 
  guardarAsignacion() {
  if (!this.asignRedSeleccionada || !this.asignEjecutorDni) return;
- const ejecutor = this.ejecutoresDisponibles.find((e) => e.dni === this.asignEjecutorDni);
- if (!ejecutor) return;
-
- const idx = this.asignaciones.findIndex((a) => a.red === this.asignRedSeleccionada);
- const nuevaAsig = {
- red: this.asignRedSeleccionada,
- ejecutorDni: this.asignEjecutorDni,
- ejecutorNombre: ejecutor.nombre,
- };
- if (idx === -1) this.asignaciones.push(nuevaAsig);
- else this.asignaciones[idx] = nuevaAsig;
- localStorage.setItem('asignacionesEjecutor', JSON.stringify(this.asignaciones));
-
- const usuarios: any[] = JSON.parse(localStorage.getItem('usuarios') || '[]');
- const eidx = usuarios.findIndex((u: any) => u.dni === this.asignEjecutorDni);
- if (eidx !== -1) {
- usuarios[eidx] = { ...usuarios[eidx], sedes: this.asignRedSeleccionada };
- } else {
- usuarios.push({
- dni: this.asignEjecutorDni,
- nombre: ejecutor.nombre,
- rol: 'Ejecutor',
- estado: 'Activo',
- sedes: this.asignRedSeleccionada,
- });
- }
- localStorage.setItem('usuarios', JSON.stringify(usuarios));
-
+ this.http
+ .put<any>(`/api/usuarios/${this.asignEjecutorDni}`, { sedes: this.asignRedSeleccionada })
+ .subscribe({
+ next: () => {
+ this.cargarEjecutores();
  this.asignRedSeleccionada = '';
  this.asignEjecutorDni = '';
  this.asigExito = true;
- setTimeout(() => {
- this.asigExito = false;
- }, 2500);
- }
-
- quitarAsignacion(red: string) {
- this.asignaciones = this.asignaciones.filter((a) => a.red !== red);
- localStorage.setItem('asignacionesEjecutor', JSON.stringify(this.asignaciones));
- if (this.asignRedSeleccionada === red) {
- this.asignRedSeleccionada = '';
- this.asignEjecutorDni = '';
- }
+ setTimeout(() => (this.asigExito = false), 2500);
+ },
+ error: () => alert('No se pudo guardar la asignación.'),
+ });
  }
 
  cargar() {

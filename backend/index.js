@@ -3,7 +3,7 @@ const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const pool = require('./db-oracle'); // adaptador Oracle, expone .query() estilo pg
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
@@ -88,24 +88,15 @@ function invalidarCache() {
 }
 
 // ──────────────────────────────────────────────
-// Conexión PostgreSQL
+// Conexión Oracle (QA) — la conexión real vive en db-oracle.js, `pool` ya
+// viene importado arriba. El schema (tablas Pdp_*) ya existe, se creó aparte
+// con el script DDL, así que aquí no se auto-crea nada.
 // ──────────────────────────────────────────────
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'pdp_essalud',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASS || 'admin123',
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 10000,
-});
-
-console.log('Config DB ->', {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  ssl: process.env.DB_SSL,
+console.log('Config DB (Oracle) ->', {
+  host: process.env.DB_QA_HOST,
+  port: process.env.DB_QA_PORT,
+  service: process.env.DB_QA_SERVICE,
+  user: process.env.DB_QA_USER,
 });
 
 // ──────────────────────────────────────────────
@@ -155,345 +146,13 @@ function htmlBase(color, titulo, cuerpo) {
 </div>`;
 }
 
+// El schema (tablas Pdp_*) ya existe en Oracle, se creó aparte con el script
+// DDL — aquí solo se verifica que la conexión funcione al arrancar.
 pool
-  .connect()
-  .then(() => {
-    console.log('✓ Conectado a PostgreSQL');
-    crearTablas().then(crearIndices).then(crearConstraints);
-  })
+  .query('SELECT 1 FROM DUAL')
+  .then(() => console.log('✓ Conectado a Oracle'))
   .catch((err) => console.error('✗ Error de conexión:', err));
 
-async function crearTablas() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS solicitudes_revision (
-      id            SERIAL PRIMARY KEY,
-      datos         JSONB        NOT NULL,
-      red_asistencial TEXT,
-      ejecutor_nombre TEXT,
-      ejecutor_dni    TEXT,
-      estado          TEXT        NOT NULL DEFAULT 'pendiente',
-      motivo_rechazo  TEXT,
-      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      reviewed_at     TIMESTAMPTZ
-    )
-  `);
-  await pool.query(`
-    UPDATE solicitudes_revision
-    SET red_asistencial = datos->>'redAsistencial'
-    WHERE red_asistencial IS NULL AND datos->>'redAsistencial' IS NOT NULL
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS usuarios_sistema (
-      id               SERIAL PRIMARY KEY,
-      dni              TEXT UNIQUE NOT NULL,
-      nombre           TEXT NOT NULL,
-      password         TEXT NOT NULL,
-      rol              TEXT NOT NULL,
-      cargo            TEXT DEFAULT '',
-      estado           TEXT NOT NULL DEFAULT 'Activo',
-      sedes            TEXT DEFAULT '',
-      numero_plantilla TEXT DEFAULT '',
-      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  await pool.query(`ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS email TEXT DEFAULT ''`);
-  // Multi-rol: columna 'roles' (separada por comas). Si está vacía, se usa 'rol' como respaldo.
-  await pool.query(`ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS roles TEXT DEFAULT ''`);
-
-  // Solicitudes de presupuesto (rol Presupuesto → Administrador aprueba/deniega)
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS solicitud_presupuesto (
-      id                 SERIAL PRIMARY KEY,
-      tipo               TEXT NOT NULL,                       -- 'aumento' | 'reduccion' | 'reasignacion'
-      red                TEXT NOT NULL,                       -- red origen
-      red_destino        TEXT,                                -- solo en 'reasignacion'
-      monto              NUMERIC(14,2) NOT NULL,
-      motivo             TEXT,
-      estado             TEXT NOT NULL DEFAULT 'pendiente',   -- 'pendiente' | 'aprobado' | 'denegado'
-      solicitante_dni    TEXT,
-      solicitante_nombre TEXT,
-      revisor_dni        TEXT,
-      revisor_nombre     TEXT,
-      respuesta          TEXT,
-      created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      resolved_at        TIMESTAMPTZ
-    )
-  `);
-  await pool.query(
-    `CREATE INDEX IF NOT EXISTS idx_solpres_estado ON solicitud_presupuesto(estado)`,
-  );
-
-  const seed = [
-    [
-      '90642735',
-      'José Manuel Ames Anapán',
-      'admin123',
-      'Administrador',
-      'Analista PDP',
-      'Activo',
-      '',
-      'PL-0001',
-      'jose.ames@essalud.gob.pe',
-    ],
-    [
-      '70435255',
-      'Víctor Gabriel Acero Garay',
-      'admin123',
-      'Administrador',
-      'Analista PDP',
-      'Activo',
-      '',
-      'PL-0002',
-      'victor.acero@essalud.gob.pe',
-    ],
-    [
-      '73456264',
-      'Fernando David Campos Quiroz',
-      'admin123',
-      'Administrador',
-      'Especialista PDP',
-      'Activo',
-      '',
-      'PL-0003',
-      'fernando.campos@essalud.gob.pe',
-    ],
-    [
-      '45611148',
-      'Sthywen Javier Muñoz Ruiz',
-      'admin123',
-      'Administrador',
-      'Especialista PDP',
-      'Activo',
-      '',
-      'PL-0004',
-      'sthywen.munoz@essalud.gob.pe',
-    ],
-    [
-      '11111111',
-      'María Torres Quispe',
-      'sector123',
-      'Sectorista',
-      'Sectorista Red Arequipa',
-      'Activo',
-      'RA AREQUIPA',
-      'PL-0005',
-      'maria.torres@essalud.gob.pe',
-    ],
-    [
-      '33333333',
-      'Ana Sofía Paredes Quispe',
-      'sector123',
-      'Sectorista',
-      'Sectorista Redes Sur-Centro',
-      'Activo',
-      'RA CUSCO,RA AREQUIPA,RA PIURA',
-      'PL-0007',
-      'ana.paredes@essalud.gob.pe',
-    ],
-    [
-      '48562134',
-      'María Elena Torres Salazar',
-      'sector123',
-      'Sectorista',
-      'Sectorista Red Rebagliati',
-      'Activo',
-      'RP REBAGLIATI',
-      '',
-      'maria.elena.torres@essalud.gob.pe',
-    ],
-    [
-      '71234589',
-      'Luis Alberto Sánchez Rojas',
-      'sector123',
-      'Sectorista',
-      'Sectorista Red Almenara',
-      'Activo',
-      'RP ALMENARA',
-      '',
-      'luis.sanchez@essalud.gob.pe',
-    ],
-    [
-      '22222222',
-      'Ricardo Mendoza García',
-      'ejecutor123',
-      'Ejecutor',
-      'Ejecutor Red Rebagliati',
-      'Activo',
-      'RP REBAGLIATI',
-      'PL-0006',
-      'ricardo.mendoza@essalud.gob.pe',
-    ],
-    [
-      '44444444',
-      'Carlos Alberto Huanca Torres',
-      'ejecutor123',
-      'Ejecutor',
-      'Ejecutor Red Arequipa',
-      'Activo',
-      'RA AREQUIPA',
-      'PL-0008',
-      'carlos.huanca@essalud.gob.pe',
-    ],
-    [
-      '59874123',
-      'Ana Lucía Rodríguez Vargas',
-      'ejecutor123',
-      'Ejecutor',
-      'Ejecutor de Capacitación',
-      'Activo',
-      '',
-      '',
-      'ana.rodriguez@essalud.gob.pe',
-    ],
-    [
-      '74125896',
-      'Carmen Rosa Delgado Silva',
-      'ejecutor123',
-      'Ejecutor',
-      'Ejecutor Administrativo',
-      'Inactivo',
-      '',
-      '',
-      'carmen.delgado@essalud.gob.pe',
-    ],
-  ];
-  for (const u of seed) {
-    await pool.query(
-      `INSERT INTO usuarios_sistema (dni,nombre,password,rol,cargo,estado,sedes,numero_plantilla,email)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       ON CONFLICT (dni) DO UPDATE SET email = EXCLUDED.email WHERE usuarios_sistema.email = ''`,
-      u,
-    );
-  }
-  console.log('✓ Usuarios verificados');
-
-  // ── Techo presupuestal por red ──────────────────────────────────────────
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS presupuesto_redes (
-      red    TEXT PRIMARY KEY,
-      techo  NUMERIC(14,2) NOT NULL,
-      anio   INT NOT NULL DEFAULT 2025
-    )
-  `);
-  const techos = [
-    ['Red Asistencial Amazonas', 30000.0],
-    ['Red Asistencial Ancash', 158640.0],
-    ['Red Asistencial Apurímac', 66000.0],
-    ['Red Asistencial Arequipa', 120000.0],
-    ['Red Asistencial Ayacucho', 65000.0],
-    ['Red Asistencial Cajamarca', 80000.0],
-    ['Red Asistencial Cusco', 160000.0],
-    ['Red Asistencial Huancavelica', 32000.0],
-    ['Red Asistencial Huánuco', 74000.0],
-    ['Red Asistencial Huaraz', 40000.0],
-    ['Red Asistencial Ica', 175000.0],
-    ['Red Asistencial Jaen', 32000.0],
-    ['Red Asistencial Juliaca', 65760.0],
-    ['Red Asistencial Junin', 54000.0],
-    ['Red Asistencial La Libertad', 114960.0],
-    ['Red Asistencial Loreto', 60000.0],
-    ['Red Asistencial Madre de Dios', 60000.0],
-    ['Red Asistencial Moquegua', 91020.0],
-    ['Red Asistencial Moyobamba', 62000.0],
-    ['Red Asistencial Pasco', 72000.0],
-    ['Red Asistencial Piura', 45000.0],
-    ['Red Asistencial Puno', 122524.0],
-    ['Red Asistencial Tacna', 90000.0],
-    ['Red Asistencial Tarapoto', 58000.0],
-    ['Red Asistencial Tumbes', 36130.0],
-    ['Red Asistencial Ucayali', 45000.0],
-    ['Red Prestacional Almenara', 240000.0],
-    ['Red Asistencial Lambayeque', 140000.0],
-    ['Red Prestacional Rebagliati', 240000.0],
-    ['Red Prestacional Sabogal', 195000.0],
-    ['Centro Nacional de Salud Renal', 72000.0],
-    ['Instituto Nacional Cardiovascular', 52000.0],
-  ];
-  for (const [red, techo] of techos) {
-    await pool.query(
-      `INSERT INTO presupuesto_redes (red, techo) VALUES ($1, $2)
-       ON CONFLICT (red) DO NOTHING`,
-      [red, techo],
-    );
-  }
-  console.log('✓ Presupuesto redes verificado');
-
-  // ── Documentos adjuntos ─────────────────────────────────────────────────
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS documentos (
-      id              SERIAL PRIMARY KEY,
-      codigo_act      TEXT NOT NULL,
-      nombre_archivo  TEXT NOT NULL,
-      tipo_archivo    TEXT,
-      ruta_storage    TEXT NOT NULL,
-      tamano_kb       INT,
-      fecha_subida    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  console.log('✓ Tabla documentos verificada');
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS audit_log (
-      id           SERIAL PRIMARY KEY,
-      tipo         TEXT NOT NULL,
-      descripcion  TEXT NOT NULL,
-      actor_nombre TEXT,
-      actor_rol    TEXT,
-      referencia   TEXT,
-      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  await pool.query(
-    `CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC)`,
-  );
-  console.log('✓ Tabla audit_log verificada');
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS hoja_ruta_pasos (
-      id           SERIAL PRIMARY KEY,
-      actividad_id INT NOT NULL REFERENCES datos_actividad(id) ON DELETE CASCADE,
-      paso_nombre  TEXT NOT NULL,
-      completado   BOOLEAN NOT NULL DEFAULT FALSE,
-      completado_at TIMESTAMPTZ,
-      UNIQUE(actividad_id, paso_nombre)
-    )
-  `);
-  console.log('✓ Tabla hoja_ruta_pasos verificada');
-
-  // Columnas de corrección en solicitudes_revision
-  await pool.query(
-    `ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS correccion_pendiente BOOLEAN NOT NULL DEFAULT FALSE`,
-  );
-  await pool.query(
-    `ALTER TABLE solicitudes_revision ADD COLUMN IF NOT EXISTS seccion_correccion TEXT`,
-  );
-  console.log('✓ Columnas correccion_pendiente verificadas');
-
-  // Columnas de NOTAS en lista_participantes (el ejecutor las sube al terminar la capacitación)
-  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS nota NUMERIC(4,2)`);
-  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS condicion TEXT`);
-  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS nota_subida_at TIMESTAMPTZ`);
-  await pool.query(`ALTER TABLE lista_participantes ADD COLUMN IF NOT EXISTS fuera_de_plazo BOOLEAN NOT NULL DEFAULT FALSE`);
-  console.log('✓ Columnas de notas verificadas');
-
-  // Carpeta de Drive por red, donde se guardan los certificados (subida manual por el ejecutor)
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS certificado_carpeta_drive (
-      red             TEXT PRIMARY KEY,
-      drive_url       TEXT NOT NULL,
-      actualizado_por TEXT,
-      actualizado_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  console.log('✓ Tabla certificado_carpeta_drive verificada');
-
-  // Funcionalidad de plantilla .docx retirada (se reemplazó por subida manual a Drive).
-  // Se elimina la tabla para liberar el espacio que ocupaban los .docx guardados.
-  await pool.query(`DROP TABLE IF EXISTS certificado_plantilla`);
-
-  console.log('✓ Tablas verificadas');
-}
 
 async function logEvento(
   tipo,
@@ -512,209 +171,6 @@ async function logEvento(
   }
 }
 
-async function crearIndices() {
-  // Limpieza: índices redundantes que ya quedan cubiertos por una UNIQUE
-  // constraint existente (ver database/schema.sql). Se borran si ya existen
-  // de instalaciones previas de la app.
-  const limpieza = [
-    `DROP INDEX IF EXISTS idx_personal_dni`,       // cubierto por personal_dni_ce_unique
-    `DROP INDEX IF EXISTS idx_hoja_ruta_actividad`, // cubierto por UNIQUE(actividad_id, paso_nombre)
-  ];
-  for (const sql of limpieza) {
-    try {
-      await pool.query(sql);
-    } catch (err) {
-      console.warn('⚠ Limpieza de índice omitida:', err.message.split('\n')[0]);
-    }
-  }
-
-  const indices = [
-    // Filtros por red (RBAC y resumen-redes)
-    `CREATE INDEX IF NOT EXISTS idx_actividad_red ON datos_actividad(red_asistencial)`,
-    `CREATE INDEX IF NOT EXISTS idx_personal_red ON personal(red)`,
-    `CREATE INDEX IF NOT EXISTS idx_participantes_red ON lista_participantes(red)`,
-    `CREATE INDEX IF NOT EXISTS idx_participantes_codigo ON lista_participantes(codigo_act)`,
-
-    // Covering index para /api/resumen-redes: permite index-only scan sin tocar la tabla
-    `CREATE INDEX IF NOT EXISTS idx_actividad_resumen_cov
-       ON datos_actividad(red_asistencial)
-       INCLUDE (total_horas, total_participantes, presupuesto_ejecutado)`,
-
-    // GROUP BY del dashboard
-    `CREATE INDEX IF NOT EXISTS idx_actividad_modalidad ON datos_actividad(modalidad)`,
-    `CREATE INDEX IF NOT EXISTS idx_actividad_mes ON datos_actividad(mes_termino)`,
-    `CREATE INDEX IF NOT EXISTS idx_actividad_servicio ON datos_actividad(servicio_area)`,
-    `CREATE INDEX IF NOT EXISTS idx_participantes_sexo ON lista_participantes(sexo)`,
-
-    // Unicidad de codigo_act (necesaria para ON CONFLICT en INSERT)
-    `CREATE UNIQUE INDEX IF NOT EXISTS idx_actividad_codigo_act ON datos_actividad(codigo_act)`,
-
-    // Ordenación eficiente de actividades (paginación sin filtro de red — admin)
-    `CREATE INDEX IF NOT EXISTS idx_actividad_numero ON datos_actividad(numero NULLS LAST)`,
-
-    // Extensiones de texto
-    `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
-    `CREATE EXTENSION IF NOT EXISTS unaccent`,
-    `CREATE INDEX IF NOT EXISTS idx_actividad_nombre_trgm ON datos_actividad USING gin(nombre_actividad gin_trgm_ops)`,
-    `CREATE INDEX IF NOT EXISTS idx_personal_apellidos_trgm ON personal USING gin(apellidos gin_trgm_ops)`,
-    `CREATE INDEX IF NOT EXISTS idx_participantes_apellidos_trgm ON lista_participantes USING gin(apellidos gin_trgm_ops)`,
-  ];
-
-  for (const sql of indices) {
-    try {
-      await pool.query(sql);
-    } catch (err) {
-      console.warn('⚠ Índice omitido:', err.message.split('\n')[0]);
-    }
-  }
-  console.log('✓ Índices verificados');
-}
-
-async function crearConstraints() {
-  // ── Limpieza de huérfanos antes de aplicar FKs ──────────────────────────
-
-  // Participantes cuyo codigo_act no existe en datos_actividad
-  const { rowCount: r1 } = await pool.query(`
-    DELETE FROM lista_participantes
-    WHERE codigo_act IS NOT NULL
-      AND codigo_act NOT IN (SELECT codigo_act FROM datos_actividad)
-  `);
-  if (r1 > 0) console.log(`✓ Eliminados ${r1} participantes sin actividad (huérfanos)`);
-
-  // Comprobantes: no se eliminan huérfanos porque pueden subirse antes de que
-  // la actividad sea aprobada por el sectorista.
-
-  // Participantes cuyo dni_ce no existe en personal → se pone NULL en lugar de borrar
-  const { rowCount: r3 } = await pool.query(`
-    UPDATE lista_participantes
-    SET dni_ce = NULL
-    WHERE dni_ce IS NOT NULL
-      AND dni_ce NOT IN (SELECT dni_ce FROM personal)
-  `);
-  if (r3 > 0) console.log(`✓ Nullificados ${r3} dni_ce sin registro en personal`);
-
-  // ── Aplicar constraints ─────────────────────────────────────────────────
-
-  const pasos = [
-    // UNIQUE en personal.dni_ce (requerido para ser referenciado como FK)
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'personal_dni_ce_unique') THEN
-         ALTER TABLE personal ADD CONSTRAINT personal_dni_ce_unique UNIQUE (dni_ce);
-       END IF;
-     END $$`,
-
-    // FK: lista_participantes.codigo_act → datos_actividad.codigo_act
-    // ON DELETE SET NULL: los participantes son trabajadores reales y deben
-    // seguir existiendo aunque se borre la capacitación (solo pierden el vínculo).
-    // Se borra y recrea siempre por si ya existía con el ON DELETE anterior (CASCADE).
-    `DO $$ BEGIN
-       IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_actividad') THEN
-         ALTER TABLE lista_participantes DROP CONSTRAINT fk_participantes_actividad;
-       END IF;
-       ALTER TABLE lista_participantes
-         ADD CONSTRAINT fk_participantes_actividad
-         FOREIGN KEY (codigo_act) REFERENCES datos_actividad(codigo_act) ON DELETE SET NULL;
-     END $$`,
-
-    // FK: lista_participantes.dni_ce → personal.dni_ce
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participantes_personal') THEN
-         ALTER TABLE lista_participantes
-           ADD CONSTRAINT fk_participantes_personal
-           FOREIGN KEY (dni_ce) REFERENCES personal(dni_ce) ON DELETE SET NULL;
-       END IF;
-     END $$`,
-
-    // Eliminar FK documentos→datos_actividad: el comprobante se sube antes de
-    // que la actividad exista en datos_actividad (flujo ejecutor → sectorista).
-    `DO $$ BEGIN
-       IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_documentos_actividad') THEN
-         ALTER TABLE documentos DROP CONSTRAINT fk_documentos_actividad;
-       END IF;
-     END $$`,
-
-    // FK: solicitudes_revision.ejecutor_dni → usuarios_sistema.dni
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solicitudes_ejecutor') THEN
-         ALTER TABLE solicitudes_revision
-           ADD CONSTRAINT fk_solicitudes_ejecutor
-           FOREIGN KEY (ejecutor_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
-       END IF;
-     END $$`,
-
-    // Backfill: si alguna 'red' usada en solicitud_presupuesto o
-    // certificado_carpeta_drive no existe aún en presupuesto_redes, se crea
-    // con techo 0 para que las FK de abajo no fallen sobre datos existentes.
-    `INSERT INTO presupuesto_redes (red, techo)
-       SELECT DISTINCT red, 0 FROM solicitud_presupuesto
-       WHERE red IS NOT NULL AND red NOT IN (SELECT red FROM presupuesto_redes)
-       ON CONFLICT (red) DO NOTHING`,
-    `INSERT INTO presupuesto_redes (red, techo)
-       SELECT DISTINCT red_destino, 0 FROM solicitud_presupuesto
-       WHERE red_destino IS NOT NULL AND red_destino NOT IN (SELECT red FROM presupuesto_redes)
-       ON CONFLICT (red) DO NOTHING`,
-    `INSERT INTO presupuesto_redes (red, techo)
-       SELECT DISTINCT red, 0 FROM certificado_carpeta_drive
-       WHERE red IS NOT NULL AND red NOT IN (SELECT red FROM presupuesto_redes)
-       ON CONFLICT (red) DO NOTHING`,
-
-    // FK: solicitud_presupuesto.red → presupuesto_redes.red
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_red') THEN
-         ALTER TABLE solicitud_presupuesto
-           ADD CONSTRAINT fk_solpres_red
-           FOREIGN KEY (red) REFERENCES presupuesto_redes(red);
-       END IF;
-     END $$`,
-
-    // FK: solicitud_presupuesto.red_destino → presupuesto_redes.red (nullable, solo en 'reasignacion')
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_red_destino') THEN
-         ALTER TABLE solicitud_presupuesto
-           ADD CONSTRAINT fk_solpres_red_destino
-           FOREIGN KEY (red_destino) REFERENCES presupuesto_redes(red);
-       END IF;
-     END $$`,
-
-    // FK: solicitud_presupuesto.solicitante_dni → usuarios_sistema.dni
-    // (siempre es el usuario logueado que hace clic en "Modificar presupuesto")
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_solicitante') THEN
-         ALTER TABLE solicitud_presupuesto
-           ADD CONSTRAINT fk_solpres_solicitante
-           FOREIGN KEY (solicitante_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
-       END IF;
-     END $$`,
-
-    // FK: solicitud_presupuesto.revisor_dni → usuarios_sistema.dni
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_solpres_revisor') THEN
-         ALTER TABLE solicitud_presupuesto
-           ADD CONSTRAINT fk_solpres_revisor
-           FOREIGN KEY (revisor_dni) REFERENCES usuarios_sistema(dni) ON DELETE SET NULL;
-       END IF;
-     END $$`,
-
-    // FK: certificado_carpeta_drive.red → presupuesto_redes.red
-    // (red es a la vez PK de esta tabla y FK a presupuesto_redes — patrón "PF")
-    `DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_certcarpeta_red') THEN
-         ALTER TABLE certificado_carpeta_drive
-           ADD CONSTRAINT fk_certcarpeta_red
-           FOREIGN KEY (red) REFERENCES presupuesto_redes(red);
-       END IF;
-     END $$`,
-  ];
-
-  for (const sql of pasos) {
-    try {
-      await pool.query(sql);
-    } catch (err) {
-      console.warn('⚠ Constraint omitida:', err.message.split('\n')[0]);
-    }
-  }
-  console.log('✓ Constraints verificadas');
-}
 
 // ══════════════════════════════════════════════
 // PARTICIPANTES
@@ -1028,7 +484,7 @@ app.get('/api/hoja-ruta/:actividad_id/pasos', async (req, res) => {
     );
     const map = {};
     rows.forEach(
-      (r) => (map[r.paso_nombre] = { completado: r.completado, completado_at: r.completado_at }),
+      (r) => (map[r.paso_nombre] = { completado: r.completado === 'Y', completado_at: r.completado_at }),
     );
     const result = PASOS_HOJA_RUTA.map((p) => ({
       paso: p,
@@ -1051,13 +507,20 @@ app.put('/api/hoja-ruta/:actividad_id/pasos/:paso', async (req, res) => {
       return res.status(400).json({ error: 'Paso inválido' });
     }
 
-    await pool.query(
-      `INSERT INTO hoja_ruta_pasos (actividad_id, paso_nombre, completado, completado_at)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (actividad_id, paso_nombre) DO UPDATE
-         SET completado=$3, completado_at=$4`,
-      [actId, paso, completado, completado ? new Date() : null],
+    const completadoDb = completado ? 'Y' : 'N';
+    const completadoAt = completado ? new Date() : null;
+    const updPaso = await pool.query(
+      `UPDATE hoja_ruta_pasos SET completado=$1, completado_at=$2
+       WHERE actividad_id=$3 AND paso_nombre=$4`,
+      [completadoDb, completadoAt, actId, paso],
     );
+    if (updPaso.rowCount === 0) {
+      await pool.query(
+        `INSERT INTO hoja_ruta_pasos (actividad_id, paso_nombre, completado, completado_at)
+         VALUES ($1, $2, $3, $4)`,
+        [actId, paso, completadoDb, completadoAt],
+      );
+    }
 
     // Notificar sectorista de la red si se marca como completado
     if (completado) {
@@ -1432,7 +895,11 @@ app.post('/api/solicitudes', async (req, res) => {
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [JSON.stringify(datos), red, ejecutor_nombre || null, ejecutor_dni || null],
     );
-    res.status(201).json(rows[0]);
+    res.status(201).json({
+      ...rows[0],
+      datos: rows[0].datos ? JSON.parse(rows[0].datos) : null,
+      correccion_pendiente: rows[0].correccion_pendiente === 'Y',
+    });
 
     const actNombre = datos.nombreActividad || datos.nombre_actividad || 'Sin nombre';
     logEvento(
@@ -1480,7 +947,11 @@ app.get('/api/solicitudes/mis-envios', async (req, res) => {
        FROM solicitudes_revision WHERE ejecutor_dni = $1 ORDER BY created_at DESC LIMIT 50`,
       [dni],
     );
-    res.json(rows);
+    res.json(rows.map((r) => ({
+      ...r,
+      datos: r.datos ? JSON.parse(r.datos) : null,
+      correccion_pendiente: r.correccion_pendiente === 'Y',
+    })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1512,7 +983,7 @@ app.get('/api/solicitudes', async (req, res) => {
        FROM solicitudes_revision ${where} ORDER BY created_at DESC`,
       params,
     );
-    res.json(rows);
+    res.json(rows.map((r) => ({ ...r, datos: r.datos ? JSON.parse(r.datos) : null })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1542,48 +1013,56 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'No encontrada' });
 
     if (estado === 'aprobado') {
-      const f = rows[0].datos;
-      await pool.query(
-        `INSERT INTO datos_actividad
-           (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
-            servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
-            frecuencia, hora_inicio, hora_termino, modalidad, publico,
-            nivel_evaluacion, objetivo_estrategico, total_participantes,
-            ruc_proveedor, nombre_proveedor, sector_proveedor,
-            presupuesto_ejecutado, eje_tematico)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-         ON CONFLICT (codigo_act) DO UPDATE SET
-           fecha_inicio=$2, fecha_fin=$3, mes_termino=$4, red_asistencial=$5,
-           servicio_area=$6, nombre_actividad=$7, total_horas=$8, horas_fuera_horario=$9,
-           frecuencia=$10, hora_inicio=$11, hora_termino=$12, modalidad=$13, publico=$14,
-           nivel_evaluacion=$15, objetivo_estrategico=$16, total_participantes=$17,
-           ruc_proveedor=$18, nombre_proveedor=$19, sector_proveedor=$20,
-           presupuesto_ejecutado=$21, eje_tematico=$22`,
-        [
-          f.codigoAct,
-          f.fechaInicio || null,
-          f.fechaFin || null,
-          f.mesTermino,
-          f.redAsistencial,
-          f.servicioArea,
-          f.nombreActividad,
-          f.totalHoras || null,
-          f.horasFueraHorario || null,
-          f.frecuencia,
-          f.horaInicio || null,
-          f.horaTermino || null,
-          f.modalidad,
-          f.publico,
-          f.nivelEvaluacion,
-          f.objetivoEstrategico || null,
-          f.totalParticipantes || null,
-          f.rucProveedor,
-          f.nombreProveedor,
-          f.sectorProveedor,
-          f.presupuestoEjecutado || null,
-          f.ejeTematico,
-        ],
+      const f = JSON.parse(rows[0].datos); // datos es CLOB en Oracle, viene como texto sin parsear
+      const camposActividad = [
+        f.fechaInicio || null,
+        f.fechaFin || null,
+        f.mesTermino,
+        f.redAsistencial,
+        f.servicioArea,
+        f.nombreActividad,
+        f.totalHoras || null,
+        f.horasFueraHorario || null,
+        f.frecuencia,
+        f.horaInicio || null,
+        f.horaTermino || null,
+        f.modalidad,
+        f.publico,
+        f.nivelEvaluacion,
+        f.objetivoEstrategico || null,
+        f.totalParticipantes || null,
+        f.rucProveedor,
+        f.nombreProveedor,
+        f.sectorProveedor,
+        f.presupuestoEjecutado || null,
+        f.ejeTematico,
+      ];
+      // Oracle no tiene ON CONFLICT: se intenta UPDATE por codigo_act y, si no
+      // afectó ninguna fila (no existía), se hace el INSERT.
+      const updAct = await pool.query(
+        `UPDATE datos_actividad SET
+           fecha_inicio=$1, fecha_fin=$2, mes_termino=$3, red_asistencial=$4,
+           servicio_area=$5, nombre_actividad=$6, total_horas=$7, horas_fuera_horario=$8,
+           frecuencia=$9, hora_inicio=$10, hora_termino=$11, modalidad=$12, publico=$13,
+           nivel_evaluacion=$14, objetivo_estrategico=$15, total_participantes=$16,
+           ruc_proveedor=$17, nombre_proveedor=$18, sector_proveedor=$19,
+           presupuesto_ejecutado=$20, eje_tematico=$21
+         WHERE codigo_act=$22`,
+        [...camposActividad, f.codigoAct],
       );
+      if (updAct.rowCount === 0) {
+        await pool.query(
+          `INSERT INTO datos_actividad
+             (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
+              servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
+              frecuencia, hora_inicio, hora_termino, modalidad, publico,
+              nivel_evaluacion, objetivo_estrategico, total_participantes,
+              ruc_proveedor, nombre_proveedor, sector_proveedor,
+              presupuesto_ejecutado, eje_tematico)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+          [f.codigoAct, ...camposActividad],
+        );
+      }
       // Limpiar participantes previos del mismo código antes de reinsertar (evita duplicados en re-aprobación)
       if (f.codigoAct) {
         await pool.query('DELETE FROM lista_participantes WHERE codigo_act=$1', [f.codigoAct]);
@@ -1618,11 +1097,12 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
 
     // Notificar al ejecutor y a los administradores
     const solicitud = rows[0];
+    const solicitudDatos = solicitud.datos ? JSON.parse(solicitud.datos) : {};
     const esAprobado = estado === 'aprobado';
     const esObservado = estado === 'observado';
     const esExcluido = estado === 'excluido';
     const actividadNombre =
-      solicitud.datos?.nombreActividad || solicitud.datos?.nombre_actividad || '-';
+      solicitudDatos.nombreActividad || solicitudDatos.nombre_actividad || '-';
     const red = solicitud.red_asistencial || '-';
 
     // Configuración visual por estado
@@ -1693,7 +1173,11 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
         : `${actor} excluyó la solicitud "${actividadNombre}" de ${ejecutorNombre} — Red: ${red}`;
     logEvento(`solicitud_${estado}`, logDesc, actor, revisor_rol || 'Sectorista', actividadNombre);
 
-    res.json(rows[0]);
+    res.json({
+      ...rows[0],
+      datos: rows[0].datos ? JSON.parse(rows[0].datos) : null,
+      correccion_pendiente: rows[0].correccion_pendiente === 'Y',
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1719,15 +1203,16 @@ app.post('/api/solicitudes/:id/solicitar-edicion', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
 
     const sol = rows[0];
+    const solDatos = sol.datos ? JSON.parse(sol.datos) : {};
     const email = sol.ejecutor_email;
     const ejecutorNombre = sol.ejecutor_nombre || sol.ejecutor_nombre_real || 'Ejecutor';
-    const actNombre = sol.datos?.nombreActividad || sol.datos?.nombre_actividad || 'Sin nombre';
+    const actNombre = solDatos.nombreActividad || solDatos.nombre_actividad || 'Sin nombre';
     const seccionLabel =
       seccion === 'formulario' ? 'Formulario de Capacitación' : 'Registro de Participantes';
 
     // Marcar corrección pendiente en la solicitud
     await pool.query(
-      `UPDATE solicitudes_revision SET correccion_pendiente=TRUE, seccion_correccion=$1 WHERE id=$2`,
+      `UPDATE solicitudes_revision SET correccion_pendiente='Y', seccion_correccion=$1 WHERE id=$2`,
       [seccion, id],
     );
 
@@ -1770,7 +1255,7 @@ app.put('/api/solicitudes/:id/reenviar', async (req, res) => {
 
     const { rows } = await pool.query(
       `UPDATE solicitudes_revision
-       SET datos=$1, estado='pendiente', correccion_pendiente=FALSE, seccion_correccion=NULL, reviewed_at=NULL, motivo_rechazo=NULL
+       SET datos=$1, estado='pendiente', correccion_pendiente='N', seccion_correccion=NULL, reviewed_at=NULL, motivo_rechazo=NULL
        WHERE id=$2 RETURNING *`,
       [JSON.stringify(datos), id],
     );
@@ -2060,13 +1545,17 @@ app.put('/api/presupuesto-redes/:red', async (req, res) => {
     const red = decodeURIComponent(req.params.red);
     const { techo, anio } = req.body;
     if (!techo) return res.status(400).json({ error: 'techo requerido' });
-    const { rows } = await pool.query(
-      `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, $2, $3)
-       ON CONFLICT (red) DO UPDATE SET techo = EXCLUDED.techo, anio = EXCLUDED.anio
-       RETURNING *`,
-      [red, techo, anio || 2025],
+    const upd = await pool.query(
+      `UPDATE presupuesto_redes SET techo=$1, anio=$2 WHERE red=$3 RETURNING *`,
+      [techo, anio || 2025, red],
     );
-    res.json(rows[0]);
+    const row = upd.rowCount === 0
+      ? (await pool.query(
+          `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1,$2,$3) RETURNING *`,
+          [red, techo, anio || 2025],
+        )).rows[0]
+      : upd.rows[0];
+    res.json(row);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2159,12 +1648,20 @@ app.put('/api/solicitudes-presupuesto/:id/revisar', async (req, res) => {
 
     if (decision === 'aprobado') {
       const monto = Number(s.monto);
-      const ajustar = (red, delta) =>
-        client.query(
-          `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
-         ON CONFLICT (red) DO UPDATE SET techo = GREATEST(presupuesto_redes.techo + $2, 0)`,
-          [red, delta, new Date().getFullYear()],
+      const ajustar = async (red, delta) => {
+        // Oracle no tiene ON CONFLICT: se intenta UPDATE y, si no existía la
+        // red, se hace INSERT con el delta ya aplicado (arrancando desde 0).
+        const updRed = await client.query(
+          `UPDATE presupuesto_redes SET techo = GREATEST(techo + $1, 0) WHERE red=$2`,
+          [delta, red],
         );
+        if (updRed.rowCount === 0) {
+          await client.query(
+            `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)`,
+            [red, delta, new Date().getFullYear()],
+          );
+        }
+      };
       if (s.tipo === 'aumento') await ajustar(s.red, monto);
       else if (s.tipo === 'reduccion') await ajustar(s.red, -monto);
       else if (s.tipo === 'reasignacion') {
@@ -2209,11 +1706,18 @@ app.post('/api/presupuesto/modificar', async (req, res) => {
     const m = Number(monto);
 
     await client.query('BEGIN');
-    const ajustar = (r, delta) => client.query(
-      `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)
-       ON CONFLICT (red) DO UPDATE SET techo = GREATEST(presupuesto_redes.techo + $2, 0)`,
-      [r, delta, new Date().getFullYear()],
-    );
+    const ajustar = async (r, delta) => {
+      const updRed = await client.query(
+        `UPDATE presupuesto_redes SET techo = GREATEST(techo + $1, 0) WHERE red=$2`,
+        [delta, r],
+      );
+      if (updRed.rowCount === 0) {
+        await client.query(
+          `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1, GREATEST($2,0), $3)`,
+          [r, delta, new Date().getFullYear()],
+        );
+      }
+    };
     if (tipo === 'aumento') await ajustar(red, m);
     else if (tipo === 'reduccion') await ajustar(red, -m);
     else { await ajustar(red, -m); await ajustar(red_destino, m); }
@@ -2278,7 +1782,7 @@ app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
       const upd = await pool.query(
         `UPDATE lista_participantes SET nota=$1, condicion=$2, nota_subida_at=NOW(), fuera_de_plazo=$3
          WHERE codigo_act=$4 AND dni_ce=$5`,
-        [nota, condicion, fueraPlazo, codigo_act, String(n.dni)],
+        [nota, condicion, fueraPlazo ? 'Y' : 'N', codigo_act, String(n.dni)],
       );
       if (upd.rowCount > 0) actualizados += upd.rowCount;
       else noEncontrados.push({ dni: n.dni, motivo: 'DNI no está entre los participantes' });
@@ -2297,11 +1801,12 @@ app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
     const fecha_fin = act.rows[0]?.fecha_fin || null;
     const ventana = ventanaNotas(fecha_fin);
 
-    const { rows: parts } = await pool.query(
+    const { rows: partsRaw } = await pool.query(
       `SELECT dni_ce AS dni, TRIM(COALESCE(apellidos,'') || ' ' || COALESCE(nombre,'')) AS nombre, nota, condicion, fuera_de_plazo
        FROM lista_participantes WHERE codigo_act=$1 ORDER BY apellidos, nombre`,
       [codigo_act],
     );
+    const parts = partsRaw.map((p) => ({ ...p, fuera_de_plazo: p.fuera_de_plazo === 'Y' }));
     const conNota = parts.filter((p) => p.nota !== null && p.nota !== undefined);
     const calificados = conNota.length;
     const aprobados = conNota.filter((p) => Number(p.nota) >= NOTA_MINIMA).length;
@@ -2443,15 +1948,20 @@ app.put('/api/certificados/carpetas/:red', async (req, res) => {
     const red = decodeURIComponent(req.params.red);
     const { drive_url, actualizado_por } = req.body;
     if (!drive_url || !drive_url.trim()) return res.status(400).json({ error: 'drive_url requerido' });
-    const { rows } = await pool.query(
-      `INSERT INTO certificado_carpeta_drive (red, drive_url, actualizado_por, actualizado_at)
-       VALUES ($1,$2,$3,NOW())
-       ON CONFLICT (red) DO UPDATE SET drive_url=EXCLUDED.drive_url, actualizado_por=EXCLUDED.actualizado_por, actualizado_at=NOW()
-       RETURNING *`,
-      [red, drive_url.trim(), actualizado_por || ''],
+    const upd = await pool.query(
+      `UPDATE certificado_carpeta_drive SET drive_url=$1, actualizado_por=$2, actualizado_at=NOW()
+       WHERE red=$3 RETURNING *`,
+      [drive_url.trim(), actualizado_por || null, red],
     );
+    const row = upd.rowCount === 0
+      ? (await pool.query(
+          `INSERT INTO certificado_carpeta_drive (red, drive_url, actualizado_por, actualizado_at)
+           VALUES ($1,$2,$3,NOW()) RETURNING *`,
+          [red, drive_url.trim(), actualizado_por || null],
+        )).rows[0]
+      : upd.rows[0];
     logEvento('carpeta_drive_actualizada', `${actualizado_por || 'Administrador'} actualizó la carpeta de Drive de ${red}`, actualizado_por, 'Administrador', red);
-    res.json(rows[0]);
+    res.json(row);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

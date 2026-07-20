@@ -194,11 +194,10 @@
  }
  </td>
  <td class="asig-acciones">
- <button class="btn-asig-accion" (click)="prepararAsignacion(red)">
- {{ getEjecutorAsignado(red) ? 'Cambiar' : 'Asignar' }}
- </button>
- @if (getEjecutorAsignado(red)) {
- <button class="btn-asig-quitar" (click)="quitarAsignacion(red)">Quitar</button>
+ @if (!getEjecutorAsignado(red)) {
+ <button class="btn-asig-accion" (click)="prepararAsignacion(red)">Asignar</button>
+ } @else {
+ <span class="asig-vacio" title="Para reasignar, hazlo desde Administración">—</span>
  }
  </td>
  </tr>
@@ -214,10 +213,13 @@
  </p>
  <select class="asig-select" [(ngModel)]="asignEjecutorDni">
  <option value="">— Seleccione un ejecutor —</option>
- @for (ej of ejecutoresDisponibles; track ej.dni) {
+ @for (ej of ejecutoresSinRed; track ej.dni) {
  <option [value]="ej.dni">{{ ej.nombre }} ({{ ej.dni }})</option>
  }
  </select>
+ @if (!ejecutoresSinRed.length) {
+ <p class="asig-vacio">No hay ejecutores libres — todos ya tienen una red asignada (revisa Administración).</p>
+ }
  <div class="asig-form-btns">
  <button class="btn-asig-guardar" [disabled]="!asignEjecutorDni" (click)="guardarAsignacion()">
  Guardar asignación
