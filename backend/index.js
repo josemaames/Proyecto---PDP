@@ -6,7 +6,7 @@ const cors = require('cors');
 const pool = require('./db-oracle'); // adaptador Oracle, expone .query() estilo pg
 const nodemailer = require('nodemailer');
 const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
+const StorageSDK = require('./storage-sdk');
 
 const app = express();
 app.use(cors());
@@ -14,10 +14,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // POST de formulario (SSO desde SOMOS)
 
 // ──────────────────────────────────────────────
-// Supabase Storage (documentos)
+// File Server interno de EsSalud (Dotworkers) — comprobantes de pago.
+// Reemplaza a Supabase Storage para /api/documentos. Por ahora el File Server
+// solo tiene habilitado PDF para la app "PROVIDERS" (Excel/Word/imágenes dan
+// 409 TYPE_FILE_NOT_CONFIGURATED) — falta que el equipo de TI de EsSalud
+// habilite los demás tipos del lado de su servidor.
 // ──────────────────────────────────────────────
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-const BUCKET_DOCUMENTOS = 'documentos';
+const storageSdk = new StorageSDK({
+  host: process.env.STORAGE_URL_API,
+  api_key: process.env.STORAGE_API_KEY,
+  app_name: process.env.STORAGE_APP_NAME,
+});
 
 const TIPOS_PERMITIDOS = {
   'application/pdf': 'pdf',
@@ -32,7 +39,7 @@ const TIPOS_PERMITIDOS = {
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB (límite del bucket "documentos" en Supabase)
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     if (TIPOS_PERMITIDOS[file.mimetype]) return cb(null, true);
     cb(
@@ -2009,14 +2016,17 @@ app.post('/api/documentos', upload.single('archivo'), async (req, res) => {
     if (!codigo_act) return res.status(400).json({ error: 'codigo_act requerido' });
 
     const tipo = TIPOS_PERMITIDOS[req.file.mimetype];
-    const nombreSeguro = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const ruta = `${codigo_act}/${Date.now()}_${nombreSeguro}`;
 
-    const { error: errSubida } = await supabase.storage
-      .from(BUCKET_DOCUMENTOS)
-      .upload(ruta, req.file.buffer, { contentType: req.file.mimetype });
-
-    if (errSubida) throw errSubida;
+    const subida = await storageSdk.upload({
+      file: req.file,
+      identifier: codigo_act,
+      trace: `pdp_documentos_upload_${codigo_act}`,
+    });
+    if (!subida.isOk) {
+      const detalle = subida.result?.data?.message || subida.result?.error || 'error desconocido';
+      return res.status(502).json({ error: `No se pudo subir el archivo al storage: ${detalle}` });
+    }
+    const ruta = subida.item?.newFilename || subida.item?.filename || subida.item?.nameFile;
 
     const { rows } = await pool.query(
       `INSERT INTO documentos (codigo_act, nombre_archivo, tipo_archivo, ruta_storage, tamano_kb)
@@ -2050,12 +2060,8 @@ app.get('/api/documentos/:id/descargar', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM documentos WHERE id=$1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
 
-    const { data, error } = await supabase.storage
-      .from(BUCKET_DOCUMENTOS)
-      .createSignedUrl(rows[0].ruta_storage, 60);
-
-    if (error) throw error;
-    res.json({ url: data.signedUrl, nombre_archivo: rows[0].nombre_archivo });
+    const link = await storageSdk.obtenerArchivoLink(rows[0].ruta_storage);
+    res.json({ url: link.fileUrl, nombre_archivo: rows[0].nombre_archivo });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2066,7 +2072,10 @@ app.delete('/api/documentos/:id', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM documentos WHERE id=$1', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
 
-    await supabase.storage.from(BUCKET_DOCUMENTOS).remove([rows[0].ruta_storage]);
+    // El SDK del File Server (storage-sdk.js) que pasó el ingeniero solo expone
+    // upload/obtenerArchivoPdf/obtenerArchivoLink — no hay método de borrado.
+    // Por ahora solo se borra el registro de la BD; el archivo queda huérfano
+    // en el File Server hasta que nos den un endpoint de delete.
     await pool.query('DELETE FROM documentos WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {

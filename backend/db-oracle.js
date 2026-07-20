@@ -122,11 +122,16 @@ function prefixTables(sql) {
   return out;
 }
 
+// Oracle no tiene unaccent(); TRANSLATE con este mapeo de tildes/ñ es el
+// equivalente real (no solo LOWER, que no quita tildes).
+const SIN_TILDES = `TRANSLATE(%s, 'áéíóúÁÉÍÓÚñÑ', 'aeiouAEIOUnN')`;
+
 function fixIlike(sql) {
-  // unaccent(lower(x)) ILIKE unaccent(lower($n))  ->  LOWER(x) LIKE LOWER($n)
+  // unaccent(lower(x)) ILIKE unaccent(lower($n))  ->  comparación sin tildes real
   let out = sql.replace(
     /unaccent\(lower\(([^)]+)\)\)\s+ILIKE\s+unaccent\(lower\((\$\d+)\)\)/gi,
-    'LOWER($1) LIKE LOWER($2)',
+    (_, col, param) =>
+      `LOWER(${SIN_TILDES.replace('%s', col)}) LIKE LOWER(${SIN_TILDES.replace('%s', param)})`,
   );
   // columna ILIKE $n  ->  LOWER(columna) LIKE LOWER($n)
   out = out.replace(/([\w".]+)\s+ILIKE\s+(\$\d+)/gi, 'LOWER($1) LIKE LOWER($2)');

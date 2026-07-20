@@ -415,7 +415,7 @@ body {
 }
 
 .perfil-superior {
-  height: 52px;
+  min-height: 52px;
   margin-top: 56px;
   display: flex;
   justify-content: center;
@@ -427,10 +427,12 @@ body {
 
 .menu-superior {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: 8px 24px;
   width: 100%;
+  padding: 6px 12px;
 }
 
 .menu-superior .menu-item {

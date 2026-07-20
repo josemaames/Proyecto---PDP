@@ -1207,6 +1207,9 @@ export class Dashboard implements OnInit, OnDestroy {
       case 'Hoja de Ruta':
         this.router.navigate(['/hoja-ruta']);
         break;
+      case 'Documentos':
+        this.router.navigate(['/documentos']);
+        break;
       case 'Personal':
         this.router.navigate(['/personal-pdp']);
         break;
