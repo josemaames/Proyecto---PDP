@@ -290,6 +290,27 @@
 
 .check-red input[type="checkbox"] { accent-color: #005baa; width: 14px; height: 14px; }
 
+.check-red-bloqueado {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+}
+.check-red-bloqueado:hover { border-color: #e5e7eb; background: #f3f4f6; color: #9ca3af; }
+.check-red-bloqueado input[type="checkbox"] { cursor: not-allowed; }
+
+.check-red-bloqueado-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 10px;
+  padding: 1px 7px;
+  margin-left: 2px;
+}
+
 .redes-resumen {
   margin-top: 8px;
   font-size: 12px;

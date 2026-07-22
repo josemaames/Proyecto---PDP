@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin, firstValueFrom } from 'rxjs';
-import { PdpDataService, Actividad, Participante } from '../../services/pdp-data.service';
+import { PdpDataService, Actividad, Participante, AlertaPersonal } from '../../services/pdp-data.service';
 import { tieneRol } from '../../utils/roles.util';
 import * as ExcelJS from 'exceljs';
 
@@ -25,6 +25,7 @@ export class Sectorista implements OnInit {
   fechaHoy = '';
   inicialUsuario = 'U';
   tienePresupuesto = false;
+  tieneConvenios = false;
   mostrarPerfilMenu = false;
 
   cargandoRuc = false;
@@ -210,6 +211,7 @@ export class Sectorista implements OnInit {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
     this.tienePresupuesto = tieneRol(this.usuario, 'Presupuesto');
+    this.tieneConvenios = tieneRol(this.usuario, 'Convenios');
     const f = new Date().toLocaleDateString('es-PE', {
       weekday: 'long',
       day: 'numeric',
@@ -221,6 +223,34 @@ export class Sectorista implements OnInit {
     this.cargarSolicitudes();
     this.cargarHistorial();
     this.cargarPresupuestoRed();
+    this.cargarAlertasPersonal();
+  }
+
+  // ── Alertas de personal (cese / cambio de red) ────
+  alertasPersonal: AlertaPersonal[] = [];
+
+  cargarAlertasPersonal() {
+    this.pdpData.getAlertasPersonal(undefined, this.redFiltro).subscribe({
+      next: (alertas) => (this.alertasPersonal = alertas),
+      error: () => (this.alertasPersonal = []),
+    });
+  }
+
+  descripcionAlertaPersonal(a: AlertaPersonal): string {
+    return a.tipo === 'CESE'
+      ? `${a.nombre_completo} ya no pertenece al personal activo (capacitación ${a.codigo_act}).`
+      : `${a.nombre_completo} cambió de red: ${a.red_anterior} → ${a.red_nueva} (capacitación ${a.codigo_act}).`;
+  }
+
+  resolverAlertaPersonal(a: AlertaPersonal) {
+    if (!confirm('¿Marcar esta alerta como revisada?')) return;
+    this.pdpData.resolverAlertaPersonal(a.id, this.usuario?.nombre || '').subscribe(() => {
+      this.cargarAlertasPersonal();
+    });
+  }
+
+  irARevisarAlertaPersonal(a: AlertaPersonal) {
+    this.router.navigate(['/lista-participantes'], { queryParams: { codigo_act: a.codigo_act } });
   }
 
   cargarHistorial() {
@@ -602,6 +632,10 @@ export class Sectorista implements OnInit {
 
   irAPresupuesto() {
     this.router.navigate(['/presupuesto']);
+  }
+
+  irAConvenios() {
+    this.router.navigate(['/convenios']);
   }
 
   cerrarSesion() {

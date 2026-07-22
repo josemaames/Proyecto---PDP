@@ -1,0 +1,387 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import {
+  ConveniosService,
+  ConvenioMarco,
+  ConvenioEspecifico,
+  ConvenioDocumento,
+  KpiConvenios,
+} from '../../services/convenios.service';
+import { tieneRol } from '../../utils/roles.util';
+
+@Component({
+  selector: 'app-convenios',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './convenios.html',
+  styleUrl: './convenios.css',
+})
+export class Convenios implements OnInit {
+  private cs = inject(ConveniosService);
+  private router = inject(Router);
+
+  usuario: any = {};
+  inicialUsuario = 'U';
+  fechaHoy = '';
+  mostrarPerfilMenu = false;
+
+  esAdmin = false;
+  esConvenios = false;
+  tieneSectorista = false;
+
+  cargando = true;
+  busqueda = '';
+  filtroTipo: '' | 'Universidad' | 'Instituto' = '';
+  kpis: { marco: KpiConvenios; especifico: KpiConvenios } | null = null;
+  marcos: ConvenioMarco[] = [];
+
+  marcosExpandidos = new Set<number>();
+  especificosPorMarco = new Map<number, ConvenioEspecifico[]>();
+  especificosExpandidos = new Set<number>();
+  documentosPorConvenio = new Map<string, ConvenioDocumento[]>();
+  subiendoDoc = new Set<string>();
+
+  // Modal convenio marco
+  mostrarModalMarco = false;
+  editandoMarco: ConvenioMarco | null = null;
+  formMarco: {
+    universidad: string;
+    numero_convenio: string;
+    objeto: string;
+    fecha_inicio: string;
+    fecha_fin: string;
+    tipo: 'Universidad' | 'Instituto';
+    sede_principal: string;
+  } = { universidad: '', numero_convenio: '', objeto: '', fecha_inicio: '', fecha_fin: '', tipo: 'Universidad', sede_principal: '' };
+  errorMarco = '';
+  guardandoMarco = false;
+
+  // Modal convenio específico
+  mostrarModalEspecifico = false;
+  editandoEspecifico: ConvenioEspecifico | null = null;
+  marcoParaEspecifico: ConvenioMarco | null = null;
+  formEspecifico = { nombre: '', numero_convenio: '', fecha_inicio: '', fecha_fin: '' };
+  errorEspecifico = '';
+  guardandoEspecifico = false;
+
+  // Modal carga masiva Excel
+  mostrarModalExcel = false;
+  archivoExcel: File | null = null;
+  subiendoExcel = false;
+  errorExcel = '';
+  resultadoExcel: { marcosCreados: number; especificosCreados: number; duplicados: number; errores: string[] } | null = null;
+
+  ngOnInit(): void {
+    this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
+    const f = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
+
+    this.esAdmin = tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
+    this.esConvenios = tieneRol(this.usuario, 'Convenios');
+    this.tieneSectorista = tieneRol(this.usuario, 'Sectorista');
+
+    this.cargar();
+  }
+
+  get puedeGestionar(): boolean {
+    return this.esAdmin || this.esConvenios;
+  }
+
+  cargar(): void {
+    this.cargando = true;
+    this.cs.getKpis().subscribe({ next: (k) => (this.kpis = k), error: () => {} });
+    this.cs.getMarcos(this.busqueda).subscribe({
+      next: (m) => {
+        this.marcos = m;
+        this.cargando = false;
+      },
+      error: () => (this.cargando = false),
+    });
+  }
+
+  buscar(): void {
+    this.cargar();
+  }
+
+  get marcosFiltrados(): ConvenioMarco[] {
+    return this.filtroTipo ? this.marcos.filter((m) => m.tipo === this.filtroTipo) : this.marcos;
+  }
+
+  etiquetaVigencia(v: string): string {
+    switch (v) {
+      case 'vigente': return 'Vigente';
+      case 'por_vencer': return 'Por vencer';
+      case 'vencido': return 'Vencido';
+      default: return 'Sin fecha';
+    }
+  }
+
+  // ── Expandir / colapsar ──────────────────────────
+  toggleMarco(m: ConvenioMarco): void {
+    if (this.marcosExpandidos.has(m.id)) {
+      this.marcosExpandidos.delete(m.id);
+      return;
+    }
+    this.marcosExpandidos.add(m.id);
+    this.cargarEspecificos(m.id);
+    this.cargarDocumentos('marco', m.id);
+  }
+
+  marcoEstaExpandido(id: number): boolean {
+    return this.marcosExpandidos.has(id);
+  }
+
+  cargarEspecificos(marcoId: number): void {
+    this.cs.getEspecificos(marcoId).subscribe({
+      next: (e) => this.especificosPorMarco.set(marcoId, e),
+      error: () => this.especificosPorMarco.set(marcoId, []),
+    });
+  }
+
+  especificosDe(marcoId: number): ConvenioEspecifico[] {
+    return this.especificosPorMarco.get(marcoId) || [];
+  }
+
+  toggleEspecifico(e: ConvenioEspecifico): void {
+    if (this.especificosExpandidos.has(e.id)) {
+      this.especificosExpandidos.delete(e.id);
+      return;
+    }
+    this.especificosExpandidos.add(e.id);
+    this.cargarDocumentos('especifico', e.id);
+  }
+
+  especificoEstaExpandido(id: number): boolean {
+    return this.especificosExpandidos.has(id);
+  }
+
+  // ── Documentos ────────────────────────────────────
+  claveDoc(tipo: 'marco' | 'especifico', id: number): string {
+    return `${tipo}|${id}`;
+  }
+
+  cargarDocumentos(tipo: 'marco' | 'especifico', id: number): void {
+    this.cs.getDocumentos(tipo, id).subscribe({
+      next: (docs) => this.documentosPorConvenio.set(this.claveDoc(tipo, id), docs),
+      error: () => this.documentosPorConvenio.set(this.claveDoc(tipo, id), []),
+    });
+  }
+
+  documentosDe(tipo: 'marco' | 'especifico', id: number): ConvenioDocumento[] {
+    return this.documentosPorConvenio.get(this.claveDoc(tipo, id)) || [];
+  }
+
+  onArchivoDoc(event: Event, tipo: 'marco' | 'especifico', id: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Solo se aceptan archivos PDF.');
+      input.value = '';
+      return;
+    }
+    const clave = this.claveDoc(tipo, id);
+    this.subiendoDoc.add(clave);
+    this.cs.subirDocumento(tipo, id, file, this.usuario?.nombre || '').subscribe({
+      next: () => {
+        this.subiendoDoc.delete(clave);
+        this.cargarDocumentos(tipo, id);
+        input.value = '';
+      },
+      error: (err) => {
+        this.subiendoDoc.delete(clave);
+        alert(err.error?.error || 'No se pudo subir el documento.');
+        input.value = '';
+      },
+    });
+  }
+
+  estaSubiendoDoc(tipo: 'marco' | 'especifico', id: number): boolean {
+    return this.subiendoDoc.has(this.claveDoc(tipo, id));
+  }
+
+  descargarDoc(doc: ConvenioDocumento): void {
+    this.cs.descargarDocumento(doc.id).subscribe({
+      next: (r) => window.open(r.url, '_blank'),
+      error: () => alert('No se pudo obtener el archivo.'),
+    });
+  }
+
+  eliminarDoc(doc: ConvenioDocumento): void {
+    if (!confirm(`¿Eliminar el documento "${doc.nombre_archivo}"?`)) return;
+    this.cs.eliminarDocumento(doc.id).subscribe(() => {
+      this.cargarDocumentos(doc.convenio_tipo, doc.convenio_id);
+    });
+  }
+
+  // ── Convenio marco: crear / editar / eliminar ────
+  abrirNuevoMarco(): void {
+    this.editandoMarco = null;
+    this.formMarco = { universidad: '', numero_convenio: '', objeto: '', fecha_inicio: '', fecha_fin: '', tipo: 'Universidad', sede_principal: '' };
+    this.errorMarco = '';
+    this.mostrarModalMarco = true;
+  }
+
+  abrirEditarMarco(m: ConvenioMarco): void {
+    this.editandoMarco = m;
+    this.formMarco = {
+      universidad: m.universidad,
+      numero_convenio: m.numero_convenio || '',
+      objeto: m.objeto || '',
+      fecha_inicio: m.fecha_inicio ? m.fecha_inicio.substring(0, 10) : '',
+      fecha_fin: m.fecha_fin ? m.fecha_fin.substring(0, 10) : '',
+      tipo: m.tipo || 'Universidad',
+      sede_principal: m.sede_principal || '',
+    };
+    this.errorMarco = '';
+    this.mostrarModalMarco = true;
+  }
+
+  cerrarModalMarco(): void {
+    this.mostrarModalMarco = false;
+    this.editandoMarco = null;
+  }
+
+  guardarMarco(): void {
+    if (!this.formMarco.universidad.trim()) {
+      this.errorMarco = 'La universidad es obligatoria.';
+      return;
+    }
+    this.guardandoMarco = true;
+    const body = { ...this.formMarco, created_by: this.usuario?.nombre, actor_nombre: this.usuario?.nombre };
+    const obs = this.editandoMarco
+      ? this.cs.actualizarMarco(this.editandoMarco.id, body)
+      : this.cs.crearMarco(body);
+    obs.subscribe({
+      next: () => {
+        this.guardandoMarco = false;
+        this.cerrarModalMarco();
+        this.cargar();
+      },
+      error: (err) => {
+        this.guardandoMarco = false;
+        this.errorMarco = err.error?.error || 'No se pudo guardar el convenio marco.';
+      },
+    });
+  }
+
+  eliminarMarco(m: ConvenioMarco): void {
+    if (!confirm(`¿Eliminar el convenio marco con ${m.universidad}?`)) return;
+    this.cs.eliminarMarco(m.id).subscribe({
+      next: () => this.cargar(),
+      error: (err) => alert(err.error?.error || 'No se pudo eliminar.'),
+    });
+  }
+
+  // ── Convenio específico: crear / editar / eliminar ─
+  abrirNuevoEspecifico(marco: ConvenioMarco): void {
+    this.marcoParaEspecifico = marco;
+    this.editandoEspecifico = null;
+    this.formEspecifico = { nombre: '', numero_convenio: '', fecha_inicio: '', fecha_fin: '' };
+    this.errorEspecifico = '';
+    this.mostrarModalEspecifico = true;
+  }
+
+  abrirEditarEspecifico(marco: ConvenioMarco, e: ConvenioEspecifico): void {
+    this.marcoParaEspecifico = marco;
+    this.editandoEspecifico = e;
+    this.formEspecifico = {
+      nombre: e.nombre,
+      numero_convenio: e.numero_convenio || '',
+      fecha_inicio: e.fecha_inicio ? e.fecha_inicio.substring(0, 10) : '',
+      fecha_fin: e.fecha_fin ? e.fecha_fin.substring(0, 10) : '',
+    };
+    this.errorEspecifico = '';
+    this.mostrarModalEspecifico = true;
+  }
+
+  cerrarModalEspecifico(): void {
+    this.mostrarModalEspecifico = false;
+    this.editandoEspecifico = null;
+    this.marcoParaEspecifico = null;
+  }
+
+  guardarEspecifico(): void {
+    if (!this.formEspecifico.nombre.trim()) {
+      this.errorEspecifico = 'El objeto/nombre es obligatorio.';
+      return;
+    }
+    if (!this.marcoParaEspecifico) return;
+    this.guardandoEspecifico = true;
+    const body = {
+      ...this.formEspecifico,
+      marco_id: this.marcoParaEspecifico.id,
+      created_by: this.usuario?.nombre,
+      actor_nombre: this.usuario?.nombre,
+    };
+    const obs = this.editandoEspecifico
+      ? this.cs.actualizarEspecifico(this.editandoEspecifico.id, body)
+      : this.cs.crearEspecifico(body);
+    const marcoId = this.marcoParaEspecifico.id;
+    obs.subscribe({
+      next: () => {
+        this.guardandoEspecifico = false;
+        this.cerrarModalEspecifico();
+        this.cargarEspecificos(marcoId);
+        this.cargar();
+      },
+      error: (err) => {
+        this.guardandoEspecifico = false;
+        this.errorEspecifico = err.error?.error || 'No se pudo guardar el convenio específico.';
+      },
+    });
+  }
+
+  eliminarEspecifico(marcoId: number, e: ConvenioEspecifico): void {
+    if (!confirm(`¿Eliminar el convenio específico "${e.nombre}"?`)) return;
+    this.cs.eliminarEspecifico(e.id).subscribe(() => {
+      this.cargarEspecificos(marcoId);
+      this.cargar();
+    });
+  }
+
+  // ── Carga masiva Excel ────────────────────────────
+  abrirModalExcel(): void {
+    this.archivoExcel = null;
+    this.errorExcel = '';
+    this.resultadoExcel = null;
+    this.mostrarModalExcel = true;
+  }
+
+  cerrarModalExcel(): void {
+    this.mostrarModalExcel = false;
+  }
+
+  onArchivoExcel(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.archivoExcel = input.files?.[0] || null;
+  }
+
+  subirExcel(): void {
+    if (!this.archivoExcel) {
+      this.errorExcel = 'Selecciona un archivo Excel.';
+      return;
+    }
+    this.errorExcel = '';
+    this.subiendoExcel = true;
+    this.cs.cargarExcel(this.archivoExcel, this.usuario?.nombre || '').subscribe({
+      next: (r) => {
+        this.subiendoExcel = false;
+        this.resultadoExcel = r;
+        this.cargar();
+      },
+      error: (err) => {
+        this.subiendoExcel = false;
+        this.errorExcel = err.error?.error || 'No se pudo procesar el archivo.';
+      },
+    });
+  }
+
+  // ── Navegación ────────────────────────────────────
+  togglePerfilMenu(): void { this.mostrarPerfilMenu = !this.mostrarPerfilMenu; }
+  irASectorista(): void { this.router.navigate(['/sectorista']); }
+  cerrarSesion(): void { localStorage.removeItem('usuario'); this.router.navigate(['/login']); }
+}

@@ -21,6 +21,8 @@ export function homeDeRol(rol: string): string {
       return '/ejecutor';
     case 'Presupuesto':
       return '/presupuesto';
+    case 'Convenios':
+      return '/convenios';
     default:
       return '/dashboard';
   }

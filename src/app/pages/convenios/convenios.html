@@ -1,0 +1,349 @@
+<div class="pre-layout">
+  <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <img src="somos-essalud.png" class="nav-logo" alt="Somos EsSalud" />
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Convenios con Universidades</div>
+      </div>
+    </div>
+    <div class="nav-der">
+      @if (tieneSectorista) {
+        <button class="pre-switch" (click)="irASectorista()">Cambiar a Sectorista</button>
+      }
+      <span class="nav-fecha">{{ fechaHoy }}</span>
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">{{ inicialUsuario }}</div>
+              <div>
+                <div class="perfil-menu-nombre">{{ usuario?.nombre || '—' }}</div>
+                <div class="perfil-menu-rol">{{ usuario?.rol }}</div>
+              </div>
+            </div>
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
+              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+            </div>
+            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <main class="pre-main">
+    @if (cargando) {
+      <div class="pre-centro">Cargando…</div>
+    } @else {
+      <!-- KPIs -->
+      @if (kpis) {
+        <div class="conv-kpis">
+          <div class="conv-kpi-grupo">
+            <div class="conv-kpi-grupo-titulo">Convenios Marco</div>
+            <div class="conv-kpi-fila">
+              <div class="conv-kpi-card total"><span>{{ kpis.marco.total }}</span><small>Total</small></div>
+              <div class="conv-kpi-card vigente"><span>{{ kpis.marco.vigente }}</span><small>Vigentes</small></div>
+              <div class="conv-kpi-card por-vencer"><span>{{ kpis.marco.por_vencer }}</span><small>Por vencer</small></div>
+              <div class="conv-kpi-card vencido"><span>{{ kpis.marco.vencido }}</span><small>Vencidos</small></div>
+            </div>
+          </div>
+          <div class="conv-kpi-grupo">
+            <div class="conv-kpi-grupo-titulo">Convenios Específicos</div>
+            <div class="conv-kpi-fila">
+              <div class="conv-kpi-card total"><span>{{ kpis.especifico.total }}</span><small>Total</small></div>
+              <div class="conv-kpi-card vigente"><span>{{ kpis.especifico.vigente }}</span><small>Vigentes</small></div>
+              <div class="conv-kpi-card por-vencer"><span>{{ kpis.especifico.por_vencer }}</span><small>Por vencer</small></div>
+              <div class="conv-kpi-card vencido"><span>{{ kpis.especifico.vencido }}</span><small>Vencidos</small></div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- BARRA DE ACCIONES -->
+      <div class="pre-card conv-barra">
+        <div class="campo-busqueda">
+          <input type="text" placeholder="Buscar por universidad o N° de convenio..." [(ngModel)]="busqueda" (input)="buscar()" />
+        </div>
+        <select class="conv-select-tipo" [(ngModel)]="filtroTipo">
+          <option value="">Todos (Universidades e Institutos)</option>
+          <option value="Universidad">Solo Universidades</option>
+          <option value="Instituto">Solo Institutos</option>
+        </select>
+        @if (puedeGestionar) {
+          <button class="pre-btn-sm" (click)="abrirModalExcel()">Carga masiva (Excel)</button>
+          <button class="pre-btn-sm" (click)="abrirNuevoMarco()">Nuevo convenio marco</button>
+        }
+      </div>
+
+      <!-- LISTA DE CONVENIOS MARCO -->
+      <div class="pre-card">
+        <div class="pre-card-title">Convenios con Universidades</div>
+
+        @if (marcosFiltrados.length === 0) {
+          <p class="vacio">Aún no hay convenios registrados.</p>
+        } @else {
+          <div class="conv-lista">
+            @for (m of marcosFiltrados; track m.id) {
+              <div class="conv-marco">
+                <div class="conv-marco-cab" (click)="toggleMarco(m)">
+                  <button class="conv-expandir-btn" [class.abierto]="marcoEstaExpandido(m.id)">▸</button>
+                  <div class="conv-marco-info">
+                    <div class="conv-marco-universidad">
+                      {{ m.universidad }}
+                      <span class="conv-tipo-tag" [class.instituto]="m.tipo === 'Instituto'">{{ m.tipo }}</span>
+                    </div>
+                    <div class="conv-marco-meta">
+                      {{ m.sede_principal || 'Sin sede registrada' }}
+                      @if (m.numero_convenio) { · N° {{ m.numero_convenio }} }
+                      @if (m.fecha_inicio || m.fecha_fin) {
+                        · {{ m.fecha_inicio | date: 'dd/MM/yyyy' }} — {{ m.fecha_fin | date: 'dd/MM/yyyy' }}
+                      }
+                    </div>
+                  </div>
+                  <span class="conv-badge" [class]="m.estado_vigencia">{{ etiquetaVigencia(m.estado_vigencia) }}</span>
+                  <span class="conv-count">{{ m.total_especificos }} específico(s)</span>
+                  @if (puedeGestionar) {
+                    <div class="conv-marco-acciones" (click)="$event.stopPropagation()">
+                      <button class="conv-btn-icono" (click)="abrirEditarMarco(m)" title="Editar">✎</button>
+                      <button class="conv-btn-icono conv-btn-eliminar" (click)="eliminarMarco(m)" title="Eliminar">✕</button>
+                    </div>
+                  }
+                </div>
+
+                @if (marcoEstaExpandido(m.id)) {
+                  <div class="conv-marco-cuerpo">
+                    @if (m.objeto) {
+                      <p class="conv-objeto"><strong>Objeto:</strong> {{ m.objeto }}</p>
+                    }
+
+                    <!-- Documentos del convenio marco -->
+                    <div class="conv-docs">
+                      <div class="conv-docs-titulo">Documento del convenio marco</div>
+                      <div class="conv-docs-lista">
+                        @for (doc of documentosDe('marco', m.id); track doc.id) {
+                          <div class="conv-doc-item">
+                            <span class="conv-doc-nombre">{{ doc.nombre_archivo }}</span>
+                            <span class="conv-doc-fecha">{{ doc.fecha_subida | date: 'dd/MM/yyyy' }}</span>
+                            <button class="conv-doc-btn" (click)="descargarDoc(doc)">Ver</button>
+                            @if (puedeGestionar) {
+                              <button class="conv-doc-btn conv-doc-btn-del" (click)="eliminarDoc(doc)">Eliminar</button>
+                            }
+                          </div>
+                        } @empty {
+                          <p class="conv-sin-docs">Sin documento subido.</p>
+                        }
+                      </div>
+                      @if (puedeGestionar) {
+                        <label class="conv-subir-btn">
+                          {{ estaSubiendoDoc('marco', m.id) ? 'Subiendo...' : 'Subir PDF' }}
+                          <input type="file" accept="application/pdf" hidden [disabled]="estaSubiendoDoc('marco', m.id)" (change)="onArchivoDoc($event, 'marco', m.id)" />
+                        </label>
+                      }
+                    </div>
+
+                    <!-- Convenios específicos de este marco -->
+                    <div class="conv-especificos">
+                      <div class="conv-especificos-cab">
+                        <span class="conv-docs-titulo">Convenios específicos</span>
+                        @if (puedeGestionar) {
+                          <button class="pre-btn-sm" (click)="abrirNuevoEspecifico(m)">Agregar específico</button>
+                        }
+                      </div>
+
+                      @if (especificosDe(m.id).length === 0) {
+                        <p class="conv-sin-docs">Sin convenios específicos registrados.</p>
+                      } @else {
+                        @for (e of especificosDe(m.id); track e.id) {
+                          <div class="conv-especifico">
+                            <div class="conv-especifico-cab" (click)="toggleEspecifico(e)">
+                              <button class="conv-expandir-btn" [class.abierto]="especificoEstaExpandido(e.id)">▸</button>
+                              <div class="conv-marco-info">
+                                <div class="conv-especifico-nombre">{{ e.nombre }}</div>
+                                <div class="conv-marco-meta">
+                                  {{ e.numero_convenio || 'Sin número' }}
+                                  @if (e.fecha_inicio || e.fecha_fin) {
+                                    · {{ e.fecha_inicio | date: 'dd/MM/yyyy' }} — {{ e.fecha_fin | date: 'dd/MM/yyyy' }}
+                                  }
+                                </div>
+                              </div>
+                              <span class="conv-badge" [class]="e.estado_vigencia">{{ etiquetaVigencia(e.estado_vigencia) }}</span>
+                              @if (puedeGestionar) {
+                                <div class="conv-marco-acciones" (click)="$event.stopPropagation()">
+                                  <button class="conv-btn-icono" (click)="abrirEditarEspecifico(m, e)" title="Editar">✎</button>
+                                  <button class="conv-btn-icono conv-btn-eliminar" (click)="eliminarEspecifico(m.id, e)" title="Eliminar">✕</button>
+                                </div>
+                              }
+                            </div>
+
+                            @if (especificoEstaExpandido(e.id)) {
+                              <div class="conv-docs conv-docs-anidado">
+                                <div class="conv-docs-titulo">Documento del convenio específico</div>
+                                <div class="conv-docs-lista">
+                                  @for (doc of documentosDe('especifico', e.id); track doc.id) {
+                                    <div class="conv-doc-item">
+                                      <span class="conv-doc-nombre">{{ doc.nombre_archivo }}</span>
+                                      <span class="conv-doc-fecha">{{ doc.fecha_subida | date: 'dd/MM/yyyy' }}</span>
+                                      <button class="conv-doc-btn" (click)="descargarDoc(doc)">Ver</button>
+                                      @if (puedeGestionar) {
+                                        <button class="conv-doc-btn conv-doc-btn-del" (click)="eliminarDoc(doc)">Eliminar</button>
+                                      }
+                                    </div>
+                                  } @empty {
+                                    <p class="conv-sin-docs">Sin documento subido.</p>
+                                  }
+                                </div>
+                                @if (puedeGestionar) {
+                                  <label class="conv-subir-btn">
+                                    {{ estaSubiendoDoc('especifico', e.id) ? 'Subiendo...' : 'Subir PDF' }}
+                                    <input type="file" accept="application/pdf" hidden [disabled]="estaSubiendoDoc('especifico', e.id)" (change)="onArchivoDoc($event, 'especifico', e.id)" />
+                                  </label>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- MODAL: convenio marco -->
+@if (mostrarModalMarco) {
+  <div class="pre-overlay" (click)="cerrarModalMarco()">
+    <div class="pre-modal" (click)="$event.stopPropagation()">
+      <h3>{{ editandoMarco ? 'Editar convenio marco' : 'Nuevo convenio marco' }}</h3>
+      <div class="pre-campo">
+        <label>Tipo</label>
+        <select [(ngModel)]="formMarco.tipo">
+          <option value="Universidad">Universidad</option>
+          <option value="Instituto">Instituto</option>
+        </select>
+      </div>
+      <div class="pre-campo">
+        <label>{{ formMarco.tipo === 'Instituto' ? 'Instituto' : 'Universidad' }} *</label>
+        <input type="text" [(ngModel)]="formMarco.universidad" placeholder="Ej: Universidad Nacional Mayor de San Marcos" />
+      </div>
+      <div class="pre-campo">
+        <label>Sede principal</label>
+        <input type="text" [(ngModel)]="formMarco.sede_principal" placeholder="Ej: Lima" />
+      </div>
+      <div class="pre-campo">
+        <label>N° de convenio</label>
+        <input type="text" [(ngModel)]="formMarco.numero_convenio" placeholder="Ej: CM-001-2026" />
+      </div>
+      <div class="pre-campo">
+        <label>Objeto</label>
+        <textarea [(ngModel)]="formMarco.objeto" rows="3" placeholder="Objeto del convenio marco"></textarea>
+      </div>
+      <div class="pre-campo">
+        <label>Fecha de inicio</label>
+        <input type="date" [(ngModel)]="formMarco.fecha_inicio" />
+      </div>
+      <div class="pre-campo">
+        <label>Fecha de fin</label>
+        <input type="date" [(ngModel)]="formMarco.fecha_fin" />
+      </div>
+      @if (errorMarco) {
+        <p class="pre-error">{{ errorMarco }}</p>
+      }
+      <div class="pre-modal-btns">
+        <button class="pre-btn-sec" (click)="cerrarModalMarco()" [disabled]="guardandoMarco">Cancelar</button>
+        <button class="pre-btn" (click)="guardarMarco()" [disabled]="guardandoMarco">{{ guardandoMarco ? 'Guardando...' : 'Guardar' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: convenio específico -->
+@if (mostrarModalEspecifico) {
+  <div class="pre-overlay" (click)="cerrarModalEspecifico()">
+    <div class="pre-modal" (click)="$event.stopPropagation()">
+      <h3>{{ editandoEspecifico ? 'Editar convenio específico' : 'Nuevo convenio específico' }}</h3>
+      <p class="conv-modal-sub">Marco: {{ marcoParaEspecifico?.universidad }}</p>
+      <div class="pre-campo">
+        <label>Objeto / Nombre *</label>
+        <input type="text" [(ngModel)]="formEspecifico.nombre" placeholder="Ej: Prácticas preprofesionales de Enfermería" />
+      </div>
+      <div class="pre-campo">
+        <label>N° de convenio</label>
+        <input type="text" [(ngModel)]="formEspecifico.numero_convenio" placeholder="Ej: CE-001-2026" />
+      </div>
+      <div class="pre-campo">
+        <label>Fecha de inicio</label>
+        <input type="date" [(ngModel)]="formEspecifico.fecha_inicio" />
+      </div>
+      <div class="pre-campo">
+        <label>Fecha de fin</label>
+        <input type="date" [(ngModel)]="formEspecifico.fecha_fin" />
+      </div>
+      @if (errorEspecifico) {
+        <p class="pre-error">{{ errorEspecifico }}</p>
+      }
+      <div class="pre-modal-btns">
+        <button class="pre-btn-sec" (click)="cerrarModalEspecifico()" [disabled]="guardandoEspecifico">Cancelar</button>
+        <button class="pre-btn" (click)="guardarEspecifico()" [disabled]="guardandoEspecifico">{{ guardandoEspecifico ? 'Guardando...' : 'Guardar' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: carga masiva Excel -->
+@if (mostrarModalExcel) {
+  <div class="pre-overlay" (click)="cerrarModalExcel()">
+    <div class="pre-modal" (click)="$event.stopPropagation()">
+      <h3>Carga masiva de convenios</h3>
+      <p class="conv-modal-sub">
+        Sube el Excel de convenios marco de EsSalud (hojas UNIVERSIDADES / INSTITUTOS,
+        con columnas Institución Educativa, Sede Principal, Suscrito y Vigente hasta).
+        Los convenios ya cargados se detectan por universidad y se omiten.
+      </p>
+      <div class="pre-campo">
+        <input type="file" accept=".xls,.xlsx" (change)="onArchivoExcel($event)" />
+      </div>
+      @if (errorExcel) {
+        <p class="pre-error">{{ errorExcel }}</p>
+      }
+      @if (resultadoExcel) {
+        <div class="conv-resultado-excel">
+          <p>Convenios marco creados: <strong>{{ resultadoExcel.marcosCreados }}</strong></p>
+          @if (resultadoExcel.duplicados) {
+            <p>Ya existían (omitidos): <strong>{{ resultadoExcel.duplicados }}</strong></p>
+          }
+          @if (resultadoExcel.errores.length) {
+            <p class="conv-errores-titulo">Filas con problemas:</p>
+            <ul class="conv-errores-lista">
+              @for (e of resultadoExcel.errores; track e) {
+                <li>{{ e }}</li>
+              }
+            </ul>
+          }
+        </div>
+      }
+      <div class="pre-modal-btns">
+        <button class="pre-btn-sec" (click)="cerrarModalExcel()" [disabled]="subiendoExcel">Cerrar</button>
+        <button class="pre-btn" (click)="subirExcel()" [disabled]="subiendoExcel">{{ subiendoExcel ? 'Procesando...' : 'Subir' }}</button>
+      </div>
+    </div>
+  </div>
+}

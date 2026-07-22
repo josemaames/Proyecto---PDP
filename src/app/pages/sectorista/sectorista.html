@@ -19,6 +19,9 @@
       @if (tienePresupuesto) {
         <button class="btn-cambiar-vista" (click)="irAPresupuesto()">Cambiar a Presupuesto</button>
       }
+      @if (tieneConvenios) {
+        <button class="btn-cambiar-vista" (click)="irAConvenios()">Cambiar a Convenios</button>
+      }
       <span class="nav-fecha">{{ fechaHoy }}</span>
       <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
@@ -112,6 +115,27 @@
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
       @if (seccionActiva === 'inicio') {
+
+        <!-- ALERTAS DE PERSONAL (cese / cambio de red) -->
+        @if (alertasPersonal.length > 0) {
+          <div class="card alertas-personal-card">
+            <div class="card-section-title-row">
+              <span class="card-section-title">Personal a revisar en capacitaciones</span>
+              <span class="badge-count badge-alerta-count">{{ alertasPersonal.length }}</span>
+            </div>
+            <div class="alertas-personal-lista">
+              @for (a of alertasPersonal; track a.id) {
+                <div class="alerta-personal-item">
+                  <span class="alerta-personal-texto">{{ descripcionAlertaPersonal(a) }}</span>
+                  <div class="alerta-personal-acciones">
+                    <button class="btn-alerta-ver" (click)="irARevisarAlertaPersonal(a)">Ver</button>
+                    <button class="btn-alerta-resolver" (click)="resolverAlertaPersonal(a)">Marcar revisado</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
 
 <!-- ASIGNACIÓN PRESUPUESTAL -->
         @if (presupuestoMiRed.length > 0) {

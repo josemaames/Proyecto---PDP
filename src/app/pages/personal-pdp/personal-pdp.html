@@ -160,6 +160,12 @@
  <option value="728">728</option>
  <option value="CAS">CAS</option>
  </select>
+
+ @if (esAdministrador) {
+ <button class="btn-actualizar-personal" (click)="abrirModalActualizar()">
+ Actualizar
+ </button>
+ }
  </div>
  </div>
 
@@ -199,6 +205,7 @@
  <th>Servicio / Área</th>
  <th>Cargo</th>
  <th>Régimen laboral</th>
+ <th>Estado</th>
  </tr>
  </thead>
  <tbody>
@@ -218,6 +225,11 @@
  <td>{{ p.servicio_area || '—' }}</td>
  <td>{{ p.cargo || '—' }}</td>
  <td>{{ p.regimen_laboral || '—' }}</td>
+ <td>
+ <span class="badge-estado" [class.cesado]="p.estado === 'Cesado'">
+ {{ p.estado || 'Activo' }}
+ </span>
+ </td>
  </tr>
  }
  </tbody>
@@ -235,3 +247,47 @@
  </main>
  </div>
 </div>
+
+<!-- MODAL ACTUALIZAR PERSONAL -->
+@if (mostrarModalActualizar) {
+ <div class="modal-overlay" (click)="cerrarModalActualizar()">
+ <div class="modal-actualizar" (click)="$event.stopPropagation()">
+ <div class="modal-head">
+ <h3>Actualizar personal</h3>
+ <button class="btn-cerrar" (click)="cerrarModalActualizar()"></button>
+ </div>
+
+ <div class="modal-actualizar-cuerpo">
+ <p class="modal-actualizar-desc">
+ Sube el padrón completo y actual de personal (mismas cabeceras que el archivo original).
+ El sistema compara contra lo que ya está registrado: agrega a quien sea nuevo, actualiza la
+ red de quien cambió, y marca como "Cesado" a quien ya no aparezca en el archivo. Si alguna
+ de estas personas está en una capacitación vigente, se genera una alerta para que el
+ sectorista y el ejecutor la revisen.
+ </p>
+
+ <input type="file" accept=".xlsx,.xls" (change)="onArchivoActualizar($event)" [disabled]="subiendoActualizar" />
+
+ @if (errorActualizar) {
+ <p class="msg-err">{{ errorActualizar }}</p>
+ }
+
+ @if (resultadoActualizar) {
+ <div class="resultado-actualizar">
+ <p>Altas: <strong>{{ resultadoActualizar.altas }}</strong></p>
+ <p>Cambios de red: <strong>{{ resultadoActualizar.cambiosRed }}</strong></p>
+ <p>Ceses: <strong>{{ resultadoActualizar.ceses }}</strong></p>
+ <p>Alertas generadas: <strong>{{ resultadoActualizar.alertasGeneradas }}</strong></p>
+ </div>
+ }
+
+ <div class="modal-actualizar-btns">
+ <button class="btn-asig-guardar" [disabled]="subiendoActualizar || !archivoActualizar" (click)="subirActualizacion()">
+ {{ subiendoActualizar ? 'Procesando...' : 'Actualizar' }}
+ </button>
+ <button class="btn-asig-cancelar" (click)="cerrarModalActualizar()">Cerrar</button>
+ </div>
+ </div>
+ </div>
+ </div>
+}

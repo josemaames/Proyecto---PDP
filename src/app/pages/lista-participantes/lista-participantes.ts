@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { PdpDataService, Participante } from '../../services/pdp-data.service';
+import { PdpDataService, Participante, AlertaPersonal } from '../../services/pdp-data.service';
 
 @Component({
  selector: 'app-lista-participantes',
@@ -12,6 +12,7 @@ import { PdpDataService, Participante } from '../../services/pdp-data.service';
 })
 export class ListaParticipantes implements OnInit {
  private router = inject(Router);
+ private route = inject(ActivatedRoute);
  private pdpData = inject(PdpDataService);
 
  usuario: any = {};
@@ -35,6 +36,15 @@ export class ListaParticipantes implements OnInit {
 
  nuevo = this.vacio();
 
+ // ── Alertas de personal (cese / cambio de red) ───
+ alertasPorParticipante = new Map<string, AlertaPersonal>();
+
+ mostrarModalAcciones = false;
+ alertaEnAcciones: AlertaPersonal | null = null;
+ participanteEnAcciones: Participante | null = null;
+ motivoMantener = '';
+ procesandoAccion = false;
+
  // ── Ciclo de vida ─────────────────────────────
  ngOnInit() {
  this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
@@ -48,9 +58,90 @@ export class ListaParticipantes implements OnInit {
  this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
  this.redFiltro = this.pdpData.getRedFiltro();
- console.log('USUARIO:', this.usuario);
- console.log('RED FILTRO:', this.redFiltro);
+
+ const codigoDesdeUrl = this.route.snapshot.queryParamMap.get('codigo_act');
+ if (codigoDesdeUrl) this.codigoFiltro = codigoDesdeUrl;
+
  this.cargarParticipantes();
+ this.cargarAlertas();
+ }
+
+ // ── Alertas de personal ───────────────────────
+ cargarAlertas() {
+ this.pdpData.getAlertasPersonal().subscribe({
+ next: (alertas) => {
+ this.alertasPorParticipante = new Map(
+ alertas.map((a) => [`${a.dni_ce}|${a.codigo_act}`, a]),
+ );
+ },
+ error: () => (this.alertasPorParticipante = new Map()),
+ });
+ }
+
+ alertaDe(p: Participante): AlertaPersonal | undefined {
+ return this.alertasPorParticipante.get(`${p.dni_ce}|${p.codigo_act}`);
+ }
+
+ descripcionAlerta(a: AlertaPersonal): string {
+ return a.tipo === 'CESE'
+ ? `${a.nombre_completo} ya no pertenece al personal activo.`
+ : `${a.nombre_completo} cambió de red: ${a.red_anterior} → ${a.red_nueva}.`;
+ }
+
+ abrirAcciones(alerta: AlertaPersonal, p: Participante) {
+ this.alertaEnAcciones = alerta;
+ this.participanteEnAcciones = p;
+ this.motivoMantener = '';
+ this.mostrarModalAcciones = true;
+ }
+
+ cerrarAcciones() {
+ this.mostrarModalAcciones = false;
+ this.alertaEnAcciones = null;
+ this.participanteEnAcciones = null;
+ this.motivoMantener = '';
+ }
+
+ mantenerParticipante() {
+ if (!this.alertaEnAcciones || this.procesandoAccion) return;
+ this.procesandoAccion = true;
+ this.pdpData
+ .resolverAlertaPersonal(this.alertaEnAcciones.id, this.usuario?.nombre || '', this.motivoMantener.trim())
+ .subscribe({
+ next: () => {
+ this.procesandoAccion = false;
+ this.cerrarAcciones();
+ this.cargarAlertas();
+ },
+ error: () => (this.procesandoAccion = false),
+ });
+ }
+
+ eliminarParticipanteDesdeAlerta() {
+ if (!this.alertaEnAcciones || !this.participanteEnAcciones?.id || this.procesandoAccion) return;
+ if (!confirm('El participante será eliminado de esta actividad. ¿Continuar?')) return;
+ this.procesandoAccion = true;
+ const alerta = this.alertaEnAcciones;
+ this.pdpData.eliminarParticipante(this.participanteEnAcciones.id).subscribe({
+ next: () => {
+ this.pdpData
+ .resolverAlertaPersonal(alerta.id, this.usuario?.nombre || '', 'Participante eliminado de la actividad.')
+ .subscribe({
+ next: () => {
+ this.procesandoAccion = false;
+ this.cerrarAcciones();
+ this.cargarParticipantes();
+ this.cargarAlertas();
+ },
+ error: () => {
+ this.procesandoAccion = false;
+ this.cargarParticipantes();
+ this.cargarAlertas();
+ },
+ });
+ },
+ error: () => (this.procesandoAccion = false),
+ });
  }
 
  // ── Carga desde API ───────────────────────────

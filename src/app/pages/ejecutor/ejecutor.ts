@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ExpedienteService } from '../../services/expediente.service';
-import { PdpDataService } from '../../services/pdp-data.service';
+import { PdpDataService, AlertaPersonal } from '../../services/pdp-data.service';
 
 @Component({
  selector: 'app-ejecutor',
@@ -204,6 +204,34 @@ export class Ejecutor implements OnInit {
  this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
  this.cargarActividades();
+ this.cargarAlertasPersonal();
+ }
+
+ // ── Alertas de personal (cese / cambio de red) ────
+ alertasPersonal: AlertaPersonal[] = [];
+
+ cargarAlertasPersonal() {
+ this.pdpData.getAlertasPersonal(undefined, this.redEjecutor).subscribe({
+ next: (alertas) => (this.alertasPersonal = alertas),
+ error: () => (this.alertasPersonal = []),
+ });
+ }
+
+ descripcionAlertaPersonal(a: AlertaPersonal): string {
+ return a.tipo === 'CESE'
+ ? `${a.nombre_completo} ya no pertenece al personal activo (capacitación ${a.codigo_act}).`
+ : `${a.nombre_completo} cambió de red: ${a.red_anterior} → ${a.red_nueva} (capacitación ${a.codigo_act}).`;
+ }
+
+ resolverAlertaPersonal(a: AlertaPersonal) {
+ if (!confirm('¿Marcar esta alerta como revisada?')) return;
+ this.pdpData.resolverAlertaPersonal(a.id, this.usuario?.nombre || '').subscribe(() => {
+ this.cargarAlertasPersonal();
+ });
+ }
+
+ irARevisarAlertaPersonal(a: AlertaPersonal) {
+ this.router.navigate(['/lista-participantes'], { queryParams: { codigo_act: a.codigo_act } });
  }
 
  private cargarPresupuestoRed() {

@@ -27,7 +27,7 @@ export class Personal implements OnInit {
 
  redesDisponibles: string[] = [];
  sedesSeleccionadas: string[] = [];
- rolesDisponibles = ['Administrador', 'Sectorista', 'Ejecutor', 'Presupuesto', 'Administrativo'];
+ rolesDisponibles = ['Administrador', 'Sectorista', 'Ejecutor', 'Presupuesto', 'Convenios', 'Administrativo'];
  rolesSeleccionados: string[] = [];
  mostrarPassword = false;
 
@@ -158,10 +158,22 @@ export class Personal implements OnInit {
  this.mostrarDetalle = false;
  }
 
+ // Convenios es exclusivo de Administrador/Sectorista: no aplica si el usuario es Ejecutor.
+ rolBloqueado(rol: string): boolean {
+ return rol === 'Convenios' && this.rolesSeleccionados.includes('Ejecutor') && !this.rolesSeleccionados.includes('Convenios');
+ }
+
  toggleRolSel(rol: string) {
+ if (this.rolBloqueado(rol)) return;
  const i = this.rolesSeleccionados.indexOf(rol);
  if (i === -1) this.rolesSeleccionados.push(rol);
  else this.rolesSeleccionados.splice(i, 1);
+
+ // Si se marca Ejecutor con Convenios ya activo, se retira Convenios (incompatibles).
+ if (rol === 'Ejecutor' && this.rolesSeleccionados.includes('Ejecutor')) {
+ const j = this.rolesSeleccionados.indexOf('Convenios');
+ if (j !== -1) this.rolesSeleccionados.splice(j, 1);
+ }
  }
 
  rolSelMarcado(rol: string): boolean {

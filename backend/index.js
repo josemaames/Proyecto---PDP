@@ -6,6 +6,7 @@ const cors = require('cors');
 const pool = require('./db-oracle'); // adaptador Oracle, expone .query() estilo pg
 const nodemailer = require('nodemailer');
 const multer = require('multer');
+const XLSX = require('xlsx');
 const StorageSDK = require('./storage-sdk');
 
 const app = express();
@@ -39,7 +40,7 @@ const TIPOS_PERMITIDOS = {
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB (comprobantes de pago)
   fileFilter: (req, file, cb) => {
     if (TIPOS_PERMITIDOS[file.mimetype]) return cb(null, true);
     cb(
@@ -47,6 +48,61 @@ const upload = multer({
     );
   },
 });
+
+// Padrones de personal (Excel) pueden pesar bastante más que un comprobante.
+const uploadPadron = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB
+  fileFilter: (req, file, cb) => {
+    const esExcel =
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (esExcel) return cb(null, true);
+    cb(new Error('Solo se aceptan archivos Excel (.xls/.xlsx) para el padrón de personal.'));
+  },
+});
+
+// Documentos de convenios (marco / específico): solo PDF firmado, igual que el
+// resto de documentos ante el File Server (por ahora QA solo tiene PDF habilitado).
+const uploadConvenio = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') return cb(null, true);
+    cb(new Error('Solo se aceptan archivos PDF para los documentos de convenios.'));
+  },
+});
+
+// Carga masiva de convenios por Excel.
+const uploadConveniosExcel = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
+  fileFilter: (req, file, cb) => {
+    const esExcel =
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (esExcel) return cb(null, true);
+    cb(new Error('Solo se aceptan archivos Excel (.xls/.xlsx) para la carga de convenios.'));
+  },
+});
+
+// Búsqueda de texto libre por nombre/apellido: separa lo escrito en palabras
+// y exige que CADA palabra aparezca en ALGUNO de los campos dados. Así
+// "Amanda Santillán" encuentra a alguien sin importar si "Amanda" está en la
+// columna nombre y "Santillán" en apellidos (o al revés), y buscar una sola
+// palabra (solo el apellido, por ejemplo) sigue funcionando igual que antes.
+function condicionBusquedaPalabras(campos, texto, params, idxInicial) {
+  const palabras = String(texto || '').trim().split(/\s+/).filter(Boolean);
+  let idx = idxInicial;
+  if (!palabras.length) return { condicion: null, idx };
+  const grupos = palabras.map((palabra) => {
+    const grupo = campos.map((c) => `${c} ILIKE $${idx}`).join(' OR ');
+    params.push(`%${palabra}%`);
+    idx++;
+    return `(${grupo})`;
+  });
+  return { condicion: `(${grupos.join(' AND ')})`, idx };
+}
 
 // ──────────────────────────────────────────────
 // Normaliza nombre corto de red al formato largo
@@ -202,11 +258,14 @@ app.get('/api/participantes', async (req, res) => {
       idx = 1;
 
     if (q) {
-      conditions.push(
-        `(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx} OR codigo_act ILIKE $${idx})`,
+      const { condicion, idx: idxTrasBusqueda } = condicionBusquedaPalabras(
+        ['apellidos', 'nombre', 'dni_ce', 'cargo', 'codigo_act'],
+        q,
+        params,
+        idx,
       );
-      params.push(`%${q}%`);
-      idx++;
+      if (condicion) conditions.push(condicion);
+      idx = idxTrasBusqueda;
     }
     if (codigo_act) {
       conditions.push(`codigo_act ILIKE $${idx}`);
@@ -254,16 +313,29 @@ app.get('/api/participantes', async (req, res) => {
   }
 });
 
+// Mantiene datos_actividad.total_participantes en línea con el conteo real de
+// lista_participantes (se desincroniza si no se llama tras cada alta/baja).
+async function recalcularTotalParticipantes(codigo_act) {
+  if (!codigo_act) return;
+  await pool.query(
+    `UPDATE datos_actividad SET total_participantes =
+       (SELECT COUNT(*) FROM lista_participantes WHERE codigo_act=$1)
+     WHERE codigo_act=$1`,
+    [codigo_act],
+  );
+}
+
 app.post('/api/participantes', async (req, res) => {
   try {
     const f = req.body;
+    const codigo_act = f.codigoAct || f.codigo_act;
     const { rows } = await pool.query(
       `INSERT INTO lista_participantes
          (codigo_act, dni_ce, cod_planilla, apellidos, nombre,
           sexo, red, sub_programa, servicio_area, cargo, regimen_laboral)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
       [
-        f.codigoAct || f.codigo_act,
+        codigo_act,
         f.dniCe || f.dni_ce,
         f.codPlanilla || f.cod_planilla,
         f.apellidos,
@@ -276,6 +348,8 @@ app.post('/api/participantes', async (req, res) => {
         f.regimenLaboral || f.regimen_laboral,
       ],
     );
+    await recalcularTotalParticipantes(codigo_act);
+    invalidarCache();
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -284,7 +358,11 @@ app.post('/api/participantes', async (req, res) => {
 
 app.delete('/api/participantes/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM lista_participantes WHERE id=$1', [parseInt(req.params.id)]);
+    const id = parseInt(req.params.id);
+    const { rows } = await pool.query('SELECT codigo_act FROM lista_participantes WHERE id=$1', [id]);
+    await pool.query('DELETE FROM lista_participantes WHERE id=$1', [id]);
+    await recalcularTotalParticipantes(rows[0]?.codigo_act);
+    invalidarCache();
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -586,12 +664,14 @@ app.get('/api/personal-essalud', async (req, res) => {
       params = [],
       idx = 1;
 
-    const search = `%${q || ''}%`;
-    conditions.push(
-      `(apellidos ILIKE $${idx} OR nombre ILIKE $${idx} OR dni_ce ILIKE $${idx} OR cargo ILIKE $${idx})`,
+    const { condicion: condicionBusqueda, idx: idxTrasBusqueda } = condicionBusquedaPalabras(
+      ['apellidos', 'nombre', 'dni_ce', 'cargo'],
+      q,
+      params,
+      idx,
     );
-    params.push(search);
-    idx++;
+    if (condicionBusqueda) conditions.push(condicionBusqueda);
+    idx = idxTrasBusqueda;
 
     if (red) {
       // Expand abbreviations: RA XXXXX → RED ASISTENCIAL XXXXX, RP XXXXX → RED PRESTACIONAL XXXXX
@@ -624,7 +704,7 @@ app.get('/api/personal-essalud', async (req, res) => {
       idx++;
     }
 
-    const where = `WHERE ${conditions.join(' AND ')}`;
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const { rows } = await pool.query(
       `SELECT * FROM personal ${where} ORDER BY apellidos, nombre LIMIT $${idx} OFFSET $${idx + 1}`,
@@ -658,6 +738,233 @@ app.get('/api/personal-essalud/planilla/:cod', async (req, res) => {
     ]);
     if (!rows.length) return res.status(404).json({ error: 'Código no encontrado' });
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ══════════════════════════════════════════════
+// ACTUALIZAR PERSONAL (solo Administrador)
+// Sube un padrón completo de personal (mismas cabeceras que la hoja PERSONAL)
+// y lo compara contra la BD: DNI nuevo → alta, DNI existente con red distinta
+// → actualiza red, DNI que ya no aparece → lo marca Cesado. Si la persona
+// afectada está en una capacitación vigente, genera una alerta y notifica por
+// correo al ejecutor/sectorista de esa red.
+//
+// Nota para el futuro: cuando exista la API real de personal, esta misma
+// lógica de "aplicar cambios" (altas/cambios de red/ceses + alertas) se puede
+// alimentar directo con una lista de cambios en vez de comparar un padrón
+// completo — el bloque de "detectar capacitaciones afectadas y notificar" de
+// abajo no depende de cómo se obtuvo la lista de cambios.
+// ══════════════════════════════════════════════
+app.post('/api/personal/actualizar', uploadPadron.single('archivo'), async (req, res) => {
+  try {
+    const { actor_nombre, actor_rol } = req.body;
+    if (actor_rol !== 'Administrador') {
+      return res.status(403).json({ error: 'Solo el Administrador puede actualizar el personal.' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+
+    const strv = (v) => (v === undefined || v === null || v === '' ? null : String(v).trim());
+    const dniv = (v) => {
+      const s = strv(v);
+      if (!s) return null;
+      return /^\d+$/.test(s) ? s.padStart(8, '0') : s;
+    };
+
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+    const filas = raw.slice(1).filter((r) => r[0] !== null && r[0] !== '');
+
+    const enArchivo = new Map();
+    for (const r of filas) {
+      const d = dniv(r[0]);
+      if (!d) continue;
+      enArchivo.set(d, {
+        cod_planilla: strv(r[1]),
+        apellidos: strv(r[2]),
+        nombre: strv(r[3]),
+        sexo: strv(r[4]),
+        red: strv(r[5]),
+        sub_programa: strv(r[6]),
+        servicio_area: strv(r[7]),
+        cargo: strv(r[8]),
+        regimen_laboral: strv(r[9]),
+      });
+    }
+
+    const { rows: actuales } = await pool.query(
+      `SELECT dni_ce, red, apellidos, nombre FROM personal WHERE estado='Activo'`,
+    );
+    const actualesMap = new Map(actuales.map((a) => [a.dni_ce, a]));
+
+    let altas = 0;
+    let cambiosRed = 0;
+    let ceses = 0;
+    const eventos = []; // { dni_ce, nombre_completo, tipo, red_anterior, red_nueva }
+
+    for (const [dni_ce, datos] of enArchivo) {
+      const existente = actualesMap.get(dni_ce);
+      if (!existente) {
+        await pool.query(
+          `INSERT INTO personal (dni_ce, cod_planilla, apellidos, nombre, sexo, red, sub_programa, servicio_area, cargo, regimen_laboral, estado)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'Activo')`,
+          [
+            dni_ce, datos.cod_planilla, datos.apellidos, datos.nombre, datos.sexo,
+            datos.red, datos.sub_programa, datos.servicio_area, datos.cargo, datos.regimen_laboral,
+          ],
+        );
+        altas++;
+      } else if (datos.red && normalizarRedKey(existente.red) !== normalizarRedKey(datos.red)) {
+        await pool.query(`UPDATE personal SET red=$1 WHERE dni_ce=$2`, [datos.red, dni_ce]);
+        cambiosRed++;
+        eventos.push({
+          dni_ce,
+          nombre_completo: `${existente.apellidos || ''} ${existente.nombre || ''}`.trim(),
+          tipo: 'CAMBIO_RED',
+          red_anterior: existente.red,
+          red_nueva: datos.red,
+        });
+      }
+    }
+
+    for (const a of actuales) {
+      if (!enArchivo.has(a.dni_ce)) {
+        await pool.query(`UPDATE personal SET estado='Cesado' WHERE dni_ce=$1`, [a.dni_ce]);
+        ceses++;
+        eventos.push({
+          dni_ce: a.dni_ce,
+          nombre_completo: `${a.apellidos || ''} ${a.nombre || ''}`.trim(),
+          tipo: 'CESE',
+          red_anterior: a.red,
+          red_nueva: null,
+        });
+      }
+    }
+
+    // Detectar capacitaciones vigentes (sin terminar) donde participa alguien
+    // afectado, generar la alerta, y agrupar para notificar por correo.
+    let alertasGeneradas = 0;
+    const porRed = new Map();
+
+    for (const ev of eventos) {
+      const { rows: participaciones } = await pool.query(
+        `SELECT lp.codigo_act, da.nombre_actividad, da.fecha_fin, da.red_asistencial
+         FROM lista_participantes lp
+         JOIN datos_actividad da ON da.codigo_act = lp.codigo_act
+         WHERE lp.dni_ce = $1 AND (da.fecha_fin IS NULL OR da.fecha_fin >= $2)`,
+        [ev.dni_ce, new Date()],
+      );
+      for (const p of participaciones) {
+        await pool.query(
+          `INSERT INTO alertas_personal (dni_ce, codigo_act, tipo, nombre_completo, red_anterior, red_nueva)
+           VALUES ($1,$2,$3,$4,$5,$6)`,
+          [ev.dni_ce, p.codigo_act, ev.tipo, ev.nombre_completo, ev.red_anterior, ev.red_nueva],
+        );
+        alertasGeneradas++;
+
+        const clave = p.red_asistencial || '';
+        if (!porRed.has(clave)) porRed.set(clave, []);
+        porRed.get(clave).push({ ...ev, codigo_act: p.codigo_act, nombre_actividad: p.nombre_actividad });
+      }
+    }
+
+    for (const [red, items] of porRed) {
+      const key = normalizarRedKey(red);
+      const { rows: destinatarios } = await pool.query(
+        `SELECT email FROM usuarios_sistema
+         WHERE rol IN ('Sectorista','Ejecutor') AND estado='Activo' AND sedes ILIKE $1 AND email != ''`,
+        [`%${key}%`],
+      );
+      if (!destinatarios.length) continue;
+      const emails = destinatarios.map((d) => d.email);
+      const filasHtml = items
+        .map(
+          (it) =>
+            `<tr><td style="padding:6px">${it.nombre_completo}</td><td style="padding:6px">${it.codigo_act} — ${it.nombre_actividad || ''}</td><td style="padding:6px">${
+              it.tipo === 'CESE' ? 'Cesó' : `Cambió de red (${it.red_anterior} → ${it.red_nueva})`
+            }</td></tr>`,
+        )
+        .join('');
+      const html = htmlBase(
+        '#dc2626',
+        'Revisar participantes en capacitaciones',
+        `<p>Se detectaron cambios en el personal que afectan capacitaciones vigentes de la red <strong>${red}</strong>:</p>
+         <table style="width:100%;border-collapse:collapse;margin:16px 0">
+           <tr style="background:#f3f4f6"><th style="padding:6px;text-align:left">Persona</th><th style="padding:6px;text-align:left">Capacitación</th><th style="padding:6px;text-align:left">Motivo</th></tr>
+           ${filasHtml}
+         </table>
+         <p>Revisa si corresponde eliminarlos de la capacitación.</p>`,
+      );
+      enviarCorreo(emails, 'Personal desactualizado en capacitaciones — Sistema PDP', html);
+    }
+
+    logEvento(
+      'personal_actualizado',
+      `${actor_nombre || 'Administrador'} actualizó el padrón de personal: ${altas} altas, ${cambiosRed} cambios de red, ${ceses} ceses, ${alertasGeneradas} alertas generadas`,
+      actor_nombre,
+      'Administrador',
+      null,
+    );
+
+    invalidarCache();
+    res.json({ altas, cambiosRed, ceses, alertasGeneradas });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Alertas pendientes de revisión (filtrable por capacitación)
+app.get('/api/personal/alertas', async (req, res) => {
+  try {
+    const { codigo_act, red } = req.query;
+    const conditions = [`ap.resuelto='N'`];
+    const params = [];
+    let idx = 1;
+
+    if (codigo_act) {
+      conditions.push(`ap.codigo_act=$${idx}`);
+      params.push(codigo_act);
+      idx++;
+    }
+    if (red) {
+      const redes = red
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
+      if (redes.length) {
+        const redConds = redes.map((r, i) => {
+          params.push(`%${r}%`);
+          return `da.red_asistencial ILIKE $${idx + i}`;
+        });
+        idx += redes.length;
+        conditions.push(`(${redConds.join(' OR ')})`);
+      }
+    }
+
+    const { rows } = await pool.query(
+      `SELECT ap.* FROM alertas_personal ap
+       JOIN datos_actividad da ON da.codigo_act = ap.codigo_act
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY ap.detectado_at DESC`,
+      params,
+    );
+    res.json(rows.map((r) => ({ ...r, resuelto: r.resuelto === 'Y' })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Marcar una alerta como revisada (ej. ya se eliminó al participante)
+app.put('/api/personal/alertas/:id/resolver', async (req, res) => {
+  try {
+    const { actor_nombre, motivo } = req.body;
+    await pool.query(
+      `UPDATE alertas_personal SET resuelto='Y', resuelto_at=NOW(), resuelto_por=$1, motivo=$2 WHERE id=$3`,
+      [actor_nombre || '', motivo || null, req.params.id],
+    );
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2078,6 +2385,363 @@ app.delete('/api/documentos/:id', async (req, res) => {
     // en el File Server hasta que nos den un endpoint de delete.
     await pool.query('DELETE FROM documentos WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ══════════════════════════════════════════════
+// CONVENIOS (rol Convenios: Administrador + Sectoristas con ese sub-rol)
+// Convenios marco (con una universidad) <- 1:N -> convenios específicos.
+// GET    /api/convenios/kpis
+// GET    /api/convenios-marco?q=&estado_vigencia=
+// POST   /api/convenios-marco
+// PUT    /api/convenios-marco/:id
+// DELETE /api/convenios-marco/:id
+// GET    /api/convenios-especifico?marco_id=
+// POST   /api/convenios-especifico
+// PUT    /api/convenios-especifico/:id
+// DELETE /api/convenios-especifico/:id
+// POST   /api/convenios/documentos          (subir PDF)
+// GET    /api/convenios/documentos?convenio_tipo=&convenio_id=
+// GET    /api/convenios/documentos/:id/descargar
+// DELETE /api/convenios/documentos/:id
+// POST   /api/convenios/cargar-excel        (carga masiva)
+// ══════════════════════════════════════════════
+
+const CONVENIOS_DIAS_POR_VENCER = 30;
+
+// Clasifica una fila con fecha_fin en 'vigente' | 'por_vencer' | 'vencido' | 'sin_fecha'.
+function estadoVigenciaConvenio(fechaFin) {
+  if (!fechaFin) return 'sin_fecha';
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const fin = new Date(fechaFin);
+  fin.setHours(0, 0, 0, 0);
+  const dias = Math.round((fin - hoy) / (1000 * 60 * 60 * 24));
+  if (dias < 0) return 'vencido';
+  if (dias <= CONVENIOS_DIAS_POR_VENCER) return 'por_vencer';
+  return 'vigente';
+}
+
+app.get('/api/convenios/kpis', async (req, res) => {
+  try {
+    const [marcos, especificos] = await Promise.all([
+      pool.query(`SELECT fecha_fin FROM convenios_marco WHERE estado='Activo'`),
+      pool.query(`SELECT fecha_fin FROM convenios_especifico WHERE estado='Activo'`),
+    ]);
+    const contar = (rows) => {
+      const kpi = { vigente: 0, por_vencer: 0, vencido: 0, sin_fecha: 0, total: rows.length };
+      for (const r of rows) kpi[estadoVigenciaConvenio(r.fecha_fin)]++;
+      return kpi;
+    };
+    res.json({ marco: contar(marcos.rows), especifico: contar(especificos.rows) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios-marco', async (req, res) => {
+  try {
+    const { q = '' } = req.query;
+    const cond = [`estado='Activo'`];
+    const params = [];
+    if (q) {
+      cond.push(`(LOWER(universidad) LIKE LOWER($1) OR LOWER(numero_convenio) LIKE LOWER($1))`);
+      params.push(`%${q}%`);
+    }
+    const { rows } = await pool.query(
+      `SELECT m.*,
+        (SELECT COUNT(*) FROM convenios_especifico e WHERE e.marco_id = m.id AND e.estado='Activo') AS total_especificos
+       FROM convenios_marco m WHERE ${cond.join(' AND ')} ORDER BY m.universidad`,
+      params,
+    );
+    res.json(rows.map((r) => ({ ...r, estado_vigencia: estadoVigenciaConvenio(r.fecha_fin) })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/convenios-marco', async (req, res) => {
+  try {
+    const { universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, created_by } = req.body;
+    if (!universidad?.trim()) return res.status(400).json({ error: 'La universidad es obligatoria.' });
+    const { rows } = await pool.query(
+      `INSERT INTO convenios_marco (universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [
+        universidad.trim(), numero_convenio || null, objeto || null, fecha_inicio || null, fecha_fin || null,
+        tipo || 'Universidad', sede_principal || null, created_by || null,
+      ],
+    );
+    logEvento('convenio_marco_creado', `${created_by || 'Usuario'} registró el convenio marco con ${universidad}`, created_by, 'Convenios', numero_convenio);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/convenios-marco/:id', async (req, res) => {
+  try {
+    const { universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, estado, actor_nombre } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE convenios_marco
+       SET universidad=$1, numero_convenio=$2, objeto=$3, fecha_inicio=$4, fecha_fin=$5, estado=$6, tipo=$7, sede_principal=$8
+       WHERE id=$9 RETURNING *`,
+      [
+        universidad, numero_convenio || null, objeto || null, fecha_inicio || null, fecha_fin || null,
+        estado || 'Activo', tipo || 'Universidad', sede_principal || null, req.params.id,
+      ],
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Convenio marco no encontrado' });
+    logEvento('convenio_marco_actualizado', `${actor_nombre || 'Usuario'} actualizó el convenio marco con ${universidad}`, actor_nombre, 'Convenios', numero_convenio);
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/convenios-marco/:id', async (req, res) => {
+  try {
+    const { rows: hijos } = await pool.query(
+      `SELECT COUNT(*) AS total FROM convenios_especifico WHERE marco_id=$1`,
+      [req.params.id],
+    );
+    if (Number(hijos[0].total) > 0) {
+      return res.status(409).json({ error: 'No se puede eliminar: tiene convenios específicos asociados.' });
+    }
+    await pool.query('DELETE FROM convenios_marco WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios-especifico', async (req, res) => {
+  try {
+    const { marco_id } = req.query;
+    const where = marco_id ? `WHERE marco_id=$1 AND estado='Activo'` : `WHERE estado='Activo'`;
+    const params = marco_id ? [marco_id] : [];
+    const { rows } = await pool.query(
+      `SELECT * FROM convenios_especifico ${where} ORDER BY fecha_fin ASC NULLS LAST`,
+      params,
+    );
+    res.json(rows.map((r) => ({ ...r, estado_vigencia: estadoVigenciaConvenio(r.fecha_fin) })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/convenios-especifico', async (req, res) => {
+  try {
+    const { marco_id, nombre, numero_convenio, fecha_inicio, fecha_fin, created_by } = req.body;
+    if (!marco_id) return res.status(400).json({ error: 'marco_id requerido' });
+    if (!nombre?.trim()) return res.status(400).json({ error: 'El nombre/objeto del convenio específico es obligatorio.' });
+    const { rows } = await pool.query(
+      `INSERT INTO convenios_especifico (marco_id, nombre, numero_convenio, fecha_inicio, fecha_fin, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [marco_id, nombre.trim(), numero_convenio || null, fecha_inicio || null, fecha_fin || null, created_by || null],
+    );
+    logEvento('convenio_especifico_creado', `${created_by || 'Usuario'} registró el convenio específico "${nombre}"`, created_by, 'Convenios', numero_convenio);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/convenios-especifico/:id', async (req, res) => {
+  try {
+    const { nombre, numero_convenio, fecha_inicio, fecha_fin, estado, actor_nombre } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE convenios_especifico
+       SET nombre=$1, numero_convenio=$2, fecha_inicio=$3, fecha_fin=$4, estado=$5
+       WHERE id=$6 RETURNING *`,
+      [nombre, numero_convenio || null, fecha_inicio || null, fecha_fin || null, estado || 'Activo', req.params.id],
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Convenio específico no encontrado' });
+    logEvento('convenio_especifico_actualizado', `${actor_nombre || 'Usuario'} actualizó el convenio específico "${nombre}"`, actor_nombre, 'Convenios', numero_convenio);
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/convenios-especifico/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM convenio_documentos WHERE convenio_tipo=$1 AND convenio_id=$2', ['especifico', req.params.id]);
+    await pool.query('DELETE FROM convenios_especifico WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// Documentos de convenios (PDF del convenio marco o específico firmado)
+// ──────────────────────────────────────────────
+app.post('/api/convenios/documentos', uploadConvenio.single('archivo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+    const { convenio_tipo, convenio_id, subido_por } = req.body;
+    if (!['marco', 'especifico'].includes(convenio_tipo)) {
+      return res.status(400).json({ error: 'convenio_tipo debe ser "marco" o "especifico"' });
+    }
+    if (!convenio_id) return res.status(400).json({ error: 'convenio_id requerido' });
+
+    const subida = await storageSdk.upload({
+      file: req.file,
+      identifier: `convenio_${convenio_tipo}_${convenio_id}`,
+      trace: `pdp_convenio_upload_${convenio_tipo}_${convenio_id}`,
+    });
+    if (!subida.isOk) {
+      const detalle = subida.result?.data?.message || subida.result?.error || 'error desconocido';
+      return res.status(502).json({ error: `No se pudo subir el archivo al storage: ${detalle}` });
+    }
+    const ruta = subida.item?.newFilename || subida.item?.filename || subida.item?.nameFile;
+
+    const { rows } = await pool.query(
+      `INSERT INTO convenio_documentos (convenio_tipo, convenio_id, nombre_archivo, tipo_archivo, ruta_storage, tamano_kb, subido_por)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [convenio_tipo, convenio_id, req.file.originalname, 'pdf', ruta, Math.round(req.file.size / 1024), subido_por || null],
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios/documentos', async (req, res) => {
+  try {
+    const { convenio_tipo, convenio_id } = req.query;
+    if (!convenio_tipo || !convenio_id) return res.json([]);
+    const { rows } = await pool.query(
+      `SELECT * FROM convenio_documentos WHERE convenio_tipo=$1 AND convenio_id=$2 ORDER BY fecha_subida DESC`,
+      [convenio_tipo, convenio_id],
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios/documentos/:id/descargar', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM convenio_documentos WHERE id=$1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
+    const link = await storageSdk.obtenerArchivoLink(rows[0].ruta_storage);
+    res.json({ url: link.fileUrl, nombre_archivo: rows[0].nombre_archivo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/convenios/documentos/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM convenio_documentos WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
+// Carga masiva de convenios marco por Excel.
+// Formato real de EsSalud ("RELACION DE CONVENIOS MARCO..."): 1+ hojas, cada una
+// con una fila de título, una fila de encabezado (Nº / INSTITUCION EDUCATIVA /
+// SEDE PRINCIPAL / SUSCRITO / VIGENTE HASTA o VENCIMIENTO — el orden de columnas
+// varía entre hojas) y luego las filas de datos. No trae número de convenio
+// formal ni objeto, ni convenios específicos (esos se siguen cargando a mano).
+// Las hojas a leer y su "tipo" (Universidad/Instituto) se definen en
+// HOJAS_CONVENIOS_EXCEL — si el archivo trae hojas nuevas hay que agregarlas ahí.
+// ──────────────────────────────────────────────
+// Solo estas dos hojas son la fuente oficial (confirmado con los encargados de
+// EsSalud); otras hojas del archivo (ej. "Hoja1", "Hoja2") no se consideran.
+const HOJAS_CONVENIOS_EXCEL = [
+  { nombre: 'UNIVERSIDADES', tipo: 'Universidad' },
+  { nombre: 'INSTITUTOS', tipo: 'Instituto' },
+];
+
+function buscarColumna(headerRow, patron) {
+  return headerRow.findIndex((c) => patron.test(String(c || '').trim()));
+}
+
+function parseFechaExcelCelda(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Extrae {universidad, sede_principal, fecha_inicio, fecha_fin}[] de una hoja,
+// detectando la fila de encabezado por texto (no por posición fija) porque el
+// orden de columnas difiere entre UNIVERSIDADES/INSTITUTOS.
+function parseHojaConvenioMarco(hoja) {
+  const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: '', raw: true });
+  const idxHeader = filas.findIndex((f) => f.some((c) => /INSTITUCION EDUCATIVA/i.test(String(c || ''))));
+  if (idxHeader === -1) return [];
+  const header = filas[idxHeader];
+
+  const colUniversidad = buscarColumna(header, /INSTITUCION EDUCATIVA/i);
+  const colSede = buscarColumna(header, /SEDE PRINCIPAL/i);
+  const colInicio = buscarColumna(header, /^SUSCRITO/i);
+  const colFin = buscarColumna(header, /VIGENTE HASTA|VENCIMIENTO/i);
+  if (colUniversidad === -1) return [];
+
+  const resultado = [];
+  for (const fila of filas.slice(idxHeader + 1)) {
+    const universidad = String(fila[colUniversidad] || '').replace(/\s*\(renovaci[oó]n\)\s*$/i, '').trim();
+    if (!universidad) continue;
+    resultado.push({
+      universidad,
+      sede_principal: colSede !== -1 ? String(fila[colSede] || '').trim() || null : null,
+      fecha_inicio: colInicio !== -1 ? parseFechaExcelCelda(fila[colInicio]) : null,
+      fecha_fin: colFin !== -1 ? parseFechaExcelCelda(fila[colFin]) : null,
+    });
+  }
+  return resultado;
+}
+
+app.post('/api/convenios/cargar-excel', uploadConveniosExcel.single('archivo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+    const { actor_nombre } = req.body;
+
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+
+    const { rows: existentes } = await pool.query('SELECT universidad, tipo FROM convenios_marco');
+    const yaExisten = new Set(existentes.map((r) => `${r.tipo}|${r.universidad}`.toLowerCase()));
+
+    let marcosCreados = 0;
+    let duplicados = 0;
+    const errores = [];
+
+    for (const { nombre: nombreHoja, tipo } of HOJAS_CONVENIOS_EXCEL) {
+      const hoja = wb.Sheets[nombreHoja];
+      if (!hoja) continue; // el archivo puede no traer todas las hojas esperadas
+
+      const filas = parseHojaConvenioMarco(hoja);
+      for (const f of filas) {
+        const clave = `${tipo}|${f.universidad}`.toLowerCase();
+        if (yaExisten.has(clave)) {
+          duplicados++;
+          continue;
+        }
+        await pool.query(
+          `INSERT INTO convenios_marco (universidad, tipo, sede_principal, fecha_inicio, fecha_fin, created_by)
+           VALUES ($1,$2,$3,$4,$5,$6)`,
+          [f.universidad, tipo, f.sede_principal, f.fecha_inicio, f.fecha_fin, actor_nombre || null],
+        );
+        yaExisten.add(clave);
+        marcosCreados++;
+      }
+    }
+
+    if (marcosCreados === 0 && duplicados === 0) {
+      errores.push('No se encontraron filas reconocibles. Verifica que el archivo tenga hojas UNIVERSIDADES/INSTITUTOS con una fila de encabezado que incluya "INSTITUCION EDUCATIVA".');
+    }
+
+    logEvento('convenios_carga_excel', `${actor_nombre || 'Usuario'} cargó ${marcosCreados} convenios marco por Excel (${duplicados} ya existían)`, actor_nombre, 'Convenios', null);
+    res.json({ marcosCreados, especificosCreados: 0, duplicados, errores });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

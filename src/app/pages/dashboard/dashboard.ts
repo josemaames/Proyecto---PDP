@@ -12,6 +12,7 @@ import { NgxEchartsDirective } from 'ngx-echarts';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { NotasStatsService, NotasStats } from '../../services/notas-stats.service';
+import { AlertaPersonal } from '../../services/pdp-data.service';
 
 type ResumenRed = {
   red: string;
@@ -863,6 +864,34 @@ export class Dashboard implements OnInit, OnDestroy {
       this.cargarDatosAdmin();
       this.cargarNotasStats();
     }
+
+    // La alerta de personal (cese/cambio de red) solo le compete al sectorista
+    // y al ejecutor, que son quienes deben revisar/quitar al participante. Al
+    // administrador le queda visible por la bitácora de auditoría, no aquí.
+    if (this.esSectorista || this.esEjecutor) {
+      this.cargarAlertasPersonal();
+    }
+  }
+
+  // ── Alertas de personal (cese / cambio de red) ────────────────
+  alertasPersonal: AlertaPersonal[] = [];
+
+  cargarAlertasPersonal() {
+    const red = this.pdpData.getRedFiltro();
+    this.pdpData.getAlertasPersonal(undefined, red).subscribe({
+      next: (alertas) => (this.alertasPersonal = alertas),
+      error: () => (this.alertasPersonal = []),
+    });
+  }
+
+  descripcionAlertaPersonal(a: AlertaPersonal): string {
+    return a.tipo === 'CESE'
+      ? `${a.nombre_completo} ya no pertenece al personal activo (capacitación ${a.codigo_act}).`
+      : `${a.nombre_completo} cambió de red: ${a.red_anterior} → ${a.red_nueva} (capacitación ${a.codigo_act}).`;
+  }
+
+  irARevisarAlertas() {
+    this.router.navigate(['/lista-participantes']);
   }
 
   // ── Resultados de notas (aprobados/desaprobados) ────────────
@@ -1225,6 +1254,10 @@ export class Dashboard implements OnInit, OnDestroy {
 
       case 'Presupuesto':
         this.router.navigate(['/presupuesto']);
+        break;
+
+      case 'Convenios':
+        this.router.navigate(['/convenios']);
         break;
 
       case 'Carpetas Drive':

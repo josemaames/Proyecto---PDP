@@ -300,12 +300,13 @@
  <th>Servicio / Área</th>
  <th>Cargo</th>
  <th>Régimen laboral</th>
+ <th>Alerta</th>
  <th></th>
  </tr>
  </thead>
  <tbody>
  @for (p of participantes; track p.id) {
- <tr>
+ <tr [class.fila-alerta]="alertaDe(p)">
  <td>{{ p.numero || '—' }}</td>
  <td>{{ p.codigo_act || '—' }}</td>
  <td>{{ p.dni_ce || '—' }}</td>
@@ -323,6 +324,21 @@
  <td>{{ p.cargo || '—' }}</td>
  <td>{{ p.regimen_laboral || '—' }}</td>
  <td>
+ @if (alertaDe(p); as alerta) {
+ <div class="alerta-personal" [title]="descripcionAlerta(alerta)">
+ <span class="badge-alerta-personal">
+ {{ alerta.tipo === 'CESE' ? 'Cesó' : 'Cambió de red' }}
+ </span>
+ <button class="btn-resolver-alerta" (click)="abrirAcciones(alerta, p)">
+ Acciones
+ </button>
+ </div>
+ } @else {
+ <span class="sin-alerta">—</span>
+ }
+ </td>
+ <td>
+ @if (!alertaDe(p)) {
  <button class="btn-eliminar" (click)="eliminarParticipante(p.id)" title="Eliminar">
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
  <polyline points="3 6 5 6 21 6" />
@@ -331,6 +347,7 @@
  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
  </svg>
  </button>
+ }
  </td>
  </tr>
  }
@@ -346,6 +363,61 @@
  </div>
  }
  </div>
+
+ @if (mostrarModalAcciones && alertaEnAcciones) {
+ <div class="modal-overlay" (click)="cerrarAcciones()">
+ <div class="modal-actualizar modal-acciones-alerta" (click)="$event.stopPropagation()">
+ <div class="modal-head">
+ <h3>Acciones sobre el participante</h3>
+ <button class="btn-cerrar" (click)="cerrarAcciones()">✕</button>
+ </div>
+
+ <div class="modal-actualizar-cuerpo">
+ <p class="modal-actualizar-desc">
+ {{ descripcionAlerta(alertaEnAcciones) }}
+ </p>
+
+ <div class="accion-bloque">
+ <h4>Mantener participante</h4>
+ <p class="accion-bloque-desc">
+ El participante seguirá inscrito en esta actividad. Puedes indicar el motivo (opcional).
+ </p>
+ <textarea
+ class="textarea-motivo"
+ rows="3"
+ placeholder="Motivo por el que se mantiene al participante..."
+ [(ngModel)]="motivoMantener"
+ ></textarea>
+ <button
+ class="btn-asig-guardar"
+ [disabled]="procesandoAccion"
+ (click)="mantenerParticipante()"
+ >
+ Mantener participante
+ </button>
+ </div>
+
+ <div class="accion-bloque accion-bloque-eliminar">
+ <h4>Eliminar participante</h4>
+ <p class="accion-bloque-desc">
+ El participante será eliminado de <strong>{{ alertaEnAcciones.codigo_act }}</strong> (esta actividad). No se borra su registro de personal.
+ </p>
+ <button
+ class="btn-eliminar-participante-alerta"
+ [disabled]="procesandoAccion"
+ (click)="eliminarParticipanteDesdeAlerta()"
+ >
+ Eliminar participante de la actividad
+ </button>
+ </div>
+ </div>
+
+ <div class="modal-actualizar-btns">
+ <button class="btn-asig-cancelar" (click)="cerrarAcciones()">Cerrar</button>
+ </div>
+ </div>
+ </div>
+ }
  </main>
  </div>
 </div>

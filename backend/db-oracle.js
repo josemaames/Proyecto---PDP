@@ -29,8 +29,12 @@ const oracledb = require('oracledb');
 oracledb.fetchAsString = [oracledb.CLOB];
 
 const TABLE_NAMES = [
+  'alertas_personal',
   'audit_log',
   'certificado_carpeta_drive',
+  'convenio_documentos',
+  'convenios_especifico',
+  'convenios_marco',
   'datos_actividad',
   'documentos',
   'hoja_ruta_pasos',
@@ -58,7 +62,13 @@ const TABLE_COLUMNS = {
   personal: [
     ['id_personal', NUM], ['dni_ce', ...str(15)], ['cod_planilla', ...str(15)], ['apellidos', ...str(100)],
     ['nombre', ...str(100)], ['sexo', ...str(20)], ['red', ...str(100)], ['sub_programa', ...str(100)],
-    ['servicio_area', ...str(100)], ['cargo', ...str(256)], ['regimen_laboral', ...str(256)],
+    ['servicio_area', ...str(100)], ['cargo', ...str(256)], ['regimen_laboral', ...str(256)], ['estado', ...str(20)],
+  ],
+  alertas_personal: [
+    ['id', NUM], ['dni_ce', ...str(15)], ['codigo_act', ...str(256)], ['tipo', ...str(20)],
+    ['nombre_completo', ...str(256)], ['red_anterior', ...str(100)], ['red_nueva', ...str(100)],
+    ['detectado_at', TS], ['resuelto', ...str(1)], ['resuelto_at', TS], ['resuelto_por', ...str(256)],
+    ['motivo', ...str(1000)],
   ],
   datos_actividad: [
     ['id', NUM], ['numero', NUM], ['codigo_act', ...str(256)], ['fecha_inicio', DT], ['fecha_fin', DT],
@@ -110,6 +120,20 @@ const TABLE_COLUMNS = {
     ['motivo', ...str(256)], ['estado', ...str(256)], ['solicitante_dni', ...str(15)],
     ['solicitante_nombre', ...str(256)], ['revisor_dni', ...str(15)], ['revisor_nombre', ...str(256)],
     ['respuesta', ...str(256)], ['created_at', TS], ['resolved_at', TS],
+  ],
+  convenios_marco: [
+    ['id', NUM], ['universidad', ...str(256)], ['numero_convenio', ...str(100)], ['objeto', ...str(1000)],
+    ['fecha_inicio', TS], ['fecha_fin', TS], ['estado', ...str(20)], ['created_by', ...str(256)], ['created_at', TS],
+    ['tipo', ...str(20)], ['sede_principal', ...str(100)],
+  ],
+  convenios_especifico: [
+    ['id', NUM], ['marco_id', NUM], ['nombre', ...str(500)], ['numero_convenio', ...str(100)],
+    ['fecha_inicio', TS], ['fecha_fin', TS], ['estado', ...str(20)], ['created_by', ...str(256)], ['created_at', TS],
+  ],
+  convenio_documentos: [
+    ['id', NUM], ['convenio_tipo', ...str(20)], ['convenio_id', NUM], ['nombre_archivo', ...str(256)],
+    ['tipo_archivo', ...str(100)], ['ruta_storage', ...str(256)], ['tamano_kb', NUM],
+    ['subido_por', ...str(256)], ['fecha_subida', TS],
   ],
 };
 

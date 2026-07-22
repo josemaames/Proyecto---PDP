@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { PdpDataService, PersonalEssalud } from '../../services/pdp-data.service';
+import { PdpDataService, PersonalEssalud, ResultadoActualizarPersonal } from '../../services/pdp-data.service';
 
 @Component({
  selector: 'app-personal-pdp',
@@ -28,6 +28,17 @@ export class PersonalPdp implements OnInit {
  redFiltro = '';
 
  personal: PersonalEssalud[] = [];
+
+ // ── Actualizar personal (solo Administrador) ─────
+ mostrarModalActualizar = false;
+ archivoActualizar: File | null = null;
+ subiendoActualizar = false;
+ errorActualizar = '';
+ resultadoActualizar: ResultadoActualizarPersonal | null = null;
+
+ get esAdministrador(): boolean {
+ return this.usuario?.rol === 'Administrador';
+ }
 
  get totalPaginas(): number {
  return Math.max(1, Math.ceil(this.totalRegistros / this.limit));
@@ -72,6 +83,46 @@ export class PersonalPdp implements OnInit {
 
  paginaSiguiente() {
  if (this.pagina < this.totalPaginas) { this.pagina++; this.cargarPersonal(); }
+ }
+
+ // ── Actualizar personal ──────────────────────
+ abrirModalActualizar() {
+ this.archivoActualizar = null;
+ this.errorActualizar = '';
+ this.resultadoActualizar = null;
+ this.mostrarModalActualizar = true;
+ }
+
+ cerrarModalActualizar() {
+ this.mostrarModalActualizar = false;
+ }
+
+ onArchivoActualizar(event: Event) {
+ const input = event.target as HTMLInputElement;
+ this.archivoActualizar = input.files?.[0] || null;
+ this.errorActualizar = '';
+ }
+
+ subirActualizacion() {
+ if (!this.archivoActualizar) {
+ this.errorActualizar = 'Selecciona el archivo Excel del padrón de personal.';
+ return;
+ }
+ this.subiendoActualizar = true;
+ this.errorActualizar = '';
+ this.pdpData
+ .actualizarPersonal(this.archivoActualizar, this.usuario?.nombre || 'Administrador', this.usuario?.rol || '')
+ .subscribe({
+ next: (res) => {
+ this.subiendoActualizar = false;
+ this.resultadoActualizar = res;
+ this.cargarPersonal();
+ },
+ error: (err) => {
+ this.subiendoActualizar = false;
+ this.errorActualizar = err.error?.error || 'No se pudo actualizar el personal.';
+ },
+ });
  }
 
  irA(ruta: string) { this.router.navigate([ruta]); }

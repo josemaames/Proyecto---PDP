@@ -14,6 +14,7 @@ import { ListaParticipantes } from './pages/lista-participantes/lista-participan
 import { PersonalPdp } from './pages/personal-pdp/personal-pdp';
 import { Documentos } from './pages/documentos/documentos';
 import { Presupuesto } from './pages/presupuesto/presupuesto';
+import { Convenios } from './pages/convenios/convenios';
 import { Notas } from './pages/notas/notas';
 import { CarpetasDrive } from './pages/carpetas-drive/carpetas-drive';
 
@@ -21,6 +22,7 @@ const ADMIN = ['Administrador', 'Administrativo'];
 const SECTORISTA = ['Sectorista'];
 const EJECUTOR = ['Ejecutor'];
 const PRESUPUESTO = ['Presupuesto'];
+const CONVENIOS = ['Convenios'];
 const TODOS = [...ADMIN, ...SECTORISTA, ...EJECUTOR];
 
 export const routes: Routes = [
@@ -98,6 +100,12 @@ export const routes: Routes = [
     path: 'presupuesto',
     component: Presupuesto,
     canActivate: [authGuard, roleGuard([...ADMIN, ...PRESUPUESTO])],
+  },
+
+  {
+    path: 'convenios',
+    component: Convenios,
+    canActivate: [authGuard, roleGuard([...ADMIN, ...CONVENIOS])],
   },
 
   {

@@ -356,3 +356,203 @@
     justify-content: center;
   }
 }
+
+/* ===== ALERTA DE PERSONAL (cese / cambio de red) ===== */
+.fila-alerta td {
+  background: #fef2f2;
+}
+
+.alerta-personal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.badge-alerta-personal {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.btn-resolver-alerta {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-resolver-alerta:hover {
+  background: #f3f4f6;
+}
+
+.sin-alerta {
+  color: #d1d5db;
+}
+
+/* ===== MODAL ACCIONES SOBRE ALERTA ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-actualizar {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eef2f8;
+}
+
+.modal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1a4fa8;
+}
+
+.btn-cerrar {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+.btn-cerrar:hover {
+  color: #374151;
+}
+
+.modal-actualizar-cuerpo {
+  padding: 20px 22px;
+}
+
+.modal-actualizar-desc {
+  font-size: 13.5px;
+  color: #4b5563;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 20px;
+}
+
+.accion-bloque {
+  border: 1.5px solid #e8edf8;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.accion-bloque h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+.accion-bloque-desc {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+
+.textarea-motivo {
+  width: 100%;
+  border: 1.5px solid #dde3ef;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1a1a2e;
+  resize: vertical;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+.textarea-motivo:focus {
+  outline: none;
+  border-color: #1a4fa8;
+  box-shadow: 0 0 0 3px rgba(26, 79, 168, 0.1);
+}
+
+.accion-bloque-eliminar {
+  border-color: #fecaca;
+  background: #fffbfb;
+}
+
+.btn-eliminar-participante-alerta {
+  padding: 9px 16px;
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-eliminar-participante-alerta:hover {
+  background: #c53030;
+}
+.btn-eliminar-participante-alerta:disabled,
+.btn-asig-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-actualizar-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #eef2f8;
+}
+
+.btn-asig-guardar {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #1a4fa8, #2d6fd8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-asig-cancelar {
+  padding: 9px 18px;
+  background: #f0f5fb;
+  color: #4a5568;
+  border: 1.5px solid #dde3ef;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-asig-cancelar:hover {
+  background: #e2eaf6;
+}

@@ -57,6 +57,29 @@ export interface PersonalEssalud {
   servicio_area?: string;
   cargo?: string;
   regimen_laboral?: string;
+  estado?: string;
+}
+
+export interface ResultadoActualizarPersonal {
+  altas: number;
+  cambiosRed: number;
+  ceses: number;
+  alertasGeneradas: number;
+}
+
+export interface AlertaPersonal {
+  id: number;
+  dni_ce: string;
+  codigo_act: string;
+  tipo: 'CESE' | 'CAMBIO_RED';
+  nombre_completo: string;
+  red_anterior: string;
+  red_nueva: string | null;
+  detectado_at: string;
+  resuelto: boolean;
+  resuelto_at: string | null;
+  resuelto_por: string | null;
+  motivo: string | null;
 }
 
 export interface ResumenRed {
@@ -289,5 +312,27 @@ export class PdpDataService {
 
   eliminarDocumento(id: number): Observable<any> {
     return this.http.delete(`${this.api}/documentos/${id}`);
+  }
+
+  actualizarPersonal(file: File, actorNombre: string, actorRol: string): Observable<ResultadoActualizarPersonal> {
+    const formData = new FormData();
+    formData.append('archivo', file);
+    formData.append('actor_nombre', actorNombre);
+    formData.append('actor_rol', actorRol);
+    return this.http.post<ResultadoActualizarPersonal>(`${this.api}/personal/actualizar`, formData);
+  }
+
+  getAlertasPersonal(codigoAct?: string, red?: string): Observable<AlertaPersonal[]> {
+    let params = new HttpParams();
+    if (codigoAct) params = params.set('codigo_act', codigoAct);
+    if (red) params = params.set('red', red);
+    return this.http.get<AlertaPersonal[]>(`${this.api}/personal/alertas`, { params });
+  }
+
+  resolverAlertaPersonal(id: number, actorNombre: string, motivo?: string): Observable<any> {
+    return this.http.put(`${this.api}/personal/alertas/${id}/resolver`, {
+      actor_nombre: actorNombre,
+      motivo: motivo || '',
+    });
   }
 }

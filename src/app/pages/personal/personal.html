@@ -222,13 +222,22 @@
               <label>Roles <small class="campo-hint">(puede marcar más de uno)</small></label>
               <div class="redes-checkboxes">
                 @for (r of rolesDisponibles; track r) {
-                  <label class="check-red" [class.check-red-activo]="rolSelMarcado(r)">
+                  <label
+                    class="check-red"
+                    [class.check-red-activo]="rolSelMarcado(r)"
+                    [class.check-red-bloqueado]="rolBloqueado(r)"
+                    [title]="rolBloqueado(r) ? 'Bloqueado: Convenios no aplica para el rol Ejecutor' : ''"
+                  >
                     <input
                       type="checkbox"
                       [checked]="rolSelMarcado(r)"
+                      [disabled]="rolBloqueado(r)"
                       (change)="toggleRolSel(r)"
                     />
                     {{ r }}
+                    @if (rolBloqueado(r)) {
+                      <span class="check-red-bloqueado-tag">Bloqueado</span>
+                    }
                   </label>
                 }
               </div>
