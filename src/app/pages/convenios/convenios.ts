@@ -8,6 +8,8 @@ import {
   ConvenioEspecifico,
   ConvenioDocumento,
   KpiConvenios,
+  Contraprestacion,
+  ContraprestacionResumen,
 } from '../../services/convenios.service';
 import { tieneRol } from '../../utils/roles.util';
 
@@ -42,6 +44,14 @@ export class Convenios implements OnInit {
   especificosExpandidos = new Set<number>();
   documentosPorConvenio = new Map<string, ConvenioDocumento[]>();
   subiendoDoc = new Set<string>();
+
+  // Contraprestaciones (informe memoria) por marco — solo informativo, no toca presupuestos.
+  contraprestacionesPorMarco = new Map<
+    number,
+    { data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }
+  >();
+  subiendoContraprestaciones = new Set<number>();
+  errorContraprestaciones = new Map<number, string>();
 
   // Modal convenio marco
   mostrarModalMarco = false;
@@ -136,6 +146,90 @@ export class Convenios implements OnInit {
     this.marcosExpandidos.add(m.id);
     this.cargarEspecificos(m.id);
     this.cargarDocumentos('marco', m.id);
+    this.cargarContraprestaciones(m.id);
+  }
+
+  // ── Contraprestaciones (informe memoria) ─────────
+  // Estructura real del informe: RED > año (PLAN <año>), cerrando cada año con
+  // un "SUBTOTAL <año>" y cada red con un "TOTAL DEL COMPROMISO CONTRAPRESTACIONAL".
+  // Esos subtotales/totales se muestran tal como vienen declarados en el Excel
+  // (tabla `resumen`), no recalculados, para que coincidan con el documento original.
+  cargarContraprestaciones(marcoId: number): void {
+    this.cs.getContraprestaciones(marcoId).subscribe({
+      next: (r) => this.contraprestacionesPorMarco.set(marcoId, r),
+      error: () => this.contraprestacionesPorMarco.set(marcoId, { data: [], resumen: [], total: 0, totalValorizado: 0 }),
+    });
+  }
+
+  contraprestacionesDe(marcoId: number) {
+    return this.contraprestacionesPorMarco.get(marcoId) || null;
+  }
+
+  redesDe(marcoId: number): string[] {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    if (!r) return [];
+    return Array.from(new Set(r.data.map((c) => c.unidad_organica || 'Sin red'))).sort();
+  }
+
+  aniosDeRed(marcoId: number, red: string): string[] {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    if (!r) return [];
+    const anios = new Set(
+      r.data.filter((c) => (c.unidad_organica || 'Sin red') === red).map((c) => c.plan_anio || 'Sin año'),
+    );
+    return Array.from(anios).sort();
+  }
+
+  itemsDeRedAnio(marcoId: number, red: string, anio: string): Contraprestacion[] {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    if (!r) return [];
+    return r.data.filter((c) => (c.unidad_organica || 'Sin red') === red && (c.plan_anio || 'Sin año') === anio);
+  }
+
+  // Subtotal declarado en el Excel para esa red+año; si no vino en el archivo, se calcula.
+  subtotalRedAnio(marcoId: number, red: string, anio: string): number {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    const declarado = r?.resumen.find((x) => x.tipo === 'subtotal' && x.red === red && x.anio === anio);
+    if (declarado?.monto != null) return Number(declarado.monto);
+    return this.itemsDeRedAnio(marcoId, red, anio).reduce((s, c) => s + (Number(c.valorizacion) || 0), 0);
+  }
+
+  // Total declarado del "COMPROMISO CONTRAPRESTACIONAL" de esa red (todos sus años).
+  totalRed(marcoId: number, red: string): number {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    const declarado = r?.resumen.find((x) => x.tipo === 'total_red' && x.red === red);
+    if (declarado?.monto != null) return Number(declarado.monto);
+    return this.aniosDeRed(marcoId, red).reduce((s, a) => s + this.subtotalRedAnio(marcoId, red, a), 0);
+  }
+
+  // Total general declarado ("TOTAL DEL COMPROMISO ESSALUD") de toda la universidad.
+  totalGeneral(marcoId: number): number {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    return r?.totalValorizado || 0;
+  }
+
+  onArchivoContraprestaciones(event: Event, marcoId: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.errorContraprestaciones.delete(marcoId);
+    this.subiendoContraprestaciones.add(marcoId);
+    this.cs.cargarContraprestacionesExcel(marcoId, file, this.usuario?.nombre || '').subscribe({
+      next: () => {
+        this.subiendoContraprestaciones.delete(marcoId);
+        this.cargarContraprestaciones(marcoId);
+        input.value = '';
+      },
+      error: (err) => {
+        this.subiendoContraprestaciones.delete(marcoId);
+        this.errorContraprestaciones.set(marcoId, err.error?.error || 'No se pudo procesar el archivo.');
+        input.value = '';
+      },
+    });
+  }
+
+  estaSubiendoContraprestaciones(marcoId: number): boolean {
+    return this.subiendoContraprestaciones.has(marcoId);
   }
 
   marcoEstaExpandido(id: number): boolean {

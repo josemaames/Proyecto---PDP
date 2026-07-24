@@ -217,6 +217,80 @@
                         }
                       }
                     </div>
+
+                    <!-- CONTRAPRESTACIONES (informe memoria) — solo informativo, no afecta presupuestos -->
+                    <div class="conv-contrap">
+                      <div class="conv-especificos-cab">
+                        <span class="conv-docs-titulo">Contraprestaciones otorgadas a EsSalud</span>
+                        @if (puedeGestionar) {
+                          <label class="conv-subir-btn">
+                            {{ estaSubiendoContraprestaciones(m.id) ? 'Subiendo...' : 'Subir informe (Excel)' }}
+                            <input type="file" accept=".xls,.xlsx" hidden [disabled]="estaSubiendoContraprestaciones(m.id)" (change)="onArchivoContraprestaciones($event, m.id)" />
+                          </label>
+                        }
+                      </div>
+
+                      @if (errorContraprestaciones.get(m.id); as errC) {
+                        <p class="conv-error-contrap">{{ errC }}</p>
+                      }
+
+                      @if (contraprestacionesDe(m.id); as cp) {
+                        @if (cp.total === 0) {
+                          <p class="conv-sin-docs">Sin informe de contraprestaciones cargado.</p>
+                        } @else {
+                          <div class="conv-contrap-resumen">
+                            <span>{{ cp.total }} contraprestación(es) registradas · {{ redesDe(m.id).length }} red(es)</span>
+                            <span class="conv-contrap-total">TOTAL DEL COMPROMISO ESSALUD: S/ {{ totalGeneral(m.id) | number: '1.2-2' }}</span>
+                          </div>
+
+                          @for (red of redesDe(m.id); track red) {
+                            <div class="conv-red-bloque">
+                              <div class="conv-red-titulo">
+                                {{ red }}
+                                <span class="conv-red-total">Total del compromiso: S/ {{ totalRed(m.id, red) | number: '1.2-2' }}</span>
+                              </div>
+
+                              @for (anio of aniosDeRed(m.id, red); track anio) {
+                                <div class="conv-anio-bloque">
+                                  <div class="conv-anio-titulo">
+                                    Plan {{ anio }}
+                                    <span class="conv-anio-total">Subtotal {{ anio }}: S/ {{ subtotalRedAnio(m.id, red, anio) | number: '1.2-2' }}</span>
+                                  </div>
+                                  <div class="tabla-scroll">
+                                    <table class="conv-tabla-contrap">
+                                      <thead>
+                                        <tr>
+                                          <th>Detalle</th>
+                                          <th>Duración</th>
+                                          <th>Beneficiarios</th>
+                                          <th>Grupo ocupacional</th>
+                                          <th>Fecha ejecución</th>
+                                          <th class="num">Valorización (S/.)</th>
+                                          <th>Observaciones</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        @for (c of itemsDeRedAnio(m.id, red, anio); track c.id) {
+                                          <tr>
+                                            <td>{{ c.detalle }}</td>
+                                            <td>{{ c.duracion || '—' }}</td>
+                                            <td>{{ c.num_beneficiarios || '—' }}</td>
+                                            <td>{{ c.grupo_ocupacional || '—' }}</td>
+                                            <td>{{ c.fecha_ejecucion ? (c.fecha_ejecucion | date: 'dd/MM/yyyy') : '—' }}</td>
+                                            <td class="num">{{ c.valorizacion | number: '1.2-2' }}</td>
+                                            <td>{{ c.observaciones || '—' }}</td>
+                                          </tr>
+                                        }
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                        }
+                      }
+                    </div>
                   </div>
                 }
               </div>

@@ -2645,6 +2645,205 @@ app.delete('/api/convenios/documentos/:id', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// CONTRAPRESTACIONES (informe memoria por universidad — "CONTRAPRESTACIONES
+// OTORGADAS A ESSALUD EN CUMPLIMIENTO DE LOS CONVENIOS ESPECÍFICOS SUSCRITOS").
+// Es información puramente informativa por universidad: NO debe tocar
+// presupuesto_redes, datos_actividad ni ningún KPI/dashboard del sistema.
+// Se sube manualmente dentro del panel de cada convenio marco (el marco_id ya
+// viene del contexto, no hace falta adivinar la universidad por nombre).
+// ──────────────────────────────────────────────
+function extraerEncabezadoContraprestaciones(filas) {
+  let universidad = null, facultad = null, periodo = null;
+  for (const fila of filas) {
+    const texto = String(fila[0] || '').trim();
+    if (/^UNIVERSIDAD\s*:/i.test(texto)) universidad = texto.replace(/^UNIVERSIDAD\s*:/i, '').trim();
+    else if (/^FACULTAD\s*:/i.test(texto)) facultad = texto.replace(/^FACULTAD\s*:/i, '').trim();
+    else if (/^PER[IÍ]ODO\s*:/i.test(texto)) periodo = texto.replace(/^PER[IÍ]ODO\s*:/i, '').trim();
+  }
+  return { universidad, facultad, periodo };
+}
+
+function parseFechaDDMMYYYY(v) {
+  const s = String(v || '').trim();
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Soporta números planos y textos con prefijo de moneda ("S/. 8640") — el prefijo
+// "S/." trae un punto que si no se retira primero se cuela como parte del número.
+function parseValorizacion(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const s = String(v).trim().replace(/S\/\.?/gi, '').replace(/,/g, '').trim();
+  if (!s) return null;
+  const n = Number(s);
+  return isNaN(n) ? null : n;
+}
+
+const RE_PLAN = /^PLAN\b.*?(\d{4})/i; // cubre "PLAN 2023", "PLAN DE TRABAJO 2023", "PLAN DE TRBAJO 2023" (typo del original), etc.
+const RE_SUBTOTAL = /^SUBTOTAL\s*(\d{4})/i;
+const RE_TOTAL_RED = /^TOTAL DEL COMPROMISO CONTRAPRESTACIONAL/i;
+const RE_TOTAL_GENERAL = /^TOTAL DEL COMPROMISO ESSALUD/i;
+function esFilaMarcador(texto) {
+  return RE_PLAN.test(texto) || RE_SUBTOTAL.test(texto) || RE_TOTAL_RED.test(texto) || RE_TOTAL_GENERAL.test(texto);
+}
+
+// Este informe agrupa por RED, y dentro de cada red por año ("PLAN <año>"),
+// cerrando cada año con una fila "SUBTOTAL <año>" y cada red con una fila
+// "TOTAL DEL COMPROMISO CONTRAPRESTACIONAL". Al final del documento va el
+// "TOTAL DEL COMPROMISO ESSALUD" general. La posición de columna de estos
+// marcadores varía fila a fila (datos cargados a mano), así que se buscan en
+// cualquier columna, no en una posición fija.
+function parseContraprestacionesExcel(wb) {
+  const nombreHoja = wb.SheetNames.find((n) => {
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '' });
+    return filas.some((f) => /DETALLE DE LA CONTRAPRESTACION/i.test(String(f[2] || f[1] || '')));
+  });
+  if (!nombreHoja) return { items: [], resumen: [], universidad: null, facultad: null, periodo: null };
+
+  const todas = XLSX.utils.sheet_to_json(wb.Sheets[nombreHoja], { header: 1, defval: '', raw: true });
+  const { universidad, facultad, periodo } = extraerEncabezadoContraprestaciones(todas);
+
+  const idxHeader = todas.findIndex((f) => f.some((c) => /DETALLE DE LA CONTRAPRESTACION/i.test(String(c || ''))));
+  if (idxHeader === -1) return { items: [], resumen: [], universidad, facultad, periodo };
+  const header = todas[idxHeader];
+  const col = (patron) => header.findIndex((c) => patron.test(String(c || '').trim()));
+  const colUnidad = col(/UNIDAD ORGANICA/i);
+  const colDetalle = col(/DETALLE DE LA CONTRAPRESTACION/i);
+  const colDuracion = col(/^DURACION/i);
+  const colBenef = col(/BENEFICIARIOS/i);
+  const colGrupo = col(/GRUPO OCUPAC/i);
+  const colFecha = col(/FECHA DE EJECUCION/i);
+  const colValor = col(/VALORIZACION/i);
+  const colObs = col(/OBSERVACIONES/i);
+
+  let redActual = '';
+  let anioActual = null;
+  const items = [];
+  const resumen = [];
+
+  for (const fila of todas.slice(idxHeader + 1)) {
+    const vacia = fila.every((c) => String(c || '').trim() === '');
+    if (vacia) continue;
+
+    const textos = fila.map((c) => String(c || '').trim());
+    const monto = colValor !== -1 ? parseValorizacion(fila[colValor]) : null;
+    const celdaUnidad = colUnidad !== -1 ? String(fila[colUnidad] || '').trim() : '';
+    // La celda de "unidad" a veces trae el propio texto del marcador (fila corrida) — en ese caso no sirve como nombre de red.
+    const unidadValida = celdaUnidad && !esFilaMarcador(celdaUnidad);
+
+    const tPlan = textos.find((t) => RE_PLAN.test(t));
+    if (tPlan) {
+      anioActual = tPlan.match(RE_PLAN)[1];
+      if (unidadValida) redActual = celdaUnidad;
+      continue;
+    }
+
+    const tSubtotal = textos.find((t) => RE_SUBTOTAL.test(t));
+    if (tSubtotal) {
+      resumen.push({ tipo: 'subtotal', red: unidadValida ? celdaUnidad : redActual, anio: tSubtotal.match(RE_SUBTOTAL)[1], monto });
+      continue;
+    }
+
+    const tTotalRed = textos.find((t) => RE_TOTAL_RED.test(t));
+    if (tTotalRed) {
+      resumen.push({ tipo: 'total_red', red: unidadValida ? celdaUnidad : redActual, anio: null, monto });
+      continue;
+    }
+
+    const tTotalGeneral = textos.find((t) => RE_TOTAL_GENERAL.test(t));
+    if (tTotalGeneral) {
+      resumen.push({ tipo: 'total_general', red: null, anio: null, monto });
+      continue;
+    }
+
+    const detalle = colDetalle !== -1 ? String(fila[colDetalle] || '').trim() : '';
+    if (!detalle) continue; // fila sin contenido real reconocible
+
+    if (unidadValida) redActual = celdaUnidad;
+
+    items.push({
+      plan_anio: anioActual,
+      unidad_organica: redActual || null,
+      detalle,
+      duracion: colDuracion !== -1 ? String(fila[colDuracion] || '').trim() || null : null,
+      num_beneficiarios: colBenef !== -1 ? String(fila[colBenef] || '').trim() || null : null,
+      grupo_ocupacional: colGrupo !== -1 ? String(fila[colGrupo] || '').trim() || null : null,
+      fecha_ejecucion: colFecha !== -1 ? parseFechaDDMMYYYY(fila[colFecha]) : null,
+      valorizacion: monto,
+      observaciones: colObs !== -1 ? String(fila[colObs] || '').trim() || null : null,
+    });
+  }
+
+  return { items, resumen, universidad, facultad, periodo };
+}
+
+app.post('/api/convenios-marco/:id/contraprestaciones/cargar-excel', uploadConveniosExcel.single('archivo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+    const marcoId = req.params.id;
+    const { actor_nombre } = req.body;
+
+    const { rows: marcoRows } = await pool.query('SELECT id FROM convenios_marco WHERE id=$1', [marcoId]);
+    if (!marcoRows.length) return res.status(404).json({ error: 'Convenio marco no encontrado' });
+
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const { items, resumen, universidad, facultad, periodo } = parseContraprestacionesExcel(wb);
+    if (!items.length) {
+      return res.status(400).json({ error: 'No se encontraron filas de contraprestaciones reconocibles en el archivo (se busca la columna "DETALLE DE LA CONTRAPRESTACION OTORGADA").' });
+    }
+
+    // Reemplaza el detalle anterior de esta universidad (evita duplicar si se vuelve a subir el mismo informe).
+    await pool.query('DELETE FROM convenio_contraprestaciones WHERE marco_id=$1', [marcoId]);
+    await pool.query('DELETE FROM convenio_contrap_resumen WHERE marco_id=$1', [marcoId]);
+
+    for (const f of items) {
+      await pool.query(
+        `INSERT INTO convenio_contraprestaciones
+           (marco_id, facultad, periodo, plan_anio, unidad_organica, detalle, duracion,
+            num_beneficiarios, grupo_ocupacional, fecha_ejecucion, valorizacion, observaciones, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+        [
+          marcoId, facultad, periodo, f.plan_anio, f.unidad_organica, f.detalle, f.duracion,
+          f.num_beneficiarios, f.grupo_ocupacional, f.fecha_ejecucion, f.valorizacion, f.observaciones,
+          actor_nombre || null,
+        ],
+      );
+    }
+    for (const r of resumen) {
+      await pool.query(
+        `INSERT INTO convenio_contrap_resumen (marco_id, tipo, red, anio, monto) VALUES ($1,$2,$3,$4,$5)`,
+        [marcoId, r.tipo, r.red, r.anio, r.monto],
+      );
+    }
+
+    logEvento('convenio_contraprestaciones_cargadas', `${actor_nombre || 'Usuario'} cargó ${items.length} contraprestaciones (informe memoria)`, actor_nombre, 'Convenios', String(marcoId));
+    res.json({ filas: items.length, universidadDetectada: universidad, facultad, periodo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios-marco/:id/contraprestaciones', async (req, res) => {
+  try {
+    const { rows: data } = await pool.query(
+      `SELECT * FROM convenio_contraprestaciones WHERE marco_id=$1 ORDER BY unidad_organica, plan_anio, id`,
+      [req.params.id],
+    );
+    const { rows: resumen } = await pool.query(
+      `SELECT * FROM convenio_contrap_resumen WHERE marco_id=$1 ORDER BY red, anio`,
+      [req.params.id],
+    );
+    const totalGeneral = resumen.find((r) => r.tipo === 'total_general');
+    const totalValorizado = totalGeneral ? Number(totalGeneral.monto) : data.reduce((s, r) => s + (Number(r.valorizacion) || 0), 0);
+    res.json({ data, resumen, total: data.length, totalValorizado });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
 // Carga masiva de convenios marco por Excel.
 // Formato real de EsSalud ("RELACION DE CONVENIOS MARCO..."): 1+ hojas, cada una
 // con una fila de título, una fila de encabezado (Nº / INSTITUCION EDUCATIVA /

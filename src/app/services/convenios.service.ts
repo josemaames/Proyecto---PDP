@@ -41,6 +41,33 @@ export interface KpiConvenios {
   total: number;
 }
 
+export interface Contraprestacion {
+  id: number;
+  marco_id: number;
+  facultad: string | null;
+  periodo: string | null;
+  plan_anio: string | null;
+  unidad_organica: string | null;
+  detalle: string;
+  duracion: string | null;
+  num_beneficiarios: string | null;
+  grupo_ocupacional: string | null;
+  fecha_ejecucion: string | null;
+  valorizacion: number | null;
+  observaciones: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ContraprestacionResumen {
+  id: number;
+  marco_id: number;
+  tipo: 'subtotal' | 'total_red' | 'total_general';
+  red: string | null;
+  anio: string | null;
+  monto: number | null;
+}
+
 export interface ConvenioDocumento {
   id: number;
   convenio_tipo: 'marco' | 'especifico';
@@ -123,6 +150,30 @@ export class ConveniosService {
 
   eliminarDocumento(id: number): Observable<any> {
     return this.http.delete(`/api/convenios/documentos/${id}`);
+  }
+
+  // ── Contraprestaciones (informe memoria por universidad) ─
+  // Puramente informativo: no afecta presupuesto de redes ni dashboards.
+  getContraprestaciones(
+    marcoId: number,
+  ): Observable<{ data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }> {
+    return this.http.get<{ data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }>(
+      `/api/convenios-marco/${marcoId}/contraprestaciones`,
+    );
+  }
+
+  cargarContraprestacionesExcel(
+    marcoId: number,
+    file: File,
+    actorNombre: string,
+  ): Observable<{ filas: number; universidadDetectada: string | null; facultad: string | null; periodo: string | null }> {
+    const formData = new FormData();
+    formData.append('archivo', file);
+    formData.append('actor_nombre', actorNombre);
+    return this.http.post<{ filas: number; universidadDetectada: string | null; facultad: string | null; periodo: string | null }>(
+      `/api/convenios-marco/${marcoId}/contraprestaciones/cargar-excel`,
+      formData,
+    );
   }
 
   // ── Carga masiva por Excel ───────────────────────

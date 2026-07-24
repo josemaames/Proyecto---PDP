@@ -152,3 +152,45 @@
 .conv-resultado-excel { background: #f4f7fb; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; margin-bottom: 10px; }
 .conv-errores-titulo { color: #b45309; font-weight: 600; margin: 8px 0 4px; }
 .conv-errores-lista { margin: 0; padding-left: 18px; color: #dc2626; font-size: 12.5px; max-height: 140px; overflow-y: auto; }
+
+/* ===== CONTRAPRESTACIONES (informe memoria) ===== */
+.conv-contrap { margin-top: 18px; border-top: 1px solid #e8edf8; padding-top: 16px; }
+
+.conv-error-contrap {
+  color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
+  padding: 8px 12px; font-size: 12.5px; margin: 0 0 10px;
+}
+
+.conv-contrap-resumen {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  background: #f4f7fb; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px;
+  font-size: 12.5px; color: #475569;
+}
+.conv-contrap-total { font-weight: 700; color: #15803d; }
+
+.conv-red-bloque {
+  margin-bottom: 20px; border: 1px solid #e8edf8; border-radius: 10px; padding: 12px 14px;
+}
+.conv-red-titulo {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  font-size: 13.5px; font-weight: 700; color: #1a3d7c; margin-bottom: 10px;
+  background: #eef2f8; border-radius: 6px; padding: 7px 12px;
+}
+.conv-red-total { color: #15803d; font-size: 12.5px; }
+
+.conv-anio-bloque { margin-bottom: 12px; }
+.conv-anio-bloque:last-child { margin-bottom: 0; }
+.conv-anio-titulo {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;
+  padding: 3px 4px;
+}
+.conv-anio-total { color: #b45309; }
+
+.conv-tabla-contrap { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
+.conv-tabla-contrap th {
+  background: #f8fafc; color: #64748b; font-weight: 600; text-align: left;
+  padding: 6px 10px; border-bottom: 1px solid #e8edf8; white-space: nowrap;
+}
+.conv-tabla-contrap td { padding: 6px 10px; border-bottom: 1px solid #f1f4f9; color: #334155; vertical-align: top; }
+.conv-tabla-contrap th.num, .conv-tabla-contrap td.num { text-align: right; }

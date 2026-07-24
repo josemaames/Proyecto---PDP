@@ -32,6 +32,8 @@ const TABLE_NAMES = [
   'alertas_personal',
   'audit_log',
   'certificado_carpeta_drive',
+  'convenio_contraprestaciones',
+  'convenio_contrap_resumen',
   'convenio_documentos',
   'convenios_especifico',
   'convenios_marco',
@@ -129,11 +131,22 @@ const TABLE_COLUMNS = {
   convenios_especifico: [
     ['id', NUM], ['marco_id', NUM], ['nombre', ...str(500)], ['numero_convenio', ...str(100)],
     ['fecha_inicio', TS], ['fecha_fin', TS], ['estado', ...str(20)], ['created_by', ...str(256)], ['created_at', TS],
+    ['facultades_carreras', ...str(500)], ['presupuesto_convenio', NUM], ['presupuesto_ejecutado', NUM],
   ],
   convenio_documentos: [
     ['id', NUM], ['convenio_tipo', ...str(20)], ['convenio_id', NUM], ['nombre_archivo', ...str(256)],
     ['tipo_archivo', ...str(100)], ['ruta_storage', ...str(256)], ['tamano_kb', NUM],
     ['subido_por', ...str(256)], ['fecha_subida', TS],
+  ],
+  convenio_contraprestaciones: [
+    ['id', NUM], ['marco_id', NUM], ['facultad', ...str(256)], ['periodo', ...str(50)], ['plan_anio', ...str(50)],
+    ['unidad_organica', ...str(256)], ['detalle', ...str(1000)], ['duracion', ...str(256)],
+    ['num_beneficiarios', ...str(500)], ['grupo_ocupacional', ...str(256)], ['fecha_ejecucion', TS],
+    ['valorizacion', NUM], ['observaciones', ...str(500)], ['created_by', ...str(256)], ['created_at', TS],
+  ],
+  convenio_contrap_resumen: [
+    ['id', NUM], ['marco_id', NUM], ['tipo', ...str(20)], ['red', ...str(256)], ['anio', ...str(10)],
+    ['monto', NUM], ['created_at', TS],
   ],
 };
 
