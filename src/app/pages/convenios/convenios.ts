@@ -102,8 +102,16 @@ export class Convenios implements OnInit {
     });
   }
 
+  // Recarga solo la lista (sin tocar `cargando`) para no ocultar la barra de
+  // búsqueda mientras el usuario sigue escribiendo — evita perder el foco del input.
+  private recargarLista(): void {
+    this.cs.getMarcos(this.busqueda).subscribe({ next: (m) => (this.marcos = m), error: () => {} });
+  }
+
+  private buscarTimer: any;
   buscar(): void {
-    this.cargar();
+    clearTimeout(this.buscarTimer);
+    this.buscarTimer = setTimeout(() => this.recargarLista(), 300);
   }
 
   get marcosFiltrados(): ConvenioMarco[] {

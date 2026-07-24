@@ -5,6 +5,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService, AlertaPersonal } from '../../services/pdp-data.service';
+import { normalizarRedKey } from '../../utils/roles.util';
 
 @Component({
  selector: 'app-ejecutor',
@@ -108,10 +109,15 @@ export class Ejecutor implements OnInit {
  participantesSeleccionados: any[] = [];
  nuevoPartic = this.particVacio();
  errorPartic = '';
- estadoAC: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' = 'idle';
- estadoACCorr: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' = 'idle';
+ estadoAC: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' = 'idle';
+ estadoACCorr: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' = 'idle';
+ redRealNoCoincide = ''; // red real de la persona cuando no coincide con la del ejecutor
+ redRealNoCoincideCorr = '';
+ sugerencias: any[] = [];
+ sugerenciasCorr: any[] = [];
  private dniTimer: any;
  private planillaTimer: any;
+ private sugerenciasTimer: any;
 
 
  particVacio() {
@@ -484,6 +490,10 @@ export class Ejecutor implements OnInit {
 
  agregarParticipante() {
  const p = this.nuevoPartic;
+ if (this.estadoAC === 'red_no_coincide') {
+ this.errorPartic = `Ese DNI pertenece a ${this.redRealNoCoincide || 'otra red'}, distinta a tu red asignada (${this.redEjecutor}). No se puede agregar.`;
+ return;
+ }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
  this.errorPartic = 'DNI/CE, Apellidos y Nombre son obligatorios.';
  return;
@@ -531,6 +541,10 @@ export class Ejecutor implements OnInit {
 
  agregarParticCorreccion() {
  const p = this.nuevoParticCorreccion;
+ if (this.estadoACCorr === 'red_no_coincide') {
+ this.errorParticCorreccion = `Ese DNI pertenece a ${this.redRealNoCoincideCorr || 'otra red'}, distinta a tu red asignada (${this.redEjecutor}). No se puede agregar.`;
+ return;
+ }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
  this.errorParticCorreccion = 'DNI/CE, Apellidos y Nombre son obligatorios.';
  return;
@@ -556,20 +570,36 @@ export class Ejecutor implements OnInit {
  obj.servicio_area = p.servicio_area || '';
  obj.cargo = p.cargo || '';
  obj.regimen_laboral = p.regimen_laboral || '';
- if (!obj.cod_planilla) obj.cod_planilla = p.cod_planilla || '';
- if (!obj.dni_ce) obj.dni_ce = p.dni_ce || '';
+ obj.cod_planilla = p.cod_planilla || '';
+ obj.dni_ce = p.dni_ce || '';
+ }
+
+ // Compara la red de la persona encontrada contra la red asignada al ejecutor.
+ // Devuelve true si coinciden (o si la persona no tiene red registrada).
+ private redCoincide(p: any): boolean {
+ if (!p?.red) return true;
+ return normalizarRedKey(p.red) === normalizarRedKey(this.redEjecutor);
  }
 
  autocompletarPorDni(dni: string, target: 'nuevo' | 'correccion' = 'nuevo') {
  clearTimeout(this.dniTimer);
- if (target === 'nuevo') this.estadoAC = 'idle';
- else this.estadoACCorr = 'idle';
- if (dni.trim().length < 8) return;
+ clearTimeout(this.sugerenciasTimer);
+ if (target === 'nuevo') { this.estadoAC = 'idle'; this.sugerencias = []; }
+ else { this.estadoACCorr = 'idle'; this.sugerenciasCorr = []; }
+ if (dni.trim().length < 3) return;
+
+ // Búsqueda exacta por DNI completo (8+ dígitos) y sugerencias por coincidencia parcial/nombre.
+ if (dni.trim().length >= 8) {
  if (target === 'nuevo') this.estadoAC = 'buscando';
  else this.estadoACCorr = 'buscando';
  this.dniTimer = setTimeout(() => {
  this.http.get(`http://localhost:3001/api/personal-essalud/dni/${dni.trim()}`).subscribe({
  next: (p: any) => {
+ if (!this.redCoincide(p)) {
+ if (target === 'nuevo') { this.estadoAC = 'red_no_coincide'; this.redRealNoCoincide = p.red || ''; }
+ else { this.estadoACCorr = 'red_no_coincide'; this.redRealNoCoincideCorr = p.red || ''; }
+ return;
+ }
  this.llenarDesdePersonal(p, target);
  if (target === 'nuevo') this.estadoAC = 'encontrado';
  else this.estadoACCorr = 'encontrado';
@@ -580,6 +610,40 @@ export class Ejecutor implements OnInit {
  },
  });
  }, 400);
+ } else {
+ this.buscarSugerencias(dni, target);
+ }
+ }
+
+ // Sugerencias en vivo (por DNI parcial o nombre/apellido), acotadas a la red del ejecutor.
+ buscarSugerencias(texto: string, target: 'nuevo' | 'correccion' = 'nuevo') {
+ clearTimeout(this.sugerenciasTimer);
+ const q = texto.trim();
+ if (q.length < 2) {
+ if (target === 'nuevo') this.sugerencias = [];
+ else this.sugerenciasCorr = [];
+ return;
+ }
+ this.sugerenciasTimer = setTimeout(() => {
+ const params = new URLSearchParams({ q, red: this.redEjecutor || '', limit: '8' });
+ this.http.get<{ data: any[] }>(`http://localhost:3001/api/personal-essalud?${params}`).subscribe({
+ next: (res) => {
+ if (target === 'nuevo') this.sugerencias = res.data || [];
+ else this.sugerenciasCorr = res.data || [];
+ },
+ error: () => {
+ if (target === 'nuevo') this.sugerencias = [];
+ else this.sugerenciasCorr = [];
+ },
+ });
+ }, 300);
+ }
+
+ // El backend ya filtra por red del ejecutor, así que cualquier sugerencia elegida es segura.
+ seleccionarSugerencia(p: any, target: 'nuevo' | 'correccion' = 'nuevo') {
+ this.llenarDesdePersonal(p, target);
+ if (target === 'nuevo') { this.estadoAC = 'encontrado'; this.sugerencias = []; }
+ else { this.estadoACCorr = 'encontrado'; this.sugerenciasCorr = []; }
  }
 
  autocompletarPorPlanilla(cod: string, target: 'nuevo' | 'correccion' = 'nuevo') {
@@ -592,6 +656,11 @@ export class Ejecutor implements OnInit {
  this.planillaTimer = setTimeout(() => {
  this.http.get(`http://localhost:3001/api/personal-essalud/planilla/${cod.trim()}`).subscribe({
  next: (p: any) => {
+ if (!this.redCoincide(p)) {
+ if (target === 'nuevo') { this.estadoAC = 'red_no_coincide'; this.redRealNoCoincide = p.red || ''; }
+ else { this.estadoACCorr = 'red_no_coincide'; this.redRealNoCoincideCorr = p.red || ''; }
+ return;
+ }
  this.llenarDesdePersonal(p, target);
  if (target === 'nuevo') this.estadoAC = 'encontrado';
  else this.estadoACCorr = 'encontrado';

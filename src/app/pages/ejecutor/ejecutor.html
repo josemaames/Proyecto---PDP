@@ -800,18 +800,36 @@
  </div>
  <div class="partic-campo partic-campo-dni">
  <label>
- DNI / CE *
+ DNI / CE o nombre *
  @if (estadoAC === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
  @if (estadoAC === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoAC === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
+ @if (estadoAC === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
  </label>
+ <div class="partic-autocomplete">
  <input
  type="text"
- placeholder="Ej: 12345678"
+ placeholder="DNI, apellido o nombre..."
  [(ngModel)]="nuevoPartic.dni_ce"
  (input)="autocompletarPorDni(nuevoPartic.dni_ce, 'nuevo')"
  (keyup.enter)="agregarParticipante()"
  />
+ @if (sugerencias.length) {
+ <div class="partic-sugerencias">
+ @for (s of sugerencias; track s.dni_ce) {
+ <div class="partic-sugerencia-item" (click)="seleccionarSugerencia(s, 'nuevo')">
+ <span class="partic-sugerencia-nombre">{{ s.apellidos }}, {{ s.nombre }}</span>
+ <span class="partic-sugerencia-dni">{{ s.dni_ce }} · {{ s.cargo || '—' }}</span>
+ </div>
+ }
+ </div>
+ }
+ </div>
+ @if (estadoAC === 'red_no_coincide') {
+ <p class="partic-error-red">
+ Pertenece a <strong>{{ redRealNoCoincide }}</strong>, no a tu red ({{ redEjecutor }}). No se puede agregar a esta capacitación.
+ </p>
+ }
  </div>
  <div class="partic-campo">
  <label>Cód. Planilla</label>
@@ -845,8 +863,8 @@
  <label>Sexo</label>
  <select [(ngModel)]="nuevoPartic.sexo">
  <option value="">—</option>
- <option value="M">Masculino</option>
- <option value="F">Femenino</option>
+ <option value="Masculino">Masculino</option>
+ <option value="Femenino">Femenino</option>
  </select>
  </div>
  <div class="partic-campo">
@@ -1066,14 +1084,32 @@
  <div class="partic-form-grid">
  <div class="campo partic-campo-dni">
  <label>
- DNI / CE <span class="req">*</span>
+ DNI / CE o nombre <span class="req">*</span>
  @if (estadoACCorr === 'buscando') { <span class="ac-badge ac-buscando">⏳ buscando…</span> }
  @if (estadoACCorr === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoACCorr === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
+ @if (estadoACCorr === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
  </label>
+ <div class="partic-autocomplete">
  <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce"
- placeholder="DNI o carné"
+ placeholder="DNI, apellido o nombre..."
  (input)="autocompletarPorDni(nuevoParticCorreccion.dni_ce, 'correccion')" />
+ @if (sugerenciasCorr.length) {
+ <div class="partic-sugerencias">
+ @for (s of sugerenciasCorr; track s.dni_ce) {
+ <div class="partic-sugerencia-item" (click)="seleccionarSugerencia(s, 'correccion')">
+ <span class="partic-sugerencia-nombre">{{ s.apellidos }}, {{ s.nombre }}</span>
+ <span class="partic-sugerencia-dni">{{ s.dni_ce }} · {{ s.cargo || '—' }}</span>
+ </div>
+ }
+ </div>
+ }
+ </div>
+ @if (estadoACCorr === 'red_no_coincide') {
+ <p class="partic-error-red">
+ Pertenece a <strong>{{ redRealNoCoincideCorr }}</strong>, no a tu red ({{ redEjecutor }}). No se puede agregar.
+ </p>
+ }
  </div>
  <div class="campo">
  <label>Cód. Planilla</label>
@@ -1093,8 +1129,8 @@
  <label>Sexo</label>
  <select [(ngModel)]="nuevoParticCorreccion.sexo">
  <option value="">—</option>
- <option value="M">Masculino</option>
- <option value="F">Femenino</option>
+ <option value="Masculino">Masculino</option>
+ <option value="Femenino">Femenino</option>
  </select>
  </div>
  <div class="campo">
