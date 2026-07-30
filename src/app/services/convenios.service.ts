@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import * as ExcelJS from 'exceljs';
 
 export type EstadoVigencia = 'vigente' | 'por_vencer' | 'vencido' | 'sin_fecha';
 
@@ -173,6 +174,105 @@ export class ConveniosService {
     return this.http.post<{ filas: number; universidadDetectada: string | null; facultad: string | null; periodo: string | null }>(
       `/api/convenios-marco/${marcoId}/contraprestaciones/cargar-excel`,
       formData,
+    );
+  }
+
+  // ── Plantillas descargables (para no generar confusión de formato) ──
+  private descargar(blob: Blob, nombreArchivo: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private estiloEncabezado(row: ExcelJS.Row): void {
+    row.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    row.eachCell((c) => {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A3D7C' } };
+    });
+  }
+
+  /** Plantilla para la carga masiva de convenios marco (hojas UNIVERSIDADES / INSTITUTOS). */
+  async descargarPlantillaMarcos(): Promise<void> {
+    const wb = new ExcelJS.Workbook();
+
+    const wsU = wb.addWorksheet('UNIVERSIDADES');
+    wsU.columns = [
+      { header: 'Nº', key: 'n', width: 6 },
+      { header: 'INSTITUCION EDUCATIVA', key: 'inst', width: 45 },
+      { header: 'SEDE PRINCIPAL', key: 'sede', width: 18 },
+      { header: 'SUSCRITO', key: 'inicio', width: 14 },
+      { header: 'VIGENTE HASTA: ', key: 'fin', width: 14 },
+    ];
+    this.estiloEncabezado(wsU.getRow(1));
+    wsU.addRow({ n: 1, inst: 'UNIVERSIDAD NACIONAL DE EJEMPLO', sede: 'LIMA', inicio: new Date(2024, 0, 15), fin: new Date(2027, 0, 15) });
+
+    const wsI = wb.addWorksheet('INSTITUTOS');
+    wsI.columns = [
+      { header: 'Nº', key: 'n', width: 6 },
+      { header: 'INSTITUCION EDUCATIVA', key: 'inst', width: 45 },
+      { header: 'SUSCRITO', key: 'inicio', width: 14 },
+      { header: 'VENCIMIENTO', key: 'fin', width: 14 },
+      { header: 'SEDE PRINCIPAL', key: 'sede', width: 18 },
+    ];
+    this.estiloEncabezado(wsI.getRow(1));
+    wsI.addRow({ n: 1, inst: 'INSTITUTO SUPERIOR DE EJEMPLO', inicio: new Date(2024, 0, 15), fin: new Date(2026, 0, 15), sede: 'AREQUIPA' });
+
+    const buf = await wb.xlsx.writeBuffer();
+    this.descargar(
+      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      'Plantilla_Convenios_Marco.xlsx',
+    );
+  }
+
+  /**
+   * Plantilla del informe de contraprestaciones (una universidad por archivo).
+   * Muestra un bloque de ejemplo (1 red, 1 año) con las filas de cierre
+   * "SUBTOTAL <año>" / "TOTAL DEL COMPROMISO CONTRAPRESTACIONAL" / "TOTAL DEL
+   * COMPROMISO ESSALUD" que el sistema busca por texto para armar los totales.
+   */
+  async descargarPlantillaContraprestaciones(universidad: string): Promise<void> {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('INFORME MEMORIA');
+    ws.columns = [
+      { key: 'a', width: 6 },
+      { key: 'b', width: 30 },
+      { key: 'c', width: 45 },
+      { key: 'd', width: 16 },
+      { key: 'e', width: 14 },
+      { key: 'f', width: 30 },
+      { key: 'g', width: 14 },
+      { key: 'h', width: 16 },
+      { key: 'i', width: 30 },
+    ];
+
+    ws.addRow(['INFORME MEMORIA']);
+    ws.addRow(['CONTRAPRESTACIONES OTORGADAS A ESSALUD EN CUMPLIMIENTO DE LOS CONVENIOS ESPECÍFICOS SUSCRITOS']);
+    ws.addRow([`UNIVERSIDAD: ${universidad}`]);
+    ws.addRow(['FACULTAD: ']);
+    ws.addRow(['PERÍODO   :  ']);
+    ws.addRow([]);
+
+    const filaEncabezado = ws.addRow([
+      'N°', 'UNIDAD ORGANICA', 'DETALLE DE LA CONTRAPRESTACION OTORGADA', 'DURACION',
+      'Nº BENEFICIARIOS', 'GRUPO OCUPAC. BENEFICIADO', 'FECHA DE EJECUCION ',
+      'VALORIZACION                                                     S/.   ', 'OBSERVACIONES',
+    ]);
+    this.estiloEncabezado(filaEncabezado);
+
+    ws.addRow([1, '', 'PLAN 2024', '', '', '', '', '', '']);
+    ws.addRow([2, 'RED ASISTENCIAL EJEMPLO', 'Descripción de la contraprestación otorgada', 'Permanente', 25, 'Personal asistencial', '01/03/2024', 10000, 'ENTREGADO']);
+    ws.addRow([3, 'RED ASISTENCIAL EJEMPLO', '', '', '', 'SUBTOTAL 2024', '', 10000, '']);
+    ws.addRow(['TOTAL DEL COMPROMISO CONTRAPRESTACIONAL', '', '', '', '', '', '', 10000, '']);
+    ws.addRow([]);
+    ws.addRow(['TOTAL DEL COMPROMISO ESSALUD', '', '', '', '', '', '', 10000, '']);
+
+    const buf = await wb.xlsx.writeBuffer();
+    this.descargar(
+      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      `Plantilla_Contraprestaciones_${universidad.replace(/[^\w]+/g, '_').substring(0, 40)}.xlsx`,
     );
   }
 

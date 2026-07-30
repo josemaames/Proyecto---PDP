@@ -18,6 +18,15 @@
 }
 .pre-btn-sm:hover { background: #142f61; }
 
+.pre-btn-sec-sm {
+  background: #fff; color: #1a3d7c; border: 1.5px solid #c7d2e6; border-radius: 8px; padding: 7px 15px;
+  font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.pre-btn-sec-sm:hover { background: #f0f5fb; }
+
+.conv-contrap-acciones { display: flex; align-items: center; gap: 8px; }
+.conv-plantilla-modal-btn { display: block; margin-bottom: 14px; }
+
 .pre-overlay {
   position: fixed; inset: 0; background: rgba(15,30,60,.55); display: flex;
   align-items: center; justify-content: center; padding: 24px; z-index: 100;

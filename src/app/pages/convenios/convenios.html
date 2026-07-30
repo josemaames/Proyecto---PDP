@@ -83,6 +83,7 @@
           <option value="Instituto">Solo Institutos</option>
         </select>
         @if (puedeGestionar) {
+          <button class="pre-btn-sec-sm" (click)="descargarPlantillaMarcos()">Descargar plantilla</button>
           <button class="pre-btn-sm" (click)="abrirModalExcel()">Carga masiva (Excel)</button>
           <button class="pre-btn-sm" (click)="abrirNuevoMarco()">Nuevo convenio marco</button>
         }
@@ -223,10 +224,13 @@
                       <div class="conv-especificos-cab">
                         <span class="conv-docs-titulo">Contraprestaciones otorgadas a EsSalud</span>
                         @if (puedeGestionar) {
-                          <label class="conv-subir-btn">
-                            {{ estaSubiendoContraprestaciones(m.id) ? 'Subiendo...' : 'Subir informe (Excel)' }}
-                            <input type="file" accept=".xls,.xlsx" hidden [disabled]="estaSubiendoContraprestaciones(m.id)" (change)="onArchivoContraprestaciones($event, m.id)" />
-                          </label>
+                          <div class="conv-contrap-acciones">
+                            <button class="pre-btn-sec-sm" (click)="descargarPlantillaContraprestaciones(m)">Descargar plantilla</button>
+                            <label class="conv-subir-btn">
+                              {{ estaSubiendoContraprestaciones(m.id) ? 'Subiendo...' : 'Subir informe (Excel)' }}
+                              <input type="file" accept=".xls,.xlsx" hidden [disabled]="estaSubiendoContraprestaciones(m.id)" (change)="onArchivoContraprestaciones($event, m.id)" />
+                            </label>
+                          </div>
                         }
                       </div>
 
@@ -392,6 +396,7 @@
         con columnas Institución Educativa, Sede Principal, Suscrito y Vigente hasta).
         Los convenios ya cargados se detectan por universidad y se omiten.
       </p>
+      <button class="pre-btn-sec-sm conv-plantilla-modal-btn" (click)="descargarPlantillaMarcos()">Descargar plantilla (.xlsx)</button>
       <div class="pre-campo">
         <input type="file" accept=".xls,.xlsx" (change)="onArchivoExcel($event)" />
       </div>

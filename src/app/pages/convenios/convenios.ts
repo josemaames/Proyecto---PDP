@@ -208,6 +208,10 @@ export class Convenios implements OnInit {
     return r?.totalValorizado || 0;
   }
 
+  descargarPlantillaContraprestaciones(m: ConvenioMarco): void {
+    this.cs.descargarPlantillaContraprestaciones(m.universidad);
+  }
+
   onArchivoContraprestaciones(event: Event, marcoId: number): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -446,6 +450,10 @@ export class Convenios implements OnInit {
   }
 
   // ── Carga masiva Excel ────────────────────────────
+  descargarPlantillaMarcos(): void {
+    this.cs.descargarPlantillaMarcos();
+  }
+
   abrirModalExcel(): void {
     this.archivoExcel = null;
     this.errorExcel = '';
