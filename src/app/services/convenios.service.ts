@@ -116,7 +116,10 @@ export class ConveniosService {
     return this.http.post<ConvenioEspecifico>('/api/convenios-especifico', body);
   }
 
-  actualizarEspecifico(id: number, body: Partial<ConvenioEspecifico>): Observable<ConvenioEspecifico> {
+  actualizarEspecifico(
+    id: number,
+    body: Partial<ConvenioEspecifico>,
+  ): Observable<ConvenioEspecifico> {
     return this.http.put<ConvenioEspecifico>(`/api/convenios-especifico/${id}`, body);
   }
 
@@ -125,7 +128,10 @@ export class ConveniosService {
   }
 
   // ── Documentos (PDF) ─────────────────────────────
-  getDocumentos(convenioTipo: 'marco' | 'especifico', convenioId: number): Observable<ConvenioDocumento[]> {
+  getDocumentos(
+    convenioTipo: 'marco' | 'especifico',
+    convenioId: number,
+  ): Observable<ConvenioDocumento[]> {
     return this.http.get<ConvenioDocumento[]>(
       `/api/convenios/documentos?convenio_tipo=${convenioTipo}&convenio_id=${convenioId}`,
     );
@@ -146,7 +152,9 @@ export class ConveniosService {
   }
 
   descargarDocumento(id: number): Observable<{ url: string; nombre_archivo: string }> {
-    return this.http.get<{ url: string; nombre_archivo: string }>(`/api/convenios/documentos/${id}/descargar`);
+    return this.http.get<{ url: string; nombre_archivo: string }>(
+      `/api/convenios/documentos/${id}/descargar`,
+    );
   }
 
   eliminarDocumento(id: number): Observable<any> {
@@ -157,27 +165,48 @@ export class ConveniosService {
   // Puramente informativo: no afecta presupuesto de redes ni dashboards.
   getContraprestaciones(
     marcoId: number,
-  ): Observable<{ data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }> {
-    return this.http.get<{ data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }>(
-      `/api/convenios-marco/${marcoId}/contraprestaciones`,
-    );
+  ): Observable<{
+    data: Contraprestacion[];
+    resumen: ContraprestacionResumen[];
+    total: number;
+    totalValorizado: number;
+  }> {
+    return this.http.get<{
+      data: Contraprestacion[];
+      resumen: ContraprestacionResumen[];
+      total: number;
+      totalValorizado: number;
+    }>(`/api/convenios-marco/${marcoId}/contraprestaciones`);
   }
 
   cargarContraprestacionesExcel(
     marcoId: number,
     file: File,
     actorNombre: string,
-  ): Observable<{ filas: number; universidadDetectada: string | null; facultad: string | null; periodo: string | null }> {
+  ): Observable<{
+    filas: number;
+    universidadDetectada: string | null;
+    facultad: string | null;
+    periodo: string | null;
+  }> {
     const formData = new FormData();
     formData.append('archivo', file);
     formData.append('actor_nombre', actorNombre);
-    return this.http.post<{ filas: number; universidadDetectada: string | null; facultad: string | null; periodo: string | null }>(
-      `/api/convenios-marco/${marcoId}/contraprestaciones/cargar-excel`,
-      formData,
-    );
+
+    return this.http.post<{
+      filas: number;
+      universidadDetectada: string | null;
+      facultad: string | null;
+      periodo: string | null;
+    }>(`/api/convenios-marco/${marcoId}/contraprestaciones/cargar-excel`, formData);
   }
 
-  // ── Plantillas descargables (para no generar confusión de formato) ──
+  // Dashboard por convenio
+  getDashboardConvenio(marcoId: number): Observable<any> {
+    return this.http.get<any>(`/api/convenios-marco/${marcoId}/dashboard`);
+  }
+
+  // ── Plantillas descargables ────────────────────────────
   private descargar(blob: Blob, nombreArchivo: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -207,7 +236,13 @@ export class ConveniosService {
       { header: 'VIGENTE HASTA: ', key: 'fin', width: 14 },
     ];
     this.estiloEncabezado(wsU.getRow(1));
-    wsU.addRow({ n: 1, inst: 'UNIVERSIDAD NACIONAL DE EJEMPLO', sede: 'LIMA', inicio: new Date(2024, 0, 15), fin: new Date(2027, 0, 15) });
+    wsU.addRow({
+      n: 1,
+      inst: 'UNIVERSIDAD NACIONAL DE EJEMPLO',
+      sede: 'LIMA',
+      inicio: new Date(2024, 0, 15),
+      fin: new Date(2027, 0, 15),
+    });
 
     const wsI = wb.addWorksheet('INSTITUTOS');
     wsI.columns = [
@@ -218,11 +253,19 @@ export class ConveniosService {
       { header: 'SEDE PRINCIPAL', key: 'sede', width: 18 },
     ];
     this.estiloEncabezado(wsI.getRow(1));
-    wsI.addRow({ n: 1, inst: 'INSTITUTO SUPERIOR DE EJEMPLO', inicio: new Date(2024, 0, 15), fin: new Date(2026, 0, 15), sede: 'AREQUIPA' });
+    wsI.addRow({
+      n: 1,
+      inst: 'INSTITUTO SUPERIOR DE EJEMPLO',
+      inicio: new Date(2024, 0, 15),
+      fin: new Date(2026, 0, 15),
+      sede: 'AREQUIPA',
+    });
 
     const buf = await wb.xlsx.writeBuffer();
     this.descargar(
-      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      }),
       'Plantilla_Convenios_Marco.xlsx',
     );
   }
@@ -249,21 +292,39 @@ export class ConveniosService {
     ];
 
     ws.addRow(['INFORME MEMORIA']);
-    ws.addRow(['CONTRAPRESTACIONES OTORGADAS A ESSALUD EN CUMPLIMIENTO DE LOS CONVENIOS ESPECÍFICOS SUSCRITOS']);
+    ws.addRow([
+      'CONTRAPRESTACIONES OTORGADAS A ESSALUD EN CUMPLIMIENTO DE LOS CONVENIOS ESPECÍFICOS SUSCRITOS',
+    ]);
     ws.addRow([`UNIVERSIDAD: ${universidad}`]);
     ws.addRow(['FACULTAD: ']);
     ws.addRow(['PERÍODO   :  ']);
     ws.addRow([]);
 
     const filaEncabezado = ws.addRow([
-      'N°', 'UNIDAD ORGANICA', 'DETALLE DE LA CONTRAPRESTACION OTORGADA', 'DURACION',
-      'Nº BENEFICIARIOS', 'GRUPO OCUPAC. BENEFICIADO', 'FECHA DE EJECUCION ',
-      'VALORIZACION                                                     S/.   ', 'OBSERVACIONES',
+      'N°',
+      'UNIDAD ORGANICA',
+      'DETALLE DE LA CONTRAPRESTACION OTORGADA',
+      'DURACION',
+      'Nº BENEFICIARIOS',
+      'GRUPO OCUPAC. BENEFICIADO',
+      'FECHA DE EJECUCION ',
+      'VALORIZACION                                                     S/.   ',
+      'OBSERVACIONES',
     ]);
     this.estiloEncabezado(filaEncabezado);
 
     ws.addRow([1, '', 'PLAN 2024', '', '', '', '', '', '']);
-    ws.addRow([2, 'RED ASISTENCIAL EJEMPLO', 'Descripción de la contraprestación otorgada', 'Permanente', 25, 'Personal asistencial', '01/03/2024', 10000, 'ENTREGADO']);
+    ws.addRow([
+      2,
+      'RED ASISTENCIAL EJEMPLO',
+      'Descripción de la contraprestación otorgada',
+      'Permanente',
+      25,
+      'Personal asistencial',
+      '01/03/2024',
+      10000,
+      'ENTREGADO',
+    ]);
     ws.addRow([3, 'RED ASISTENCIAL EJEMPLO', '', '', '', 'SUBTOTAL 2024', '', 10000, '']);
     ws.addRow(['TOTAL DEL COMPROMISO CONTRAPRESTACIONAL', '', '', '', '', '', '', 10000, '']);
     ws.addRow([]);
@@ -271,7 +332,9 @@ export class ConveniosService {
 
     const buf = await wb.xlsx.writeBuffer();
     this.descargar(
-      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      }),
       `Plantilla_Contraprestaciones_${universidad.replace(/[^\w]+/g, '_').substring(0, 40)}.xlsx`,
     );
   }
@@ -280,13 +343,20 @@ export class ConveniosService {
   cargarExcel(
     file: File,
     actorNombre: string,
-  ): Observable<{ marcosCreados: number; especificosCreados: number; duplicados: number; errores: string[] }> {
+  ): Observable<{
+    marcosCreados: number;
+    especificosCreados: number;
+    duplicados: number;
+    errores: string[];
+  }> {
     const formData = new FormData();
     formData.append('archivo', file);
     formData.append('actor_nombre', actorNombre);
-    return this.http.post<{ marcosCreados: number; especificosCreados: number; duplicados: number; errores: string[] }>(
-      '/api/convenios/cargar-excel',
-      formData,
-    );
+    return this.http.post<{
+      marcosCreados: number;
+      especificosCreados: number;
+      duplicados: number;
+      errores: string[];
+    }>('/api/convenios/cargar-excel', formData);
   }
 }

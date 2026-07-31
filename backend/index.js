@@ -92,7 +92,10 @@ const uploadConveniosExcel = multer({
 // columna nombre y "Santillán" en apellidos (o al revés), y buscar una sola
 // palabra (solo el apellido, por ejemplo) sigue funcionando igual que antes.
 function condicionBusquedaPalabras(campos, texto, params, idxInicial) {
-  const palabras = String(texto || '').trim().split(/\s+/).filter(Boolean);
+  const palabras = String(texto || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   let idx = idxInicial;
   if (!palabras.length) return { condicion: null, idx };
   const grupos = palabras.map((palabra) => {
@@ -216,7 +219,6 @@ pool
   .then(() => console.log('✓ Conectado a Oracle'))
   .catch((err) => console.error('✗ Error de conexión:', err));
 
-
 async function logEvento(
   tipo,
   descripcion,
@@ -233,7 +235,6 @@ async function logEvento(
     console.error('logEvento error:', e.message);
   }
 }
-
 
 // ══════════════════════════════════════════════
 // PARTICIPANTES
@@ -359,7 +360,9 @@ app.post('/api/participantes', async (req, res) => {
 app.delete('/api/participantes/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { rows } = await pool.query('SELECT codigo_act FROM lista_participantes WHERE id=$1', [id]);
+    const { rows } = await pool.query('SELECT codigo_act FROM lista_participantes WHERE id=$1', [
+      id,
+    ]);
     await pool.query('DELETE FROM lista_participantes WHERE id=$1', [id]);
     await recalcularTotalParticipantes(rows[0]?.codigo_act);
     invalidarCache();
@@ -569,7 +572,8 @@ app.get('/api/hoja-ruta/:actividad_id/pasos', async (req, res) => {
     );
     const map = {};
     rows.forEach(
-      (r) => (map[r.paso_nombre] = { completado: r.completado === 'Y', completado_at: r.completado_at }),
+      (r) =>
+        (map[r.paso_nombre] = { completado: r.completado === 'Y', completado_at: r.completado_at }),
     );
     const result = PASOS_HOJA_RUTA.map((p) => ({
       paso: p,
@@ -811,8 +815,16 @@ app.post('/api/personal/actualizar', uploadPadron.single('archivo'), async (req,
           `INSERT INTO personal (dni_ce, cod_planilla, apellidos, nombre, sexo, red, sub_programa, servicio_area, cargo, regimen_laboral, estado)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'Activo')`,
           [
-            dni_ce, datos.cod_planilla, datos.apellidos, datos.nombre, datos.sexo,
-            datos.red, datos.sub_programa, datos.servicio_area, datos.cargo, datos.regimen_laboral,
+            dni_ce,
+            datos.cod_planilla,
+            datos.apellidos,
+            datos.nombre,
+            datos.sexo,
+            datos.red,
+            datos.sub_programa,
+            datos.servicio_area,
+            datos.cargo,
+            datos.regimen_laboral,
           ],
         );
         altas++;
@@ -866,7 +878,9 @@ app.post('/api/personal/actualizar', uploadPadron.single('archivo'), async (req,
 
         const clave = p.red_asistencial || '';
         if (!porRed.has(clave)) porRed.set(clave, []);
-        porRed.get(clave).push({ ...ev, codigo_act: p.codigo_act, nombre_actividad: p.nombre_actividad });
+        porRed
+          .get(clave)
+          .push({ ...ev, codigo_act: p.codigo_act, nombre_actividad: p.nombre_actividad });
       }
     }
 
@@ -1261,11 +1275,13 @@ app.get('/api/solicitudes/mis-envios', async (req, res) => {
        FROM solicitudes_revision WHERE ejecutor_dni = $1 ORDER BY created_at DESC LIMIT 50`,
       [dni],
     );
-    res.json(rows.map((r) => ({
-      ...r,
-      datos: r.datos ? JSON.parse(r.datos) : null,
-      correccion_pendiente: r.correccion_pendiente === 'Y',
-    })));
+    res.json(
+      rows.map((r) => ({
+        ...r,
+        datos: r.datos ? JSON.parse(r.datos) : null,
+        correccion_pendiente: r.correccion_pendiente === 'Y',
+      })),
+    );
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1863,12 +1879,15 @@ app.put('/api/presupuesto-redes/:red', async (req, res) => {
       `UPDATE presupuesto_redes SET techo=$1, anio=$2 WHERE red=$3 RETURNING *`,
       [techo, anio || 2025, red],
     );
-    const row = upd.rowCount === 0
-      ? (await pool.query(
-          `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1,$2,$3) RETURNING *`,
-          [red, techo, anio || 2025],
-        )).rows[0]
-      : upd.rows[0];
+    const row =
+      upd.rowCount === 0
+        ? (
+            await pool.query(
+              `INSERT INTO presupuesto_redes (red, techo, anio) VALUES ($1,$2,$3) RETURNING *`,
+              [red, techo, anio || 2025],
+            )
+          ).rows[0]
+        : upd.rows[0];
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2014,9 +2033,12 @@ app.post('/api/presupuesto/modificar', async (req, res) => {
   const client = await pool.connect();
   try {
     const { tipo, red, red_destino, monto, motivo, actor_dni, actor_nombre } = req.body;
-    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo)) return res.status(400).json({ error: 'tipo inválido' });
-    if (!red || !monto || Number(monto) <= 0) return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
-    if (tipo === 'reasignacion' && !red_destino) return res.status(400).json({ error: 'red_destino requerida para reasignación' });
+    if (!['aumento', 'reduccion', 'reasignacion'].includes(tipo))
+      return res.status(400).json({ error: 'tipo inválido' });
+    if (!red || !monto || Number(monto) <= 0)
+      return res.status(400).json({ error: 'red y monto (>0) son requeridos' });
+    if (tipo === 'reasignacion' && !red_destino)
+      return res.status(400).json({ error: 'red_destino requerida para reasignación' });
     const m = Number(monto);
 
     await client.query('BEGIN');
@@ -2034,16 +2056,33 @@ app.post('/api/presupuesto/modificar', async (req, res) => {
     };
     if (tipo === 'aumento') await ajustar(red, m);
     else if (tipo === 'reduccion') await ajustar(red, -m);
-    else { await ajustar(red, -m); await ajustar(red_destino, m); }
+    else {
+      await ajustar(red, -m);
+      await ajustar(red_destino, m);
+    }
 
     // Historial (queda como 'aplicado', sin paso de aprobación)
     await client.query(
       `INSERT INTO solicitud_presupuesto (tipo, red, red_destino, monto, motivo, estado, solicitante_dni, solicitante_nombre, revisor_nombre, resolved_at)
        VALUES ($1,$2,$3,$4,$5,'aplicado',$6,$7,$7,NOW())`,
-      [tipo, red, tipo === 'reasignacion' ? red_destino : null, m, motivo || '', actor_dni || '', actor_nombre || ''],
+      [
+        tipo,
+        red,
+        tipo === 'reasignacion' ? red_destino : null,
+        m,
+        motivo || '',
+        actor_dni || '',
+        actor_nombre || '',
+      ],
     );
     await client.query('COMMIT');
-    logEvento('presupuesto_modificado', `${actor_nombre || 'Presupuesto'} aplicó ${tipo} de S/ ${m} en ${red}${tipo === 'reasignacion' ? ' → ' + red_destino : ''}`, actor_nombre, 'Presupuesto', red);
+    logEvento(
+      'presupuesto_modificado',
+      `${actor_nombre || 'Presupuesto'} aplicó ${tipo} de S/ ${m} en ${red}${tipo === 'reasignacion' ? ' → ' + red_destino : ''}`,
+      actor_nombre,
+      'Presupuesto',
+      red,
+    );
     res.json({ ok: true });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
@@ -2056,14 +2095,15 @@ app.post('/api/presupuesto/modificar', async (req, res) => {
 // ──────────────────────────────────────────────
 // NOTAS de participantes (el ejecutor sube al terminar la capacitación)
 // ──────────────────────────────────────────────
-const NOTA_MINIMA = 13;      // nota mínima aprobatoria (0–20). Cambiar aquí si varía.
-const PLAZO_NOTAS_DIAS = 5;  // días de plazo tras fecha_fin para subir notas.
+const NOTA_MINIMA = 13; // nota mínima aprobatoria (0–20). Cambiar aquí si varía.
+const PLAZO_NOTAS_DIAS = 5; // días de plazo tras fecha_fin para subir notas.
 // TEMPORAL: ignora la ventana de fechas para poder probar la subida en cualquier actividad.
 // Poner en false para producción.
 const NOTAS_MODO_PRUEBA = true;
 
 function ventanaNotas(fecha_fin) {
-  if (NOTAS_MODO_PRUEBA) return { estado: 'abierto', puedeSubir: true, cierre: null, modoPrueba: true };
+  if (NOTAS_MODO_PRUEBA)
+    return { estado: 'abierto', puedeSubir: true, cierre: null, modoPrueba: true };
   // La existencia en datos_actividad = actividad aprobada (el reloj corre desde fecha_fin).
   if (!fecha_fin) return { estado: 'sin_fecha', puedeSubir: false, cierre: null };
   const hoy = new Date();
@@ -2079,19 +2119,29 @@ app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
   const codigo_act = req.params.codigo_act;
   try {
     const { notas, ejecutor_nombre } = req.body;
-    if (!Array.isArray(notas) || !notas.length) return res.status(400).json({ error: 'No hay notas para guardar.' });
+    if (!Array.isArray(notas) || !notas.length)
+      return res.status(400).json({ error: 'No hay notas para guardar.' });
 
-    const act = await pool.query('SELECT fecha_fin FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
-    if (!act.rows.length) return res.status(404).json({ error: 'La actividad no existe o aún no está aprobada.' });
+    const act = await pool.query('SELECT fecha_fin FROM datos_actividad WHERE codigo_act=$1', [
+      codigo_act,
+    ]);
+    if (!act.rows.length)
+      return res.status(404).json({ error: 'La actividad no existe o aún no está aprobada.' });
     const v = ventanaNotas(act.rows[0].fecha_fin);
-    if (!v.puedeSubir) return res.status(403).json({ error: 'La subida de notas aún no está habilitada (la capacitación no ha terminado).' });
+    if (!v.puedeSubir)
+      return res.status(403).json({
+        error: 'La subida de notas aún no está habilitada (la capacitación no ha terminado).',
+      });
     const fueraPlazo = v.estado === 'fuera_plazo';
 
     let actualizados = 0;
     const noEncontrados = [];
     for (const n of notas) {
       const nota = Number(n.nota);
-      if (!n.dni || isNaN(nota) || nota < 0 || nota > 20) { noEncontrados.push({ dni: n.dni, motivo: 'nota inválida' }); continue; }
+      if (!n.dni || isNaN(nota) || nota < 0 || nota > 20) {
+        noEncontrados.push({ dni: n.dni, motivo: 'nota inválida' });
+        continue;
+      }
       const condicion = nota >= NOTA_MINIMA ? 'Aprobado' : 'Desaprobado';
       const upd = await pool.query(
         `UPDATE lista_participantes SET nota=$1, condicion=$2, nota_subida_at=NOW(), fuera_de_plazo=$3
@@ -2101,7 +2151,13 @@ app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
       if (upd.rowCount > 0) actualizados += upd.rowCount;
       else noEncontrados.push({ dni: n.dni, motivo: 'DNI no está entre los participantes' });
     }
-    logEvento('notas_subidas', `${ejecutor_nombre || 'Ejecutor'} subió notas de ${codigo_act} (${actualizados} participantes${fueraPlazo ? ', fuera de plazo' : ''})`, ejecutor_nombre, 'Ejecutor', codigo_act);
+    logEvento(
+      'notas_subidas',
+      `${ejecutor_nombre || 'Ejecutor'} subió notas de ${codigo_act} (${actualizados} participantes${fueraPlazo ? ', fuera de plazo' : ''})`,
+      ejecutor_nombre,
+      'Ejecutor',
+      codigo_act,
+    );
     res.json({ ok: true, actualizados, noEncontrados, fueraPlazo });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2111,7 +2167,10 @@ app.post('/api/actividades/:codigo_act/notas', async (req, res) => {
 app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
   const codigo_act = req.params.codigo_act;
   try {
-    const act = await pool.query('SELECT nombre_actividad, fecha_fin, red_asistencial FROM datos_actividad WHERE codigo_act=$1', [codigo_act]);
+    const act = await pool.query(
+      'SELECT nombre_actividad, fecha_fin, red_asistencial FROM datos_actividad WHERE codigo_act=$1',
+      [codigo_act],
+    );
     const fecha_fin = act.rows[0]?.fecha_fin || null;
     const ventana = ventanaNotas(fecha_fin);
 
@@ -2124,8 +2183,16 @@ app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
     const conNota = parts.filter((p) => p.nota !== null && p.nota !== undefined);
     const calificados = conNota.length;
     const aprobados = conNota.filter((p) => Number(p.nota) >= NOTA_MINIMA).length;
-    const promedio = calificados ? conNota.reduce((s, p) => s + Number(p.nota), 0) / calificados : 0;
-    const buckets = [['0-5', 0, 5], ['6-10', 6, 10], ['11-12', 11, 12], ['13-16', 13, 16], ['17-20', 17, 20]];
+    const promedio = calificados
+      ? conNota.reduce((s, p) => s + Number(p.nota), 0) / calificados
+      : 0;
+    const buckets = [
+      ['0-5', 0, 5],
+      ['6-10', 6, 10],
+      ['11-12', 11, 12],
+      ['13-16', 13, 16],
+      ['17-20', 17, 20],
+    ];
     const distribucion = buckets.map(([rango, min, max]) => ({
       rango,
       cantidad: conNota.filter((p) => Number(p.nota) >= min && Number(p.nota) <= max).length,
@@ -2155,29 +2222,44 @@ app.get('/api/actividades/:codigo_act/resultados', async (req, res) => {
 app.get('/api/notas/stats', async (req, res) => {
   try {
     const { red = '', codigo_act = '', sexo = '' } = req.query;
-    const cond = ['nota IS NOT NULL'], params = [];
+    const cond = ['nota IS NOT NULL'],
+      params = [];
     let idx = 1;
-    if (red) { cond.push(`red ILIKE $${idx++}`); params.push(`%${red}%`); }
-    if (codigo_act) { cond.push(`codigo_act = $${idx++}`); params.push(codigo_act); }
-    if (sexo) { cond.push(`sexo = $${idx++}`); params.push(sexo); }
+    if (red) {
+      cond.push(`red ILIKE $${idx++}`);
+      params.push(`%${red}%`);
+    }
+    if (codigo_act) {
+      cond.push(`codigo_act = $${idx++}`);
+      params.push(codigo_act);
+    }
+    if (sexo) {
+      cond.push(`sexo = $${idx++}`);
+      params.push(sexo);
+    }
     const where = `WHERE ${cond.join(' AND ')}`;
 
-    const [resumen, porRed, porCapacitacion, porSexo, distribucion, capacitaciones] = await Promise.all([
-      pool.query(
-        `SELECT COUNT(*)::int AS total,
+    const [resumen, porRed, porCapacitacion, porSexo, distribucion, capacitaciones] =
+      await Promise.all([
+        pool.query(
+          `SELECT COUNT(*)::int AS total,
                 COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
                 COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados,
                 COALESCE(AVG(nota),0)::numeric(4,2) AS promedio
-         FROM lista_participantes ${where}`, params),
-      pool.query(
-        `SELECT COALESCE(red,'Sin Red') AS red,
+         FROM lista_participantes ${where}`,
+          params,
+        ),
+        pool.query(
+          `SELECT COALESCE(red,'Sin Red') AS red,
                 COUNT(*)::int AS total,
                 COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
                 COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados
          FROM lista_participantes ${where}
-         GROUP BY COALESCE(red,'Sin Red') ORDER BY total DESC LIMIT 15`, params),
-      pool.query(
-        `SELECT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad,
+         GROUP BY COALESCE(red,'Sin Red') ORDER BY total DESC LIMIT 15`,
+          params,
+        ),
+        pool.query(
+          `SELECT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad,
                 COUNT(*)::int AS total,
                 COUNT(*) FILTER (WHERE p.condicion='Aprobado')::int AS aprobados,
                 COUNT(*) FILTER (WHERE p.condicion='Desaprobado')::int AS desaprobados
@@ -2185,29 +2267,37 @@ app.get('/api/notas/stats', async (req, res) => {
          LEFT JOIN datos_actividad a ON a.codigo_act = p.codigo_act
          ${where}
          GROUP BY p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act)
-         ORDER BY total DESC LIMIT 15`, params),
-      pool.query(
-        `SELECT COALESCE(sexo,'No especificado') AS sexo,
+         ORDER BY total DESC LIMIT 15`,
+          params,
+        ),
+        pool.query(
+          `SELECT COALESCE(sexo,'No especificado') AS sexo,
                 COUNT(*)::int AS total,
                 COUNT(*) FILTER (WHERE condicion='Aprobado')::int AS aprobados,
                 COUNT(*) FILTER (WHERE condicion='Desaprobado')::int AS desaprobados
          FROM lista_participantes ${where}
-         GROUP BY COALESCE(sexo,'No especificado')`, params),
-      pool.query(
-        `SELECT
+         GROUP BY COALESCE(sexo,'No especificado')`,
+          params,
+        ),
+        pool.query(
+          `SELECT
            COUNT(*) FILTER (WHERE nota BETWEEN 0 AND 5)::int   AS b1,
            COUNT(*) FILTER (WHERE nota BETWEEN 6 AND 10)::int  AS b2,
            COUNT(*) FILTER (WHERE nota BETWEEN 11 AND 12)::int AS b3,
            COUNT(*) FILTER (WHERE nota BETWEEN 13 AND 16)::int AS b4,
            COUNT(*) FILTER (WHERE nota BETWEEN 17 AND 20)::int AS b5
-         FROM lista_participantes ${where}`, params),
-      // Para el <select> de capacitaciones del filtro (todas las que tienen notas, sin aplicar filtros)
-      pool.query(
-        `SELECT DISTINCT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad
+         FROM lista_participantes ${where}`,
+          params,
+        ),
+        // Para el <select> de capacitaciones del filtro (todas las que tienen notas, sin aplicar filtros)
+        pool.query(
+          `SELECT DISTINCT p.codigo_act, COALESCE(a.nombre_actividad, p.codigo_act) AS nombre_actividad
          FROM lista_participantes p
          LEFT JOIN datos_actividad a ON a.codigo_act = p.codigo_act
-         WHERE p.nota IS NOT NULL ORDER BY 2`, []),
-    ]);
+         WHERE p.nota IS NOT NULL ORDER BY 2`,
+          [],
+        ),
+      ]);
 
     const r = resumen.rows[0];
     res.json({
@@ -2261,20 +2351,30 @@ app.put('/api/certificados/carpetas/:red', async (req, res) => {
   try {
     const red = decodeURIComponent(req.params.red);
     const { drive_url, actualizado_por } = req.body;
-    if (!drive_url || !drive_url.trim()) return res.status(400).json({ error: 'drive_url requerido' });
+    if (!drive_url || !drive_url.trim())
+      return res.status(400).json({ error: 'drive_url requerido' });
     const upd = await pool.query(
       `UPDATE certificado_carpeta_drive SET drive_url=$1, actualizado_por=$2, actualizado_at=NOW()
        WHERE red=$3 RETURNING *`,
       [drive_url.trim(), actualizado_por || null, red],
     );
-    const row = upd.rowCount === 0
-      ? (await pool.query(
-          `INSERT INTO certificado_carpeta_drive (red, drive_url, actualizado_por, actualizado_at)
+    const row =
+      upd.rowCount === 0
+        ? (
+            await pool.query(
+              `INSERT INTO certificado_carpeta_drive (red, drive_url, actualizado_por, actualizado_at)
            VALUES ($1,$2,$3,NOW()) RETURNING *`,
-          [red, drive_url.trim(), actualizado_por || null],
-        )).rows[0]
-      : upd.rows[0];
-    logEvento('carpeta_drive_actualizada', `${actualizado_por || 'Administrador'} actualizó la carpeta de Drive de ${red}`, actualizado_por, 'Administrador', red);
+              [red, drive_url.trim(), actualizado_por || null],
+            )
+          ).rows[0]
+        : upd.rows[0];
+    logEvento(
+      'carpeta_drive_actualizada',
+      `${actualizado_por || 'Administrador'} actualizó la carpeta de Drive de ${red}`,
+      actualizado_por,
+      'Administrador',
+      red,
+    );
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2464,17 +2564,39 @@ app.get('/api/convenios-marco', async (req, res) => {
 
 app.post('/api/convenios-marco', async (req, res) => {
   try {
-    const { universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, created_by } = req.body;
-    if (!universidad?.trim()) return res.status(400).json({ error: 'La universidad es obligatoria.' });
+    const {
+      universidad,
+      numero_convenio,
+      objeto,
+      fecha_inicio,
+      fecha_fin,
+      tipo,
+      sede_principal,
+      created_by,
+    } = req.body;
+    if (!universidad?.trim())
+      return res.status(400).json({ error: 'La universidad es obligatoria.' });
     const { rows } = await pool.query(
       `INSERT INTO convenios_marco (universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, created_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [
-        universidad.trim(), numero_convenio || null, objeto || null, fecha_inicio || null, fecha_fin || null,
-        tipo || 'Universidad', sede_principal || null, created_by || null,
+        universidad.trim(),
+        numero_convenio || null,
+        objeto || null,
+        fecha_inicio || null,
+        fecha_fin || null,
+        tipo || 'Universidad',
+        sede_principal || null,
+        created_by || null,
       ],
     );
-    logEvento('convenio_marco_creado', `${created_by || 'Usuario'} registró el convenio marco con ${universidad}`, created_by, 'Convenios', numero_convenio);
+    logEvento(
+      'convenio_marco_creado',
+      `${created_by || 'Usuario'} registró el convenio marco con ${universidad}`,
+      created_by,
+      'Convenios',
+      numero_convenio,
+    );
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2483,18 +2605,41 @@ app.post('/api/convenios-marco', async (req, res) => {
 
 app.put('/api/convenios-marco/:id', async (req, res) => {
   try {
-    const { universidad, numero_convenio, objeto, fecha_inicio, fecha_fin, tipo, sede_principal, estado, actor_nombre } = req.body;
+    const {
+      universidad,
+      numero_convenio,
+      objeto,
+      fecha_inicio,
+      fecha_fin,
+      tipo,
+      sede_principal,
+      estado,
+      actor_nombre,
+    } = req.body;
     const { rows } = await pool.query(
       `UPDATE convenios_marco
        SET universidad=$1, numero_convenio=$2, objeto=$3, fecha_inicio=$4, fecha_fin=$5, estado=$6, tipo=$7, sede_principal=$8
        WHERE id=$9 RETURNING *`,
       [
-        universidad, numero_convenio || null, objeto || null, fecha_inicio || null, fecha_fin || null,
-        estado || 'Activo', tipo || 'Universidad', sede_principal || null, req.params.id,
+        universidad,
+        numero_convenio || null,
+        objeto || null,
+        fecha_inicio || null,
+        fecha_fin || null,
+        estado || 'Activo',
+        tipo || 'Universidad',
+        sede_principal || null,
+        req.params.id,
       ],
     );
     if (!rows.length) return res.status(404).json({ error: 'Convenio marco no encontrado' });
-    logEvento('convenio_marco_actualizado', `${actor_nombre || 'Usuario'} actualizó el convenio marco con ${universidad}`, actor_nombre, 'Convenios', numero_convenio);
+    logEvento(
+      'convenio_marco_actualizado',
+      `${actor_nombre || 'Usuario'} actualizó el convenio marco con ${universidad}`,
+      actor_nombre,
+      'Convenios',
+      numero_convenio,
+    );
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2508,7 +2653,9 @@ app.delete('/api/convenios-marco/:id', async (req, res) => {
       [req.params.id],
     );
     if (Number(hijos[0].total) > 0) {
-      return res.status(409).json({ error: 'No se puede eliminar: tiene convenios específicos asociados.' });
+      return res
+        .status(409)
+        .json({ error: 'No se puede eliminar: tiene convenios específicos asociados.' });
     }
     await pool.query('DELETE FROM convenios_marco WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
@@ -2536,13 +2683,29 @@ app.post('/api/convenios-especifico', async (req, res) => {
   try {
     const { marco_id, nombre, numero_convenio, fecha_inicio, fecha_fin, created_by } = req.body;
     if (!marco_id) return res.status(400).json({ error: 'marco_id requerido' });
-    if (!nombre?.trim()) return res.status(400).json({ error: 'El nombre/objeto del convenio específico es obligatorio.' });
+    if (!nombre?.trim())
+      return res
+        .status(400)
+        .json({ error: 'El nombre/objeto del convenio específico es obligatorio.' });
     const { rows } = await pool.query(
       `INSERT INTO convenios_especifico (marco_id, nombre, numero_convenio, fecha_inicio, fecha_fin, created_by)
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [marco_id, nombre.trim(), numero_convenio || null, fecha_inicio || null, fecha_fin || null, created_by || null],
+      [
+        marco_id,
+        nombre.trim(),
+        numero_convenio || null,
+        fecha_inicio || null,
+        fecha_fin || null,
+        created_by || null,
+      ],
     );
-    logEvento('convenio_especifico_creado', `${created_by || 'Usuario'} registró el convenio específico "${nombre}"`, created_by, 'Convenios', numero_convenio);
+    logEvento(
+      'convenio_especifico_creado',
+      `${created_by || 'Usuario'} registró el convenio específico "${nombre}"`,
+      created_by,
+      'Convenios',
+      numero_convenio,
+    );
     res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2556,10 +2719,23 @@ app.put('/api/convenios-especifico/:id', async (req, res) => {
       `UPDATE convenios_especifico
        SET nombre=$1, numero_convenio=$2, fecha_inicio=$3, fecha_fin=$4, estado=$5
        WHERE id=$6 RETURNING *`,
-      [nombre, numero_convenio || null, fecha_inicio || null, fecha_fin || null, estado || 'Activo', req.params.id],
+      [
+        nombre,
+        numero_convenio || null,
+        fecha_inicio || null,
+        fecha_fin || null,
+        estado || 'Activo',
+        req.params.id,
+      ],
     );
     if (!rows.length) return res.status(404).json({ error: 'Convenio específico no encontrado' });
-    logEvento('convenio_especifico_actualizado', `${actor_nombre || 'Usuario'} actualizó el convenio específico "${nombre}"`, actor_nombre, 'Convenios', numero_convenio);
+    logEvento(
+      'convenio_especifico_actualizado',
+      `${actor_nombre || 'Usuario'} actualizó el convenio específico "${nombre}"`,
+      actor_nombre,
+      'Convenios',
+      numero_convenio,
+    );
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2568,7 +2744,10 @@ app.put('/api/convenios-especifico/:id', async (req, res) => {
 
 app.delete('/api/convenios-especifico/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM convenio_documentos WHERE convenio_tipo=$1 AND convenio_id=$2', ['especifico', req.params.id]);
+    await pool.query('DELETE FROM convenio_documentos WHERE convenio_tipo=$1 AND convenio_id=$2', [
+      'especifico',
+      req.params.id,
+    ]);
     await pool.query('DELETE FROM convenios_especifico WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
@@ -2602,7 +2781,15 @@ app.post('/api/convenios/documentos', uploadConvenio.single('archivo'), async (r
     const { rows } = await pool.query(
       `INSERT INTO convenio_documentos (convenio_tipo, convenio_id, nombre_archivo, tipo_archivo, ruta_storage, tamano_kb, subido_por)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [convenio_tipo, convenio_id, req.file.originalname, 'pdf', ruta, Math.round(req.file.size / 1024), subido_por || null],
+      [
+        convenio_tipo,
+        convenio_id,
+        req.file.originalname,
+        'pdf',
+        ruta,
+        Math.round(req.file.size / 1024),
+        subido_por || null,
+      ],
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -2626,7 +2813,9 @@ app.get('/api/convenios/documentos', async (req, res) => {
 
 app.get('/api/convenios/documentos/:id/descargar', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM convenio_documentos WHERE id=$1', [req.params.id]);
+    const { rows } = await pool.query('SELECT * FROM convenio_documentos WHERE id=$1', [
+      req.params.id,
+    ]);
     if (!rows.length) return res.status(404).json({ error: 'Documento no encontrado' });
     const link = await storageSdk.obtenerArchivoLink(rows[0].ruta_storage);
     res.json({ url: link.fileUrl, nombre_archivo: rows[0].nombre_archivo });
@@ -2653,10 +2842,13 @@ app.delete('/api/convenios/documentos/:id', async (req, res) => {
 // viene del contexto, no hace falta adivinar la universidad por nombre).
 // ──────────────────────────────────────────────
 function extraerEncabezadoContraprestaciones(filas) {
-  let universidad = null, facultad = null, periodo = null;
+  let universidad = null,
+    facultad = null,
+    periodo = null;
   for (const fila of filas) {
     const texto = String(fila[0] || '').trim();
-    if (/^UNIVERSIDAD\s*:/i.test(texto)) universidad = texto.replace(/^UNIVERSIDAD\s*:/i, '').trim();
+    if (/^UNIVERSIDAD\s*:/i.test(texto))
+      universidad = texto.replace(/^UNIVERSIDAD\s*:/i, '').trim();
     else if (/^FACULTAD\s*:/i.test(texto)) facultad = texto.replace(/^FACULTAD\s*:/i, '').trim();
     else if (/^PER[IÍ]ODO\s*:/i.test(texto)) periodo = texto.replace(/^PER[IÍ]ODO\s*:/i, '').trim();
   }
@@ -2675,7 +2867,11 @@ function parseFechaDDMMYYYY(v) {
 // "S/." trae un punto que si no se retira primero se cuela como parte del número.
 function parseValorizacion(v) {
   if (v === '' || v === null || v === undefined) return null;
-  const s = String(v).trim().replace(/S\/\.?/gi, '').replace(/,/g, '').trim();
+  const s = String(v)
+    .trim()
+    .replace(/S\/\.?/gi, '')
+    .replace(/,/g, '')
+    .trim();
   if (!s) return null;
   const n = Number(s);
   return isNaN(n) ? null : n;
@@ -2686,7 +2882,12 @@ const RE_SUBTOTAL = /^SUBTOTAL\s*(\d{4})/i;
 const RE_TOTAL_RED = /^TOTAL DEL COMPROMISO CONTRAPRESTACIONAL/i;
 const RE_TOTAL_GENERAL = /^TOTAL DEL COMPROMISO ESSALUD/i;
 function esFilaMarcador(texto) {
-  return RE_PLAN.test(texto) || RE_SUBTOTAL.test(texto) || RE_TOTAL_RED.test(texto) || RE_TOTAL_GENERAL.test(texto);
+  return (
+    RE_PLAN.test(texto) ||
+    RE_SUBTOTAL.test(texto) ||
+    RE_TOTAL_RED.test(texto) ||
+    RE_TOTAL_GENERAL.test(texto)
+  );
 }
 
 // Este informe agrupa por RED, y dentro de cada red por año ("PLAN <año>"),
@@ -2700,12 +2901,19 @@ function parseContraprestacionesExcel(wb) {
     const filas = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '' });
     return filas.some((f) => /DETALLE DE LA CONTRAPRESTACION/i.test(String(f[2] || f[1] || '')));
   });
-  if (!nombreHoja) return { items: [], resumen: [], universidad: null, facultad: null, periodo: null };
+  if (!nombreHoja)
+    return { items: [], resumen: [], universidad: null, facultad: null, periodo: null };
 
-  const todas = XLSX.utils.sheet_to_json(wb.Sheets[nombreHoja], { header: 1, defval: '', raw: true });
+  const todas = XLSX.utils.sheet_to_json(wb.Sheets[nombreHoja], {
+    header: 1,
+    defval: '',
+    raw: true,
+  });
   const { universidad, facultad, periodo } = extraerEncabezadoContraprestaciones(todas);
 
-  const idxHeader = todas.findIndex((f) => f.some((c) => /DETALLE DE LA CONTRAPRESTACION/i.test(String(c || ''))));
+  const idxHeader = todas.findIndex((f) =>
+    f.some((c) => /DETALLE DE LA CONTRAPRESTACION/i.test(String(c || ''))),
+  );
   if (idxHeader === -1) return { items: [], resumen: [], universidad, facultad, periodo };
   const header = todas[idxHeader];
   const col = (patron) => header.findIndex((c) => patron.test(String(c || '').trim()));
@@ -2742,13 +2950,23 @@ function parseContraprestacionesExcel(wb) {
 
     const tSubtotal = textos.find((t) => RE_SUBTOTAL.test(t));
     if (tSubtotal) {
-      resumen.push({ tipo: 'subtotal', red: unidadValida ? celdaUnidad : redActual, anio: tSubtotal.match(RE_SUBTOTAL)[1], monto });
+      resumen.push({
+        tipo: 'subtotal',
+        red: unidadValida ? celdaUnidad : redActual,
+        anio: tSubtotal.match(RE_SUBTOTAL)[1],
+        monto,
+      });
       continue;
     }
 
     const tTotalRed = textos.find((t) => RE_TOTAL_RED.test(t));
     if (tTotalRed) {
-      resumen.push({ tipo: 'total_red', red: unidadValida ? celdaUnidad : redActual, anio: null, monto });
+      resumen.push({
+        tipo: 'total_red',
+        red: unidadValida ? celdaUnidad : redActual,
+        anio: null,
+        monto,
+      });
       continue;
     }
 
@@ -2779,51 +2997,76 @@ function parseContraprestacionesExcel(wb) {
   return { items, resumen, universidad, facultad, periodo };
 }
 
-app.post('/api/convenios-marco/:id/contraprestaciones/cargar-excel', uploadConveniosExcel.single('archivo'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
-    const marcoId = req.params.id;
-    const { actor_nombre } = req.body;
+app.post(
+  '/api/convenios-marco/:id/contraprestaciones/cargar-excel',
+  uploadConveniosExcel.single('archivo'),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+      const marcoId = req.params.id;
+      const { actor_nombre } = req.body;
 
-    const { rows: marcoRows } = await pool.query('SELECT id FROM convenios_marco WHERE id=$1', [marcoId]);
-    if (!marcoRows.length) return res.status(404).json({ error: 'Convenio marco no encontrado' });
+      const { rows: marcoRows } = await pool.query('SELECT id FROM convenios_marco WHERE id=$1', [
+        marcoId,
+      ]);
+      if (!marcoRows.length) return res.status(404).json({ error: 'Convenio marco no encontrado' });
 
-    const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
-    const { items, resumen, universidad, facultad, periodo } = parseContraprestacionesExcel(wb);
-    if (!items.length) {
-      return res.status(400).json({ error: 'No se encontraron filas de contraprestaciones reconocibles en el archivo (se busca la columna "DETALLE DE LA CONTRAPRESTACION OTORGADA").' });
-    }
+      const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+      const { items, resumen, universidad, facultad, periodo } = parseContraprestacionesExcel(wb);
+      if (!items.length) {
+        return res.status(400).json({
+          error:
+            'No se encontraron filas de contraprestaciones reconocibles en el archivo (se busca la columna "DETALLE DE LA CONTRAPRESTACION OTORGADA").',
+        });
+      }
 
-    // Reemplaza el detalle anterior de esta universidad (evita duplicar si se vuelve a subir el mismo informe).
-    await pool.query('DELETE FROM convenio_contraprestaciones WHERE marco_id=$1', [marcoId]);
-    await pool.query('DELETE FROM convenio_contrap_resumen WHERE marco_id=$1', [marcoId]);
+      // Reemplaza el detalle anterior de esta universidad (evita duplicar si se vuelve a subir el mismo informe).
+      await pool.query('DELETE FROM convenio_contraprestaciones WHERE marco_id=$1', [marcoId]);
+      await pool.query('DELETE FROM convenio_contrap_resumen WHERE marco_id=$1', [marcoId]);
 
-    for (const f of items) {
-      await pool.query(
-        `INSERT INTO convenio_contraprestaciones
+      for (const f of items) {
+        await pool.query(
+          `INSERT INTO convenio_contraprestaciones
            (marco_id, facultad, periodo, plan_anio, unidad_organica, detalle, duracion,
             num_beneficiarios, grupo_ocupacional, fecha_ejecucion, valorizacion, observaciones, created_by)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
-        [
-          marcoId, facultad, periodo, f.plan_anio, f.unidad_organica, f.detalle, f.duracion,
-          f.num_beneficiarios, f.grupo_ocupacional, f.fecha_ejecucion, f.valorizacion, f.observaciones,
-          actor_nombre || null,
-        ],
-      );
-    }
-    for (const r of resumen) {
-      await pool.query(
-        `INSERT INTO convenio_contrap_resumen (marco_id, tipo, red, anio, monto) VALUES ($1,$2,$3,$4,$5)`,
-        [marcoId, r.tipo, r.red, r.anio, r.monto],
-      );
-    }
+          [
+            marcoId,
+            facultad,
+            periodo,
+            f.plan_anio,
+            f.unidad_organica,
+            f.detalle,
+            f.duracion,
+            f.num_beneficiarios,
+            f.grupo_ocupacional,
+            f.fecha_ejecucion,
+            f.valorizacion,
+            f.observaciones,
+            actor_nombre || null,
+          ],
+        );
+      }
+      for (const r of resumen) {
+        await pool.query(
+          `INSERT INTO convenio_contrap_resumen (marco_id, tipo, red, anio, monto) VALUES ($1,$2,$3,$4,$5)`,
+          [marcoId, r.tipo, r.red, r.anio, r.monto],
+        );
+      }
 
-    logEvento('convenio_contraprestaciones_cargadas', `${actor_nombre || 'Usuario'} cargó ${items.length} contraprestaciones (informe memoria)`, actor_nombre, 'Convenios', String(marcoId));
-    res.json({ filas: items.length, universidadDetectada: universidad, facultad, periodo });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+      logEvento(
+        'convenio_contraprestaciones_cargadas',
+        `${actor_nombre || 'Usuario'} cargó ${items.length} contraprestaciones (informe memoria)`,
+        actor_nombre,
+        'Convenios',
+        String(marcoId),
+      );
+      res.json({ filas: items.length, universidadDetectada: universidad, facultad, periodo });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
 
 app.get('/api/convenios-marco/:id/contraprestaciones', async (req, res) => {
   try {
@@ -2835,11 +3078,111 @@ app.get('/api/convenios-marco/:id/contraprestaciones', async (req, res) => {
       `SELECT * FROM convenio_contrap_resumen WHERE marco_id=$1 ORDER BY red, anio`,
       [req.params.id],
     );
-    const totalGeneral = resumen.find((r) => r.tipo === 'total_general');
-    const totalValorizado = totalGeneral ? Number(totalGeneral.monto) : data.reduce((s, r) => s + (Number(r.valorizacion) || 0), 0);
+    const totalValorizado = resumen
+      .filter((r) => r.tipo === 'total_red')
+      .reduce((s, r) => s + (Number(r.monto) || 0), 0);
     res.json({ data, resumen, total: data.length, totalValorizado });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/convenios-marco/:id/dashboard', async (req, res) => {
+  try {
+    const marcoId = req.params.id;
+
+    // 1. Contraprestaciones
+    const { rows: c1 } = await pool.query(
+      `
+      SELECT
+          COUNT(*) total_contraprestaciones,
+          COUNT(DISTINCT unidad_organica) total_redes,
+          COUNT(DISTINCT plan_anio) total_planes,
+          SUM(NVL(valorizacion,0)) compromiso
+      FROM convenio_contraprestaciones
+      WHERE marco_id=$1
+    `,
+      [marcoId],
+    );
+
+    // 2. Beneficiarios
+    const { rows: c2 } = await pool.query(
+      `
+      SELECT
+          SUM(
+            CASE
+                WHEN REGEXP_LIKE(num_beneficiarios,'^[0-9]+$')
+                THEN TO_NUMBER(num_beneficiarios)
+                ELSE 0
+            END
+          ) beneficiarios
+      FROM convenio_contraprestaciones
+      WHERE marco_id=$1
+    `,
+      [marcoId],
+    );
+
+    // 3. Ejecutadas
+    const { rows: c3 } = await pool.query(
+      `
+      SELECT COUNT(*) ejecutadas
+      FROM convenio_contraprestaciones
+      WHERE marco_id=$1
+      AND fecha_ejecucion IS NOT NULL
+    `,
+      [marcoId],
+    );
+
+    // 4. Pendientes
+    const { rows: c4 } = await pool.query(
+      `
+      SELECT COUNT(*) pendientes
+      FROM convenio_contraprestaciones
+      WHERE marco_id=$1
+      AND fecha_ejecucion IS NULL
+    `,
+      [marcoId],
+    );
+
+    const ejecutadas = Number(c3[0].ejecutadas || 0);
+    const pendientes = Number(c4[0].pendientes || 0);
+    const total = ejecutadas + pendientes;
+
+    // Obtener el compromiso oficial desde el resumen
+    const { rows: resumen } = await pool.query(
+      `
+  SELECT *
+  FROM convenio_contrap_resumen
+  WHERE marco_id = $1
+  `,
+      [marcoId],
+    );
+
+    const compromiso = resumen
+      .filter((r) => r.tipo === 'total_red')
+      .reduce((s, r) => s + (Number(r.monto) || 0), 0);
+
+    res.json({
+      contraprestaciones: Number(c1[0].total_contraprestaciones || 0),
+
+      beneficiarios: Number(c2[0].beneficiarios || 0),
+
+      redes: Number(c1[0].total_redes || 0),
+
+      compromiso,
+
+      planes: Number(c1[0].total_planes || 0),
+
+      ejecutadas,
+
+      pendientes,
+
+      porcentaje: total === 0 ? 0 : Number(((ejecutadas * 100) / total).toFixed(1)),
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -2876,7 +3219,9 @@ function parseFechaExcelCelda(v) {
 // orden de columnas difiere entre UNIVERSIDADES/INSTITUTOS.
 function parseHojaConvenioMarco(hoja) {
   const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: '', raw: true });
-  const idxHeader = filas.findIndex((f) => f.some((c) => /INSTITUCION EDUCATIVA/i.test(String(c || ''))));
+  const idxHeader = filas.findIndex((f) =>
+    f.some((c) => /INSTITUCION EDUCATIVA/i.test(String(c || ''))),
+  );
   if (idxHeader === -1) return [];
   const header = filas[idxHeader];
 
@@ -2888,7 +3233,9 @@ function parseHojaConvenioMarco(hoja) {
 
   const resultado = [];
   for (const fila of filas.slice(idxHeader + 1)) {
-    const universidad = String(fila[colUniversidad] || '').replace(/\s*\(renovaci[oó]n\)\s*$/i, '').trim();
+    const universidad = String(fila[colUniversidad] || '')
+      .replace(/\s*\(renovaci[oó]n\)\s*$/i, '')
+      .trim();
     if (!universidad) continue;
     resultado.push({
       universidad,
@@ -2900,51 +3247,72 @@ function parseHojaConvenioMarco(hoja) {
   return resultado;
 }
 
-app.post('/api/convenios/cargar-excel', uploadConveniosExcel.single('archivo'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
-    const { actor_nombre } = req.body;
+app.post(
+  '/api/convenios/cargar-excel',
+  uploadConveniosExcel.single('archivo'),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+      const { actor_nombre } = req.body;
 
-    const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+      const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
 
-    const { rows: existentes } = await pool.query('SELECT universidad, tipo FROM convenios_marco');
-    const yaExisten = new Set(existentes.map((r) => `${r.tipo}|${r.universidad}`.toLowerCase()));
+      const { rows: existentes } = await pool.query(
+        'SELECT universidad, tipo FROM convenios_marco',
+      );
+      const yaExisten = new Set(existentes.map((r) => `${r.tipo}|${r.universidad}`.toLowerCase()));
 
-    let marcosCreados = 0;
-    let duplicados = 0;
-    const errores = [];
+      let marcosCreados = 0;
+      let duplicados = 0;
+      const errores = [];
 
-    for (const { nombre: nombreHoja, tipo } of HOJAS_CONVENIOS_EXCEL) {
-      const hoja = wb.Sheets[nombreHoja];
-      if (!hoja) continue; // el archivo puede no traer todas las hojas esperadas
+      for (const { nombre: nombreHoja, tipo } of HOJAS_CONVENIOS_EXCEL) {
+        const hoja = wb.Sheets[nombreHoja];
+        if (!hoja) continue; // el archivo puede no traer todas las hojas esperadas
 
-      const filas = parseHojaConvenioMarco(hoja);
-      for (const f of filas) {
-        const clave = `${tipo}|${f.universidad}`.toLowerCase();
-        if (yaExisten.has(clave)) {
-          duplicados++;
-          continue;
-        }
-        await pool.query(
-          `INSERT INTO convenios_marco (universidad, tipo, sede_principal, fecha_inicio, fecha_fin, created_by)
+        const filas = parseHojaConvenioMarco(hoja);
+        for (const f of filas) {
+          const clave = `${tipo}|${f.universidad}`.toLowerCase();
+          if (yaExisten.has(clave)) {
+            duplicados++;
+            continue;
+          }
+          await pool.query(
+            `INSERT INTO convenios_marco (universidad, tipo, sede_principal, fecha_inicio, fecha_fin, created_by)
            VALUES ($1,$2,$3,$4,$5,$6)`,
-          [f.universidad, tipo, f.sede_principal, f.fecha_inicio, f.fecha_fin, actor_nombre || null],
-        );
-        yaExisten.add(clave);
-        marcosCreados++;
+            [
+              f.universidad,
+              tipo,
+              f.sede_principal,
+              f.fecha_inicio,
+              f.fecha_fin,
+              actor_nombre || null,
+            ],
+          );
+          yaExisten.add(clave);
+          marcosCreados++;
+        }
       }
-    }
 
-    if (marcosCreados === 0 && duplicados === 0) {
-      errores.push('No se encontraron filas reconocibles. Verifica que el archivo tenga hojas UNIVERSIDADES/INSTITUTOS con una fila de encabezado que incluya "INSTITUCION EDUCATIVA".');
-    }
+      if (marcosCreados === 0 && duplicados === 0) {
+        errores.push(
+          'No se encontraron filas reconocibles. Verifica que el archivo tenga hojas UNIVERSIDADES/INSTITUTOS con una fila de encabezado que incluya "INSTITUCION EDUCATIVA".',
+        );
+      }
 
-    logEvento('convenios_carga_excel', `${actor_nombre || 'Usuario'} cargó ${marcosCreados} convenios marco por Excel (${duplicados} ya existían)`, actor_nombre, 'Convenios', null);
-    res.json({ marcosCreados, especificosCreados: 0, duplicados, errores });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+      logEvento(
+        'convenios_carga_excel',
+        `${actor_nombre || 'Usuario'} cargó ${marcosCreados} convenios marco por Excel (${duplicados} ya existían)`,
+        actor_nombre,
+        'Convenios',
+        null,
+      );
+      res.json({ marcosCreados, especificosCreados: 0, duplicados, errores });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
 
 // ──────────────────────────────────────────────
 // SSO con SOMOS — ingreso sin volver a iniciar sesión

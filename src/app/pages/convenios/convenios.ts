@@ -39,6 +39,9 @@ export class Convenios implements OnInit {
   kpis: { marco: KpiConvenios; especifico: KpiConvenios } | null = null;
   marcos: ConvenioMarco[] = [];
 
+  // Dashboard por convenio
+  dashboardPorMarco = new Map<number, any>();
+
   marcosExpandidos = new Set<number>();
   especificosPorMarco = new Map<number, ConvenioEspecifico[]>();
   especificosExpandidos = new Set<number>();
@@ -48,7 +51,12 @@ export class Convenios implements OnInit {
   // Contraprestaciones (informe memoria) por marco — solo informativo, no toca presupuestos.
   contraprestacionesPorMarco = new Map<
     number,
-    { data: Contraprestacion[]; resumen: ContraprestacionResumen[]; total: number; totalValorizado: number }
+    {
+      data: Contraprestacion[];
+      resumen: ContraprestacionResumen[];
+      total: number;
+      totalValorizado: number;
+    }
   >();
   subiendoContraprestaciones = new Set<number>();
   errorContraprestaciones = new Map<number, string>();
@@ -64,7 +72,15 @@ export class Convenios implements OnInit {
     fecha_fin: string;
     tipo: 'Universidad' | 'Instituto';
     sede_principal: string;
-  } = { universidad: '', numero_convenio: '', objeto: '', fecha_inicio: '', fecha_fin: '', tipo: 'Universidad', sede_principal: '' };
+  } = {
+    universidad: '',
+    numero_convenio: '',
+    objeto: '',
+    fecha_inicio: '',
+    fecha_fin: '',
+    tipo: 'Universidad',
+    sede_principal: '',
+  };
   errorMarco = '';
   guardandoMarco = false;
 
@@ -81,15 +97,26 @@ export class Convenios implements OnInit {
   archivoExcel: File | null = null;
   subiendoExcel = false;
   errorExcel = '';
-  resultadoExcel: { marcosCreados: number; especificosCreados: number; duplicados: number; errores: string[] } | null = null;
+  resultadoExcel: {
+    marcosCreados: number;
+    especificosCreados: number;
+    duplicados: number;
+    errores: string[];
+  } | null = null;
 
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
-    const f = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
-    this.esAdmin = tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
+    this.esAdmin =
+      tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
     this.esConvenios = tieneRol(this.usuario, 'Convenios');
     this.tieneSectorista = tieneRol(this.usuario, 'Sectorista');
 
@@ -130,10 +157,14 @@ export class Convenios implements OnInit {
 
   etiquetaVigencia(v: string): string {
     switch (v) {
-      case 'vigente': return 'Vigente';
-      case 'por_vencer': return 'Por vencer';
-      case 'vencido': return 'Vencido';
-      default: return 'Sin fecha';
+      case 'vigente':
+        return 'Vigente';
+      case 'por_vencer':
+        return 'Por vencer';
+      case 'vencido':
+        return 'Vencido';
+      default:
+        return 'Sin fecha';
     }
   }
 
@@ -143,9 +174,15 @@ export class Convenios implements OnInit {
       this.marcosExpandidos.delete(m.id);
       return;
     }
+
     this.marcosExpandidos.add(m.id);
+
+    this.cargarDashboard(m.id);
+
     this.cargarEspecificos(m.id);
+
     this.cargarDocumentos('marco', m.id);
+
     this.cargarContraprestaciones(m.id);
   }
 
@@ -157,7 +194,13 @@ export class Convenios implements OnInit {
   cargarContraprestaciones(marcoId: number): void {
     this.cs.getContraprestaciones(marcoId).subscribe({
       next: (r) => this.contraprestacionesPorMarco.set(marcoId, r),
-      error: () => this.contraprestacionesPorMarco.set(marcoId, { data: [], resumen: [], total: 0, totalValorizado: 0 }),
+      error: () =>
+        this.contraprestacionesPorMarco.set(marcoId, {
+          data: [],
+          resumen: [],
+          total: 0,
+          totalValorizado: 0,
+        }),
     });
   }
 
@@ -175,7 +218,9 @@ export class Convenios implements OnInit {
     const r = this.contraprestacionesPorMarco.get(marcoId);
     if (!r) return [];
     const anios = new Set(
-      r.data.filter((c) => (c.unidad_organica || 'Sin red') === red).map((c) => c.plan_anio || 'Sin año'),
+      r.data
+        .filter((c) => (c.unidad_organica || 'Sin red') === red)
+        .map((c) => c.plan_anio || 'Sin año'),
     );
     return Array.from(anios).sort();
   }
@@ -183,15 +228,22 @@ export class Convenios implements OnInit {
   itemsDeRedAnio(marcoId: number, red: string, anio: string): Contraprestacion[] {
     const r = this.contraprestacionesPorMarco.get(marcoId);
     if (!r) return [];
-    return r.data.filter((c) => (c.unidad_organica || 'Sin red') === red && (c.plan_anio || 'Sin año') === anio);
+    return r.data.filter(
+      (c) => (c.unidad_organica || 'Sin red') === red && (c.plan_anio || 'Sin año') === anio,
+    );
   }
 
   // Subtotal declarado en el Excel para esa red+año; si no vino en el archivo, se calcula.
   subtotalRedAnio(marcoId: number, red: string, anio: string): number {
     const r = this.contraprestacionesPorMarco.get(marcoId);
-    const declarado = r?.resumen.find((x) => x.tipo === 'subtotal' && x.red === red && x.anio === anio);
+    const declarado = r?.resumen.find(
+      (x) => x.tipo === 'subtotal' && x.red === red && x.anio === anio,
+    );
     if (declarado?.monto != null) return Number(declarado.monto);
-    return this.itemsDeRedAnio(marcoId, red, anio).reduce((s, c) => s + (Number(c.valorizacion) || 0), 0);
+    return this.itemsDeRedAnio(marcoId, red, anio).reduce(
+      (s, c) => s + (Number(c.valorizacion) || 0),
+      0,
+    );
   }
 
   // Total declarado del "COMPROMISO CONTRAPRESTACIONAL" de esa red (todos sus años).
@@ -199,7 +251,10 @@ export class Convenios implements OnInit {
     const r = this.contraprestacionesPorMarco.get(marcoId);
     const declarado = r?.resumen.find((x) => x.tipo === 'total_red' && x.red === red);
     if (declarado?.monto != null) return Number(declarado.monto);
-    return this.aniosDeRed(marcoId, red).reduce((s, a) => s + this.subtotalRedAnio(marcoId, red, a), 0);
+    return this.aniosDeRed(marcoId, red).reduce(
+      (s, a) => s + this.subtotalRedAnio(marcoId, red, a),
+      0,
+    );
   }
 
   // Total general declarado ("TOTAL DEL COMPROMISO ESSALUD") de toda la universidad.
@@ -226,8 +281,28 @@ export class Convenios implements OnInit {
       },
       error: (err) => {
         this.subiendoContraprestaciones.delete(marcoId);
-        this.errorContraprestaciones.set(marcoId, err.error?.error || 'No se pudo procesar el archivo.');
+        this.errorContraprestaciones.set(
+          marcoId,
+          err.error?.error || 'No se pudo procesar el archivo.',
+        );
         input.value = '';
+      },
+    });
+  }
+
+  cargarDashboard(marcoId: number): void {
+    // Si ya se cargó, no volver a consultar
+    if (this.dashboardPorMarco.has(marcoId)) {
+      return;
+    }
+
+    this.cs.getDashboardConvenio(marcoId).subscribe({
+      next: (data: any) => {
+        this.dashboardPorMarco.set(marcoId, data);
+      },
+
+      error: (err: any) => {
+        console.error('Error cargando dashboard', err);
       },
     });
   }
@@ -326,7 +401,15 @@ export class Convenios implements OnInit {
   // ── Convenio marco: crear / editar / eliminar ────
   abrirNuevoMarco(): void {
     this.editandoMarco = null;
-    this.formMarco = { universidad: '', numero_convenio: '', objeto: '', fecha_inicio: '', fecha_fin: '', tipo: 'Universidad', sede_principal: '' };
+    this.formMarco = {
+      universidad: '',
+      numero_convenio: '',
+      objeto: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+      tipo: 'Universidad',
+      sede_principal: '',
+    };
     this.errorMarco = '';
     this.mostrarModalMarco = true;
   }
@@ -357,7 +440,11 @@ export class Convenios implements OnInit {
       return;
     }
     this.guardandoMarco = true;
-    const body = { ...this.formMarco, created_by: this.usuario?.nombre, actor_nombre: this.usuario?.nombre };
+    const body = {
+      ...this.formMarco,
+      created_by: this.usuario?.nombre,
+      actor_nombre: this.usuario?.nombre,
+    };
     const obs = this.editandoMarco
       ? this.cs.actualizarMarco(this.editandoMarco.id, body)
       : this.cs.crearMarco(body);
@@ -491,7 +578,17 @@ export class Convenios implements OnInit {
   }
 
   // ── Navegación ────────────────────────────────────
-  togglePerfilMenu(): void { this.mostrarPerfilMenu = !this.mostrarPerfilMenu; }
-  irASectorista(): void { this.router.navigate(['/sectorista']); }
-  cerrarSesion(): void { localStorage.removeItem('usuario'); this.router.navigate(['/login']); }
+  togglePerfilMenu(): void {
+    this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+  }
+  irASectorista(): void {
+    this.router.navigate(['/sectorista']);
+  }
+  dashboard(id: number): any {
+    return this.dashboardPorMarco.get(id);
+  }
+  cerrarSesion(): void {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
+  }
 }

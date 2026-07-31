@@ -33,9 +33,15 @@
               </div>
             </div>
             <div class="perfil-menu-datos">
-              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
+              <div class="perfil-dato">
+                <span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong>
+              </div>
             </div>
             <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
@@ -54,19 +60,43 @@
           <div class="conv-kpi-grupo">
             <div class="conv-kpi-grupo-titulo">Convenios Marco</div>
             <div class="conv-kpi-fila">
-              <div class="conv-kpi-card total"><span>{{ kpis.marco.total }}</span><small>Total</small></div>
-              <div class="conv-kpi-card vigente"><span>{{ kpis.marco.vigente }}</span><small>Vigentes</small></div>
-              <div class="conv-kpi-card por-vencer"><span>{{ kpis.marco.por_vencer }}</span><small>Por vencer</small></div>
-              <div class="conv-kpi-card vencido"><span>{{ kpis.marco.vencido }}</span><small>Vencidos</small></div>
+              <div class="conv-kpi-card total">
+                <span>{{ kpis.marco.total }}</span
+                ><small>Total</small>
+              </div>
+              <div class="conv-kpi-card vigente">
+                <span>{{ kpis.marco.vigente }}</span
+                ><small>Vigentes</small>
+              </div>
+              <div class="conv-kpi-card por-vencer">
+                <span>{{ kpis.marco.por_vencer }}</span
+                ><small>Por vencer</small>
+              </div>
+              <div class="conv-kpi-card vencido">
+                <span>{{ kpis.marco.vencido }}</span
+                ><small>Vencidos</small>
+              </div>
             </div>
           </div>
           <div class="conv-kpi-grupo">
             <div class="conv-kpi-grupo-titulo">Convenios Específicos</div>
             <div class="conv-kpi-fila">
-              <div class="conv-kpi-card total"><span>{{ kpis.especifico.total }}</span><small>Total</small></div>
-              <div class="conv-kpi-card vigente"><span>{{ kpis.especifico.vigente }}</span><small>Vigentes</small></div>
-              <div class="conv-kpi-card por-vencer"><span>{{ kpis.especifico.por_vencer }}</span><small>Por vencer</small></div>
-              <div class="conv-kpi-card vencido"><span>{{ kpis.especifico.vencido }}</span><small>Vencidos</small></div>
+              <div class="conv-kpi-card total">
+                <span>{{ kpis.especifico.total }}</span
+                ><small>Total</small>
+              </div>
+              <div class="conv-kpi-card vigente">
+                <span>{{ kpis.especifico.vigente }}</span
+                ><small>Vigentes</small>
+              </div>
+              <div class="conv-kpi-card por-vencer">
+                <span>{{ kpis.especifico.por_vencer }}</span
+                ><small>Por vencer</small>
+              </div>
+              <div class="conv-kpi-card vencido">
+                <span>{{ kpis.especifico.vencido }}</span
+                ><small>Vencidos</small>
+              </div>
             </div>
           </div>
         </div>
@@ -75,7 +105,12 @@
       <!-- BARRA DE ACCIONES -->
       <div class="pre-card conv-barra">
         <div class="campo-busqueda">
-          <input type="text" placeholder="Buscar por universidad o N° de convenio..." [(ngModel)]="busqueda" (input)="buscar()" />
+          <input
+            type="text"
+            placeholder="Buscar por universidad o N° de convenio..."
+            [(ngModel)]="busqueda"
+            (input)="buscar()"
+          />
         </div>
         <select class="conv-select-tipo" [(ngModel)]="filtroTipo">
           <option value="">Todos (Universidades e Institutos)</option>
@@ -83,7 +118,9 @@
           <option value="Instituto">Solo Institutos</option>
         </select>
         @if (puedeGestionar) {
-          <button class="pre-btn-sec-sm" (click)="descargarPlantillaMarcos()">Descargar plantilla</button>
+          <button class="pre-btn-sec-sm" (click)="descargarPlantillaMarcos()">
+            Descargar plantilla
+          </button>
           <button class="pre-btn-sm" (click)="abrirModalExcel()">Carga masiva (Excel)</button>
           <button class="pre-btn-sm" (click)="abrirNuevoMarco()">Nuevo convenio marco</button>
         }
@@ -100,26 +137,43 @@
             @for (m of marcosFiltrados; track m.id) {
               <div class="conv-marco">
                 <div class="conv-marco-cab" (click)="toggleMarco(m)">
-                  <button class="conv-expandir-btn" [class.abierto]="marcoEstaExpandido(m.id)">▸</button>
+                  <button class="conv-expandir-btn" [class.abierto]="marcoEstaExpandido(m.id)">
+                    ▸
+                  </button>
                   <div class="conv-marco-info">
                     <div class="conv-marco-universidad">
                       {{ m.universidad }}
-                      <span class="conv-tipo-tag" [class.instituto]="m.tipo === 'Instituto'">{{ m.tipo }}</span>
+                      <span class="conv-tipo-tag" [class.instituto]="m.tipo === 'Instituto'">{{
+                        m.tipo
+                      }}</span>
                     </div>
                     <div class="conv-marco-meta">
                       {{ m.sede_principal || 'Sin sede registrada' }}
-                      @if (m.numero_convenio) { · N° {{ m.numero_convenio }} }
+                      @if (m.numero_convenio) {
+                        · N° {{ m.numero_convenio }}
+                      }
                       @if (m.fecha_inicio || m.fecha_fin) {
-                        · {{ m.fecha_inicio | date: 'dd/MM/yyyy' }} — {{ m.fecha_fin | date: 'dd/MM/yyyy' }}
+                        · {{ m.fecha_inicio | date: 'dd/MM/yyyy' }} —
+                        {{ m.fecha_fin | date: 'dd/MM/yyyy' }}
                       }
                     </div>
                   </div>
-                  <span class="conv-badge" [class]="m.estado_vigencia">{{ etiquetaVigencia(m.estado_vigencia) }}</span>
+                  <span class="conv-badge" [class]="m.estado_vigencia">{{
+                    etiquetaVigencia(m.estado_vigencia)
+                  }}</span>
                   <span class="conv-count">{{ m.total_especificos }} específico(s)</span>
                   @if (puedeGestionar) {
                     <div class="conv-marco-acciones" (click)="$event.stopPropagation()">
-                      <button class="conv-btn-icono" (click)="abrirEditarMarco(m)" title="Editar">✎</button>
-                      <button class="conv-btn-icono conv-btn-eliminar" (click)="eliminarMarco(m)" title="Eliminar">✕</button>
+                      <button class="conv-btn-icono" (click)="abrirEditarMarco(m)" title="Editar">
+                        ✎
+                      </button>
+                      <button
+                        class="conv-btn-icono conv-btn-eliminar"
+                        (click)="eliminarMarco(m)"
+                        title="Eliminar"
+                      >
+                        ✕
+                      </button>
                     </div>
                   }
                 </div>
@@ -130,6 +184,52 @@
                       <p class="conv-objeto"><strong>Objeto:</strong> {{ m.objeto }}</p>
                     }
 
+                    <!-- ================= KPIs DEL CONVENIO ================= -->
+
+                    <div class="conv-dashboard">
+                      <div class="conv-kpi-local">
+                        <span>{{ dashboard(m.id)?.contraprestaciones || 0 }}</span>
+                        <small>Contraprestaciones</small>
+                      </div>
+
+                      <div class="conv-kpi-local">
+                        <span>{{ dashboard(m.id)?.beneficiarios || 0 }}</span>
+                        <small>Beneficiarios</small>
+                      </div>
+
+                      <div class="conv-kpi-local">
+                        <span>{{ dashboard(m.id)?.redes || 0 }}</span>
+                        <small>Redes</small>
+                      </div>
+
+                      <div class="conv-kpi-local dinero">
+                        <span>S/ {{ dashboard(m.id)?.compromiso | number: '1.2-2' }}</span>
+                        <small>Compromiso EsSalud</small>
+                      </div>
+                    </div>
+
+                    <div class="conv-dashboard">
+                      <div class="conv-kpi-local">
+                        <span>{{ dashboard(m.id)?.planes || 0 }}</span>
+                        <small>Planes</small>
+                      </div>
+
+                      <div class="conv-kpi-local ejecutado">
+                        <span>{{ dashboard(m.id)?.ejecutadas || 0 }}</span>
+                        <small>Ejecutadas</small>
+                      </div>
+
+                      <div class="conv-kpi-local pendiente">
+                        <span>{{ dashboard(m.id)?.pendientes || 0 }}</span>
+                        <small>Pendientes</small>
+                      </div>
+
+                      <div class="conv-kpi-local porcentaje">
+                        <span>{{ dashboard(m.id)?.porcentaje || 0 }}%</span>
+                        <small>Ejecución</small>
+                      </div>
+                    </div>
+
                     <!-- Documentos del convenio marco -->
                     <div class="conv-docs">
                       <div class="conv-docs-titulo">Documento del convenio marco</div>
@@ -137,10 +237,17 @@
                         @for (doc of documentosDe('marco', m.id); track doc.id) {
                           <div class="conv-doc-item">
                             <span class="conv-doc-nombre">{{ doc.nombre_archivo }}</span>
-                            <span class="conv-doc-fecha">{{ doc.fecha_subida | date: 'dd/MM/yyyy' }}</span>
+                            <span class="conv-doc-fecha">{{
+                              doc.fecha_subida | date: 'dd/MM/yyyy'
+                            }}</span>
                             <button class="conv-doc-btn" (click)="descargarDoc(doc)">Ver</button>
                             @if (puedeGestionar) {
-                              <button class="conv-doc-btn conv-doc-btn-del" (click)="eliminarDoc(doc)">Eliminar</button>
+                              <button
+                                class="conv-doc-btn conv-doc-btn-del"
+                                (click)="eliminarDoc(doc)"
+                              >
+                                Eliminar
+                              </button>
                             }
                           </div>
                         } @empty {
@@ -150,7 +257,13 @@
                       @if (puedeGestionar) {
                         <label class="conv-subir-btn">
                           {{ estaSubiendoDoc('marco', m.id) ? 'Subiendo...' : 'Subir PDF' }}
-                          <input type="file" accept="application/pdf" hidden [disabled]="estaSubiendoDoc('marco', m.id)" (change)="onArchivoDoc($event, 'marco', m.id)" />
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            hidden
+                            [disabled]="estaSubiendoDoc('marco', m.id)"
+                            (change)="onArchivoDoc($event, 'marco', m.id)"
+                          />
                         </label>
                       }
                     </div>
@@ -160,7 +273,9 @@
                       <div class="conv-especificos-cab">
                         <span class="conv-docs-titulo">Convenios específicos</span>
                         @if (puedeGestionar) {
-                          <button class="pre-btn-sm" (click)="abrirNuevoEspecifico(m)">Agregar específico</button>
+                          <button class="pre-btn-sm" (click)="abrirNuevoEspecifico(m)">
+                            Agregar específico
+                          </button>
                         }
                       </div>
 
@@ -170,36 +285,67 @@
                         @for (e of especificosDe(m.id); track e.id) {
                           <div class="conv-especifico">
                             <div class="conv-especifico-cab" (click)="toggleEspecifico(e)">
-                              <button class="conv-expandir-btn" [class.abierto]="especificoEstaExpandido(e.id)">▸</button>
+                              <button
+                                class="conv-expandir-btn"
+                                [class.abierto]="especificoEstaExpandido(e.id)"
+                              >
+                                ▸
+                              </button>
                               <div class="conv-marco-info">
                                 <div class="conv-especifico-nombre">{{ e.nombre }}</div>
                                 <div class="conv-marco-meta">
                                   {{ e.numero_convenio || 'Sin número' }}
                                   @if (e.fecha_inicio || e.fecha_fin) {
-                                    · {{ e.fecha_inicio | date: 'dd/MM/yyyy' }} — {{ e.fecha_fin | date: 'dd/MM/yyyy' }}
+                                    · {{ e.fecha_inicio | date: 'dd/MM/yyyy' }} —
+                                    {{ e.fecha_fin | date: 'dd/MM/yyyy' }}
                                   }
                                 </div>
                               </div>
-                              <span class="conv-badge" [class]="e.estado_vigencia">{{ etiquetaVigencia(e.estado_vigencia) }}</span>
+                              <span class="conv-badge" [class]="e.estado_vigencia">{{
+                                etiquetaVigencia(e.estado_vigencia)
+                              }}</span>
                               @if (puedeGestionar) {
                                 <div class="conv-marco-acciones" (click)="$event.stopPropagation()">
-                                  <button class="conv-btn-icono" (click)="abrirEditarEspecifico(m, e)" title="Editar">✎</button>
-                                  <button class="conv-btn-icono conv-btn-eliminar" (click)="eliminarEspecifico(m.id, e)" title="Eliminar">✕</button>
+                                  <button
+                                    class="conv-btn-icono"
+                                    (click)="abrirEditarEspecifico(m, e)"
+                                    title="Editar"
+                                  >
+                                    ✎
+                                  </button>
+                                  <button
+                                    class="conv-btn-icono conv-btn-eliminar"
+                                    (click)="eliminarEspecifico(m.id, e)"
+                                    title="Eliminar"
+                                  >
+                                    ✕
+                                  </button>
                                 </div>
                               }
                             </div>
 
                             @if (especificoEstaExpandido(e.id)) {
                               <div class="conv-docs conv-docs-anidado">
-                                <div class="conv-docs-titulo">Documento del convenio específico</div>
+                                <div class="conv-docs-titulo">
+                                  Documento del convenio específico
+                                </div>
                                 <div class="conv-docs-lista">
                                   @for (doc of documentosDe('especifico', e.id); track doc.id) {
                                     <div class="conv-doc-item">
                                       <span class="conv-doc-nombre">{{ doc.nombre_archivo }}</span>
-                                      <span class="conv-doc-fecha">{{ doc.fecha_subida | date: 'dd/MM/yyyy' }}</span>
-                                      <button class="conv-doc-btn" (click)="descargarDoc(doc)">Ver</button>
+                                      <span class="conv-doc-fecha">{{
+                                        doc.fecha_subida | date: 'dd/MM/yyyy'
+                                      }}</span>
+                                      <button class="conv-doc-btn" (click)="descargarDoc(doc)">
+                                        Ver
+                                      </button>
                                       @if (puedeGestionar) {
-                                        <button class="conv-doc-btn conv-doc-btn-del" (click)="eliminarDoc(doc)">Eliminar</button>
+                                        <button
+                                          class="conv-doc-btn conv-doc-btn-del"
+                                          (click)="eliminarDoc(doc)"
+                                        >
+                                          Eliminar
+                                        </button>
                                       }
                                     </div>
                                   } @empty {
@@ -208,8 +354,18 @@
                                 </div>
                                 @if (puedeGestionar) {
                                   <label class="conv-subir-btn">
-                                    {{ estaSubiendoDoc('especifico', e.id) ? 'Subiendo...' : 'Subir PDF' }}
-                                    <input type="file" accept="application/pdf" hidden [disabled]="estaSubiendoDoc('especifico', e.id)" (change)="onArchivoDoc($event, 'especifico', e.id)" />
+                                    {{
+                                      estaSubiendoDoc('especifico', e.id)
+                                        ? 'Subiendo...'
+                                        : 'Subir PDF'
+                                    }}
+                                    <input
+                                      type="file"
+                                      accept="application/pdf"
+                                      hidden
+                                      [disabled]="estaSubiendoDoc('especifico', e.id)"
+                                      (change)="onArchivoDoc($event, 'especifico', e.id)"
+                                    />
                                   </label>
                                 }
                               </div>
@@ -225,10 +381,25 @@
                         <span class="conv-docs-titulo">Contraprestaciones otorgadas a EsSalud</span>
                         @if (puedeGestionar) {
                           <div class="conv-contrap-acciones">
-                            <button class="pre-btn-sec-sm" (click)="descargarPlantillaContraprestaciones(m)">Descargar plantilla</button>
+                            <button
+                              class="pre-btn-sec-sm"
+                              (click)="descargarPlantillaContraprestaciones(m)"
+                            >
+                              Descargar plantilla
+                            </button>
                             <label class="conv-subir-btn">
-                              {{ estaSubiendoContraprestaciones(m.id) ? 'Subiendo...' : 'Subir informe (Excel)' }}
-                              <input type="file" accept=".xls,.xlsx" hidden [disabled]="estaSubiendoContraprestaciones(m.id)" (change)="onArchivoContraprestaciones($event, m.id)" />
+                              {{
+                                estaSubiendoContraprestaciones(m.id)
+                                  ? 'Subiendo...'
+                                  : 'Subir informe (Excel)'
+                              }}
+                              <input
+                                type="file"
+                                accept=".xls,.xlsx"
+                                hidden
+                                [disabled]="estaSubiendoContraprestaciones(m.id)"
+                                (change)="onArchivoContraprestaciones($event, m.id)"
+                              />
                             </label>
                           </div>
                         }
@@ -243,22 +414,34 @@
                           <p class="conv-sin-docs">Sin informe de contraprestaciones cargado.</p>
                         } @else {
                           <div class="conv-contrap-resumen">
-                            <span>{{ cp.total }} contraprestación(es) registradas · {{ redesDe(m.id).length }} red(es)</span>
-                            <span class="conv-contrap-total">TOTAL DEL COMPROMISO ESSALUD: S/ {{ totalGeneral(m.id) | number: '1.2-2' }}</span>
+                            <span
+                              >{{ cp.total }} contraprestación(es) registradas ·
+                              {{ redesDe(m.id).length }} red(es)</span
+                            >
+                            <span class="conv-contrap-total"
+                              >TOTAL DEL COMPROMISO ESSALUD: S/
+                              {{ totalGeneral(m.id) | number: '1.2-2' }}</span
+                            >
                           </div>
 
                           @for (red of redesDe(m.id); track red) {
                             <div class="conv-red-bloque">
                               <div class="conv-red-titulo">
                                 {{ red }}
-                                <span class="conv-red-total">Total del compromiso: S/ {{ totalRed(m.id, red) | number: '1.2-2' }}</span>
+                                <span class="conv-red-total"
+                                  >Total del compromiso: S/
+                                  {{ totalRed(m.id, red) | number: '1.2-2' }}</span
+                                >
                               </div>
 
                               @for (anio of aniosDeRed(m.id, red); track anio) {
                                 <div class="conv-anio-bloque">
                                   <div class="conv-anio-titulo">
                                     Plan {{ anio }}
-                                    <span class="conv-anio-total">Subtotal {{ anio }}: S/ {{ subtotalRedAnio(m.id, red, anio) | number: '1.2-2' }}</span>
+                                    <span class="conv-anio-total"
+                                      >Subtotal {{ anio }}: S/
+                                      {{ subtotalRedAnio(m.id, red, anio) | number: '1.2-2' }}</span
+                                    >
                                   </div>
                                   <div class="tabla-scroll">
                                     <table class="conv-tabla-contrap">
@@ -280,8 +463,16 @@
                                             <td>{{ c.duracion || '—' }}</td>
                                             <td>{{ c.num_beneficiarios || '—' }}</td>
                                             <td>{{ c.grupo_ocupacional || '—' }}</td>
-                                            <td>{{ c.fecha_ejecucion ? (c.fecha_ejecucion | date: 'dd/MM/yyyy') : '—' }}</td>
-                                            <td class="num">{{ c.valorizacion | number: '1.2-2' }}</td>
+                                            <td>
+                                              {{
+                                                c.fecha_ejecucion
+                                                  ? (c.fecha_ejecucion | date: 'dd/MM/yyyy')
+                                                  : '—'
+                                              }}
+                                            </td>
+                                            <td class="num">
+                                              {{ c.valorizacion | number: '1.2-2' }}
+                                            </td>
                                             <td>{{ c.observaciones || '—' }}</td>
                                           </tr>
                                         }
@@ -320,7 +511,11 @@
       </div>
       <div class="pre-campo">
         <label>{{ formMarco.tipo === 'Instituto' ? 'Instituto' : 'Universidad' }} *</label>
-        <input type="text" [(ngModel)]="formMarco.universidad" placeholder="Ej: Universidad Nacional Mayor de San Marcos" />
+        <input
+          type="text"
+          [(ngModel)]="formMarco.universidad"
+          placeholder="Ej: Universidad Nacional Mayor de San Marcos"
+        />
       </div>
       <div class="pre-campo">
         <label>Sede principal</label>
@@ -332,7 +527,11 @@
       </div>
       <div class="pre-campo">
         <label>Objeto</label>
-        <textarea [(ngModel)]="formMarco.objeto" rows="3" placeholder="Objeto del convenio marco"></textarea>
+        <textarea
+          [(ngModel)]="formMarco.objeto"
+          rows="3"
+          placeholder="Objeto del convenio marco"
+        ></textarea>
       </div>
       <div class="pre-campo">
         <label>Fecha de inicio</label>
@@ -346,8 +545,12 @@
         <p class="pre-error">{{ errorMarco }}</p>
       }
       <div class="pre-modal-btns">
-        <button class="pre-btn-sec" (click)="cerrarModalMarco()" [disabled]="guardandoMarco">Cancelar</button>
-        <button class="pre-btn" (click)="guardarMarco()" [disabled]="guardandoMarco">{{ guardandoMarco ? 'Guardando...' : 'Guardar' }}</button>
+        <button class="pre-btn-sec" (click)="cerrarModalMarco()" [disabled]="guardandoMarco">
+          Cancelar
+        </button>
+        <button class="pre-btn" (click)="guardarMarco()" [disabled]="guardandoMarco">
+          {{ guardandoMarco ? 'Guardando...' : 'Guardar' }}
+        </button>
       </div>
     </div>
   </div>
@@ -361,11 +564,19 @@
       <p class="conv-modal-sub">Marco: {{ marcoParaEspecifico?.universidad }}</p>
       <div class="pre-campo">
         <label>Objeto / Nombre *</label>
-        <input type="text" [(ngModel)]="formEspecifico.nombre" placeholder="Ej: Prácticas preprofesionales de Enfermería" />
+        <input
+          type="text"
+          [(ngModel)]="formEspecifico.nombre"
+          placeholder="Ej: Prácticas preprofesionales de Enfermería"
+        />
       </div>
       <div class="pre-campo">
         <label>N° de convenio</label>
-        <input type="text" [(ngModel)]="formEspecifico.numero_convenio" placeholder="Ej: CE-001-2026" />
+        <input
+          type="text"
+          [(ngModel)]="formEspecifico.numero_convenio"
+          placeholder="Ej: CE-001-2026"
+        />
       </div>
       <div class="pre-campo">
         <label>Fecha de inicio</label>
@@ -379,8 +590,16 @@
         <p class="pre-error">{{ errorEspecifico }}</p>
       }
       <div class="pre-modal-btns">
-        <button class="pre-btn-sec" (click)="cerrarModalEspecifico()" [disabled]="guardandoEspecifico">Cancelar</button>
-        <button class="pre-btn" (click)="guardarEspecifico()" [disabled]="guardandoEspecifico">{{ guardandoEspecifico ? 'Guardando...' : 'Guardar' }}</button>
+        <button
+          class="pre-btn-sec"
+          (click)="cerrarModalEspecifico()"
+          [disabled]="guardandoEspecifico"
+        >
+          Cancelar
+        </button>
+        <button class="pre-btn" (click)="guardarEspecifico()" [disabled]="guardandoEspecifico">
+          {{ guardandoEspecifico ? 'Guardando...' : 'Guardar' }}
+        </button>
       </div>
     </div>
   </div>
@@ -392,11 +611,13 @@
     <div class="pre-modal" (click)="$event.stopPropagation()">
       <h3>Carga masiva de convenios</h3>
       <p class="conv-modal-sub">
-        Sube el Excel de convenios marco de EsSalud (hojas UNIVERSIDADES / INSTITUTOS,
-        con columnas Institución Educativa, Sede Principal, Suscrito y Vigente hasta).
-        Los convenios ya cargados se detectan por universidad y se omiten.
+        Sube el Excel de convenios marco de EsSalud (hojas UNIVERSIDADES / INSTITUTOS, con columnas
+        Institución Educativa, Sede Principal, Suscrito y Vigente hasta). Los convenios ya cargados
+        se detectan por universidad y se omiten.
       </p>
-      <button class="pre-btn-sec-sm conv-plantilla-modal-btn" (click)="descargarPlantillaMarcos()">Descargar plantilla (.xlsx)</button>
+      <button class="pre-btn-sec-sm conv-plantilla-modal-btn" (click)="descargarPlantillaMarcos()">
+        Descargar plantilla (.xlsx)
+      </button>
       <div class="pre-campo">
         <input type="file" accept=".xls,.xlsx" (change)="onArchivoExcel($event)" />
       </div>
@@ -405,9 +626,13 @@
       }
       @if (resultadoExcel) {
         <div class="conv-resultado-excel">
-          <p>Convenios marco creados: <strong>{{ resultadoExcel.marcosCreados }}</strong></p>
+          <p>
+            Convenios marco creados: <strong>{{ resultadoExcel.marcosCreados }}</strong>
+          </p>
           @if (resultadoExcel.duplicados) {
-            <p>Ya existían (omitidos): <strong>{{ resultadoExcel.duplicados }}</strong></p>
+            <p>
+              Ya existían (omitidos): <strong>{{ resultadoExcel.duplicados }}</strong>
+            </p>
           }
           @if (resultadoExcel.errores.length) {
             <p class="conv-errores-titulo">Filas con problemas:</p>
@@ -420,8 +645,12 @@
         </div>
       }
       <div class="pre-modal-btns">
-        <button class="pre-btn-sec" (click)="cerrarModalExcel()" [disabled]="subiendoExcel">Cerrar</button>
-        <button class="pre-btn" (click)="subirExcel()" [disabled]="subiendoExcel">{{ subiendoExcel ? 'Procesando...' : 'Subir' }}</button>
+        <button class="pre-btn-sec" (click)="cerrarModalExcel()" [disabled]="subiendoExcel">
+          Cerrar
+        </button>
+        <button class="pre-btn" (click)="subirExcel()" [disabled]="subiendoExcel">
+          {{ subiendoExcel ? 'Procesando...' : 'Subir' }}
+        </button>
       </div>
     </div>
   </div>
