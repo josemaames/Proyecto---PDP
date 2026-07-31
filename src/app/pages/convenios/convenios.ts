@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -23,7 +23,7 @@ import { tieneRol } from '../../utils/roles.util';
 export class Convenios implements OnInit {
   private cs = inject(ConveniosService);
   private router = inject(Router);
-
+  private cdr = inject(ChangeDetectorRef);
   usuario: any = {};
   inicialUsuario = 'U';
   fechaHoy = '';
@@ -60,6 +60,16 @@ export class Convenios implements OnInit {
   >();
   subiendoContraprestaciones = new Set<number>();
   errorContraprestaciones = new Map<number, string>();
+
+  // ───────── Modal editar institución ─────────
+
+  mostrarModalInstitucion = false;
+
+  marcoEditar = 0;
+
+  redEditar = '';
+
+  contraprestacionesEditar: any[] = [];
 
   // Modal convenio marco
   mostrarModalMarco = false;
@@ -253,7 +263,9 @@ export class Convenios implements OnInit {
   // Redes a mostrar respetando los filtros activos (por red y/o por año).
   redesVisibles(marcoId: number): string[] {
     const filtroRed = this.filtroRedDe(marcoId);
-    const base = filtroRed ? this.redesDe(marcoId).filter((r) => r === filtroRed) : this.redesDe(marcoId);
+    const base = filtroRed
+      ? this.redesDe(marcoId).filter((r) => r === filtroRed)
+      : this.redesDe(marcoId);
     return base.filter((red) => this.aniosVisiblesDeRed(marcoId, red).length > 0);
   }
 
@@ -387,6 +399,54 @@ export class Convenios implements OnInit {
 
   especificoEstaExpandido(id: number): boolean {
     return this.especificosExpandidos.has(id);
+  }
+
+  abrirEditarInstitucion(marcoId: number, red: string): void {
+    this.marcoEditar = marcoId;
+    this.redEditar = red;
+
+    const cp = this.contraprestacionesDe(marcoId);
+
+    if (!cp) {
+      this.contraprestacionesEditar = [];
+      return;
+    }
+
+    this.contraprestacionesEditar = cp.data
+      .filter((c) => c.unidad_organica === red)
+      .map((c) => ({ ...c }));
+
+    this.mostrarModalInstitucion = true;
+  }
+
+  cerrarModalInstitucion(): void {
+    this.mostrarModalInstitucion = false;
+  }
+
+  agrupadasPorPlan(): { plan: string; items: any[] }[] {
+    const grupos = new Map<string, any[]>();
+
+    for (const c of this.contraprestacionesEditar) {
+      const plan = c.plan_anio || 'Sin plan';
+
+      if (!grupos.has(plan)) {
+        grupos.set(plan, []);
+      }
+
+      grupos.get(plan)!.push(c);
+    }
+
+    return Array.from(grupos.entries())
+      .map(([plan, items]) => ({ plan, items }))
+      .sort((a, b) => a.plan.localeCompare(b.plan));
+  }
+
+  itemsDeRed(marcoId: number, red: string) {
+    const cp = this.contraprestacionesDe(marcoId);
+
+    if (!cp) return [];
+
+    return cp.data.filter((c) => c.unidad_organica === red);
   }
 
   // ── Documentos ────────────────────────────────────

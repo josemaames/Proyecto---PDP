@@ -16,7 +16,9 @@
       </div>
     </div>
     <div class="nav-der">
-      <button *ngIf="tieneSectorista" class="pre-switch" (click)="irASectorista()">Cambiar a Sectorista</button>
+      <button *ngIf="tieneSectorista" class="pre-switch" (click)="irASectorista()">
+        Cambiar a Sectorista
+      </button>
       <span class="nav-fecha">{{ fechaHoy }}</span>
       <div class="perfil-wrap">
         <button class="nav-avatar" (click)="togglePerfilMenu()">{{ inicialUsuario }}</button>
@@ -31,12 +33,24 @@
               </div>
             </div>
             <div class="perfil-menu-datos">
-              <div class="perfil-dato"><span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong></div>
-              <div class="perfil-dato"><span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong></div>
+              <div class="perfil-dato">
+                <span>DNI</span><strong>{{ usuario?.dni || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Correo</span><strong>{{ usuario?.somos?.correo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Cargo</span><strong>{{ usuario?.cargo || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Planilla</span><strong>{{ usuario?.somos?.codigoPlanilla || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Régimen</span><strong>{{ usuario?.somos?.regimen || '—' }}</strong>
+              </div>
+              <div class="perfil-dato">
+                <span>Dependencia</span><strong>{{ usuario?.somos?.dependencia || '—' }}</strong>
+              </div>
             </div>
             <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
           </div>
@@ -69,16 +83,28 @@
                 <td>{{ r.red }}</td>
                 <td class="num">S/ {{ r.techo | number: '1.2-2' }}</td>
                 <td class="num ejec">S/ {{ r.ejecutado | number: '1.2-2' }}</td>
-                <td class="num saldo" [class.neg]="r.saldo < 0">S/ {{ r.saldo | number: '1.2-2' }}</td>
+                <td class="num saldo" [class.neg]="r.saldo < 0">
+                  S/ {{ r.saldo | number: '1.2-2' }}
+                </td>
                 <td class="barra-cell">
-                  <div class="barra-bg"><div class="barra-fill" [class.exc]="r.pct >= 100" [style.width.%]="r.pct"></div></div>
+                  <div class="barra-bg">
+                    <div
+                      class="barra-fill"
+                      [class.exc]="r.pct >= 100"
+                      [style.width.%]="r.pct"
+                    ></div>
+                  </div>
                   <span class="barra-pct">{{ r.pct }}%</span>
                 </td>
                 <td *ngIf="puedeModificar">
-                  <button class="pre-btn-sm" (click)="abrirSolicitud(r.red)">Modificar presupuesto</button>
+                  <button class="pre-btn-sm" (click)="abrirSolicitud(r.red)">
+                    Modificar presupuesto
+                  </button>
                 </td>
               </tr>
-              <tr *ngIf="redes.length === 0"><td colspan="6" class="vacio">No hay presupuestos registrados.</td></tr>
+              <tr *ngIf="redes.length === 0">
+                <td colspan="6" class="vacio">No hay presupuestos registrados.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -90,13 +116,22 @@
         <div class="tabla-scroll" *ngIf="misSolicitudes.length; else sinHist">
           <table class="pre-tabla">
             <thead>
-              <tr><th>Fecha</th><th>Tipo</th><th>Red</th><th class="num">Monto</th><th>Motivo</th><th>Por</th></tr>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Red</th>
+                <th class="num">Monto</th>
+                <th>Motivo</th>
+                <th>Por</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let s of misSolicitudes">
                 <td>{{ s.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
                 <td>{{ etiquetaTipo(s.tipo) }}</td>
-                <td>{{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span></td>
+                <td>
+                  {{ s.red }}<span *ngIf="s.tipo === 'reasignacion'"> → {{ s.red_destino }}</span>
+                </td>
                 <td class="num">S/ {{ s.monto | number: '1.2-2' }}</td>
                 <td>{{ s.motivo || '—' }}</td>
                 <td>{{ s.solicitante_nombre || '—' }}</td>
@@ -111,7 +146,7 @@
 </div>
 
 <!-- MODAL: modificar presupuesto -->
-<div class="pre-overlay" *ngIf="mostrarModal">
+<div class="pre-overlay">
   <div class="pre-modal">
     <h3>Modificar presupuesto</h3>
     <div class="pre-campo">
@@ -139,12 +174,20 @@
     </div>
     <div class="pre-campo">
       <label>Motivo</label>
-      <textarea [(ngModel)]="form.motivo" rows="3" placeholder="Justificación del cambio"></textarea>
+      <textarea
+        [(ngModel)]="form.motivo"
+        rows="3"
+        placeholder="Justificación del cambio"
+      ></textarea>
     </div>
     <p class="pre-error" *ngIf="errorModal">{{ errorModal }}</p>
     <div class="pre-modal-btns">
-      <button class="pre-btn-sec" (click)="mostrarModal = false" [disabled]="enviando">Cancelar</button>
-      <button class="pre-btn" (click)="enviarSolicitud()" [disabled]="enviando">{{ enviando ? 'Aplicando…' : 'Aplicar cambio' }}</button>
+      <button class="pre-btn-sec" (click)="mostrarModal = false" [disabled]="enviando">
+        Cancelar
+      </button>
+      <button class="pre-btn" (click)="enviarSolicitud()" [disabled]="enviando">
+        {{ enviando ? 'Aplicando…' : 'Aplicar cambio' }}
+      </button>
     </div>
   </div>
 </div>
