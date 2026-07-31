@@ -3105,6 +3105,75 @@ app.get('/api/convenios-marco/:id/dashboard', async (req, res) => {
       [marcoId],
     );
 
+    // ======================================================
+    // ACTUALIZAR CONTRAPRESTACIONES DE UNA INSTITUCIÓN
+    // ======================================================
+
+    app.put('/api/convenios-marco/:id/contraprestaciones', async (req, res) => {
+      const client = await pool.connect();
+
+      try {
+        await client.query('BEGIN');
+
+        const items = req.body;
+
+        for (const c of items) {
+          await client.query(
+            `
+        UPDATE convenio_contraprestaciones
+        SET
+
+          detalle = $1,
+          duracion = $2,
+          num_beneficiarios = $3,
+          grupo_ocupacional = $4,
+          fecha_ejecucion = $5,
+          valorizacion = $6,
+          observaciones = $7
+
+        WHERE id = $8
+        `,
+
+            [
+              c.detalle,
+
+              c.duracion,
+
+              c.num_beneficiarios,
+
+              c.grupo_ocupacional,
+
+              c.fecha_ejecucion || null,
+
+              c.valorizacion,
+
+              c.observaciones,
+
+              c.id,
+            ],
+          );
+        }
+
+        await client.query('COMMIT');
+
+        res.json({
+          ok: true,
+        });
+      } catch (err) {
+        await client.query('ROLLBACK');
+
+        console.error(err);
+
+        res.status(500).json({
+          ok: false,
+
+          error: err.message,
+        });
+      } finally {
+        client.release();
+      }
+    });
+
     // 2. Beneficiarios
     const { rows: c2 } = await pool.query(
       `

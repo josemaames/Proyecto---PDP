@@ -1029,3 +1029,221 @@
 
   --pdp-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
+
+.conv-red-icon {
+  width: 64px;
+
+  height: 64px;
+
+  border-radius: 18px;
+
+  background: #eef4ff;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  color: #184a99;
+}
+
+.conv-svg {
+  width: 34px;
+
+  height: 34px;
+}
+
+.conv-chip-icon {
+  width: 16px;
+
+  height: 16px;
+
+  margin-right: 6px;
+
+  color: #2d63c8;
+
+  flex-shrink: 0;
+}
+
+.conv-btn-icon {
+  width: 18px;
+
+  height: 18px;
+
+  margin-right: 8px;
+}
+
+.conv-hospital-icon {
+  width: 34px;
+
+  height: 34px;
+
+  color: #2b63c7;
+}
+
+.conv-chip-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  color: #2d63c8;
+  flex-shrink: 0;
+}
+
+.conv-card-edicion {
+  background: #fff;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  margin-bottom: 24px;
+
+  border: 1px solid #e8edf7;
+
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+
+  transition: 0.25s;
+}
+
+.conv-card-edicion:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+}
+
+.conv-card-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 18px;
+
+  padding-bottom: 14px;
+
+  border-bottom: 1px solid #edf2f7;
+}
+
+.conv-card-header h4 {
+  margin: 0;
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #184a99;
+
+  max-width: 75%;
+}
+
+.conv-card-monto {
+  font-size: 22px;
+
+  font-weight: 700;
+
+  color: #0b8e45;
+}
+
+.conv-plan-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin: 28px 0 16px;
+}
+
+.conv-plan-header h3 {
+  margin: 0;
+
+  font-size: 22px;
+
+  color: #184a99;
+
+  font-weight: 700;
+}
+
+.conv-plan-badge {
+  background: #eef4ff;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  font-weight: 600;
+
+  color: #2b63c7;
+}
+
+.pre-campo input,
+.pre-campo textarea {
+  width: 100%;
+
+  padding: 12px 14px;
+
+  border: 1px solid #d9e2f2;
+
+  border-radius: 12px;
+
+  background: #fbfcfe;
+
+  transition: 0.25s;
+
+  font-size: 15px;
+}
+
+.pre-campo input:focus,
+.pre-campo textarea:focus {
+  border-color: #2b63c7;
+
+  box-shadow: 0 0 0 4px rgba(43, 99, 199, 0.12);
+
+  outline: none;
+
+  background: white;
+}
+
+.conv-modal-header {
+  padding-bottom: 18px;
+
+  margin-bottom: 22px;
+
+  border-bottom: 1px solid #e8edf7;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+}
+
+.conv-modal-info h2 {
+  margin: 0;
+
+  font-size: 28px;
+
+  color: #184a99;
+}
+
+.conv-modal-info h3 {
+  margin-top: 8px;
+
+  font-size: 18px;
+
+  font-weight: 600;
+
+  color: #475569;
+}
+
+.conv-modal-resumen {
+  display: flex;
+
+  gap: 12px;
+
+  margin-top: 16px;
+
+  flex-wrap: wrap;
+}

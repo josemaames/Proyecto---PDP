@@ -163,9 +163,7 @@ export class ConveniosService {
 
   // ── Contraprestaciones (informe memoria por universidad) ─
   // Puramente informativo: no afecta presupuesto de redes ni dashboards.
-  getContraprestaciones(
-    marcoId: number,
-  ): Observable<{
+  getContraprestaciones(marcoId: number): Observable<{
     data: Contraprestacion[];
     resumen: ContraprestacionResumen[];
     total: number;
@@ -358,5 +356,9 @@ export class ConveniosService {
       duplicados: number;
       errores: string[];
     }>('/api/convenios/cargar-excel', formData);
+  }
+
+  guardarContraprestaciones(marcoId: number, items: any[]) {
+    return this.http.put(`/api/convenios-marco/${marcoId}/contraprestaciones`, items);
   }
 }

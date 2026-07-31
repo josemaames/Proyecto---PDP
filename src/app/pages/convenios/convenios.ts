@@ -403,6 +403,7 @@ export class Convenios implements OnInit {
 
   abrirEditarInstitucion(marcoId: number, red: string): void {
     this.marcoEditar = marcoId;
+
     this.redEditar = red;
 
     const cp = this.contraprestacionesDe(marcoId);
@@ -412,15 +413,52 @@ export class Convenios implements OnInit {
       return;
     }
 
+    // Copia profunda para no modificar la grilla principal
     this.contraprestacionesEditar = cp.data
       .filter((c) => c.unidad_organica === red)
-      .map((c) => ({ ...c }));
+      .map((c) => ({
+        ...c,
+      }));
 
     this.mostrarModalInstitucion = true;
   }
 
   cerrarModalInstitucion(): void {
     this.mostrarModalInstitucion = false;
+
+    this.contraprestacionesEditar = [];
+  }
+
+  guardarInstitucion(): void {
+    this.cs.guardarContraprestaciones(this.marcoEditar, this.contraprestacionesEditar).subscribe({
+      next: () => {
+        alert('Contraprestaciones actualizadas correctamente.');
+
+        this.cerrarModalInstitucion();
+
+        // Recargar contraprestaciones
+        this.cargarContraprestaciones(this.marcoEditar);
+
+        // Volver a cargar el dashboard
+        this.dashboardPorMarco.delete(this.marcoEditar);
+
+        this.cargarDashboard(this.marcoEditar);
+      },
+
+      error: (err) => {
+        console.error('ERROR COMPLETO');
+
+        console.error(err);
+
+        console.error(err.error);
+
+        console.error(err.status);
+
+        console.error(err.message);
+
+        alert(JSON.stringify(err.error));
+      },
+    });
   }
 
   agrupadasPorPlan(): { plan: string; items: any[] }[] {
