@@ -588,6 +588,43 @@
   color: #15803d;
 }
 
+.conv-contrap-filtros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.conv-select-filtro {
+  padding: 6px 10px;
+  border: 1.5px solid #dde3ef;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #1a1a2e;
+  background: #fff;
+  font-family: inherit;
+  cursor: pointer;
+}
+.conv-select-filtro:focus {
+  outline: none;
+  border-color: #1a4fa8;
+}
+
+.conv-limpiar-filtro-btn {
+  background: none;
+  border: none;
+  color: #1a4fa8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  text-decoration: underline;
+}
+.conv-limpiar-filtro-btn:hover {
+  color: #142f61;
+}
+
 .conv-red-bloque {
   margin-bottom: 20px;
   border: 1px solid #e8edf8;

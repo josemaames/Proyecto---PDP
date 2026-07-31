@@ -208,10 +208,53 @@ export class Convenios implements OnInit {
     return this.contraprestacionesPorMarco.get(marcoId) || null;
   }
 
+  // Filtros de red/año dentro de la tabla de contraprestaciones (uno por marco expandido).
+  filtroRedContrap = new Map<number, string>();
+  filtroAnioContrap = new Map<number, string>();
+
+  filtroRedDe(marcoId: number): string {
+    return this.filtroRedContrap.get(marcoId) || '';
+  }
+
+  filtroAnioDe(marcoId: number): string {
+    return this.filtroAnioContrap.get(marcoId) || '';
+  }
+
+  setFiltroRed(marcoId: number, valor: string): void {
+    this.filtroRedContrap.set(marcoId, valor);
+  }
+
+  setFiltroAnio(marcoId: number, valor: string): void {
+    this.filtroAnioContrap.set(marcoId, valor);
+  }
+
+  limpiarFiltrosContrap(marcoId: number): void {
+    this.filtroRedContrap.delete(marcoId);
+    this.filtroAnioContrap.delete(marcoId);
+  }
+
+  hayFiltrosContrap(marcoId: number): boolean {
+    return !!this.filtroRedDe(marcoId) || !!this.filtroAnioDe(marcoId);
+  }
+
   redesDe(marcoId: number): string[] {
     const r = this.contraprestacionesPorMarco.get(marcoId);
     if (!r) return [];
     return Array.from(new Set(r.data.map((c) => c.unidad_organica || 'Sin red'))).sort();
+  }
+
+  // Todos los años presentes en el informe de esa universidad (para el filtro).
+  aniosDe(marcoId: number): string[] {
+    const r = this.contraprestacionesPorMarco.get(marcoId);
+    if (!r) return [];
+    return Array.from(new Set(r.data.map((c) => c.plan_anio || 'Sin año'))).sort();
+  }
+
+  // Redes a mostrar respetando los filtros activos (por red y/o por año).
+  redesVisibles(marcoId: number): string[] {
+    const filtroRed = this.filtroRedDe(marcoId);
+    const base = filtroRed ? this.redesDe(marcoId).filter((r) => r === filtroRed) : this.redesDe(marcoId);
+    return base.filter((red) => this.aniosVisiblesDeRed(marcoId, red).length > 0);
   }
 
   aniosDeRed(marcoId: number, red: string): string[] {
@@ -223,6 +266,13 @@ export class Convenios implements OnInit {
         .map((c) => c.plan_anio || 'Sin año'),
     );
     return Array.from(anios).sort();
+  }
+
+  // Años de esa red a mostrar respetando el filtro de año activo.
+  aniosVisiblesDeRed(marcoId: number, red: string): string[] {
+    const filtroAnio = this.filtroAnioDe(marcoId);
+    const anios = this.aniosDeRed(marcoId, red);
+    return filtroAnio ? anios.filter((a) => a === filtroAnio) : anios;
   }
 
   itemsDeRedAnio(marcoId: number, red: string, anio: string): Contraprestacion[] {

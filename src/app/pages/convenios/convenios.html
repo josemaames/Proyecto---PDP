@@ -424,7 +424,39 @@
                             >
                           </div>
 
-                          @for (red of redesDe(m.id); track red) {
+                          <div class="conv-contrap-filtros">
+                            <select
+                              class="conv-select-filtro"
+                              [ngModel]="filtroRedDe(m.id)"
+                              (ngModelChange)="setFiltroRed(m.id, $event)"
+                            >
+                              <option value="">Todas las redes</option>
+                              @for (red of redesDe(m.id); track red) {
+                                <option [value]="red">{{ red }}</option>
+                              }
+                            </select>
+                            <select
+                              class="conv-select-filtro"
+                              [ngModel]="filtroAnioDe(m.id)"
+                              (ngModelChange)="setFiltroAnio(m.id, $event)"
+                            >
+                              <option value="">Todos los años</option>
+                              @for (anio of aniosDe(m.id); track anio) {
+                                <option [value]="anio">{{ anio }}</option>
+                              }
+                            </select>
+                            @if (hayFiltrosContrap(m.id)) {
+                              <button class="conv-limpiar-filtro-btn" (click)="limpiarFiltrosContrap(m.id)">
+                                Limpiar filtros
+                              </button>
+                            }
+                          </div>
+
+                          @if (redesVisibles(m.id).length === 0) {
+                            <p class="conv-sin-docs">No hay contraprestaciones para ese filtro.</p>
+                          }
+
+                          @for (red of redesVisibles(m.id); track red) {
                             <div class="conv-red-bloque">
                               <div class="conv-red-titulo">
                                 {{ red }}
@@ -434,7 +466,7 @@
                                 >
                               </div>
 
-                              @for (anio of aniosDeRed(m.id, red); track anio) {
+                              @for (anio of aniosVisiblesDeRed(m.id, red); track anio) {
                                 <div class="conv-anio-bloque">
                                   <div class="conv-anio-titulo">
                                     Plan {{ anio }}
