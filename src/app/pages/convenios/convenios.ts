@@ -71,6 +71,18 @@ export class Convenios implements OnInit {
 
   contraprestacionesEditar: any[] = [];
 
+  // ======================================
+  // Modal de mensajes
+  // ======================================
+
+  mostrarMensaje = false;
+
+  tituloMensaje = '';
+
+  textoMensaje = '';
+
+  tipoMensaje: 'success' | 'error' = 'success';
+
   // Modal convenio marco
   mostrarModalMarco = false;
   editandoMarco: ConvenioMarco | null = null;
@@ -432,7 +444,11 @@ export class Convenios implements OnInit {
   guardarInstitucion(): void {
     this.cs.guardarContraprestaciones(this.marcoEditar, this.contraprestacionesEditar).subscribe({
       next: () => {
-        alert('Contraprestaciones actualizadas correctamente.');
+        this.abrirMensaje(
+          'Contraprestaciones actualizadas',
+          'La información fue guardada correctamente.',
+          'success',
+        );
 
         this.cerrarModalInstitucion();
 
@@ -459,6 +475,26 @@ export class Convenios implements OnInit {
         alert(JSON.stringify(err.error));
       },
     });
+  }
+
+  abrirMensaje(titulo: string, texto: string, tipo: 'success' | 'error' = 'success'): void {
+    this.tituloMensaje = titulo;
+
+    this.textoMensaje = texto;
+
+    this.tipoMensaje = tipo;
+
+    this.mostrarMensaje = true;
+  }
+
+  cerrarMensaje(): void {
+    this.mostrarMensaje = false;
+
+    this.tituloMensaje = '';
+
+    this.textoMensaje = '';
+
+    this.tipoMensaje = 'success';
   }
 
   agrupadasPorPlan(): { plan: string; items: any[] }[] {

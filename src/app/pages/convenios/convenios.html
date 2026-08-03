@@ -945,3 +945,27 @@
     </div>
   </div>
 }
+
+@if (mostrarMensaje) {
+  <div class="pre-overlay">
+    <div class="conv-msg-modal">
+      <div
+        class="conv-msg-icon"
+        [class.success]="tipoMensaje === 'success'"
+        [class.error]="tipoMensaje === 'error'"
+      >
+        @if (tipoMensaje === 'success') {
+          ✓
+        } @else {
+          ✕
+        }
+      </div>
+
+      <h2>{{ tituloMensaje }}</h2>
+
+      <p>{{ textoMensaje }}</p>
+
+      <button class="pre-btn" (click)="cerrarMensaje()">Aceptar</button>
+    </div>
+  </div>
+}

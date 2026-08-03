@@ -1247,3 +1247,83 @@
 
   flex-wrap: wrap;
 }
+
+.conv-msg-modal {
+  width: 420px;
+
+  background: white;
+
+  border-radius: 22px;
+
+  padding: 36px;
+
+  text-align: center;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
+
+  animation: modalFade 0.25s ease;
+}
+
+.conv-msg-icon {
+  width: 74px;
+
+  height: 74px;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 34px;
+
+  font-weight: 700;
+
+  margin: auto;
+
+  margin-bottom: 18px;
+}
+
+.conv-msg-icon.success {
+  background: #e8f8ef;
+
+  color: #0e9f4b;
+}
+
+.conv-msg-icon.error {
+  background: #fdecec;
+
+  color: #d93025;
+}
+
+.conv-msg-modal h2 {
+  margin: 12px 0;
+
+  color: #1b3e8a;
+
+  font-size: 26px;
+}
+
+.conv-msg-modal p {
+  color: #64748b;
+
+  margin-bottom: 28px;
+
+  line-height: 1.6;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: none;
+  }
+}
