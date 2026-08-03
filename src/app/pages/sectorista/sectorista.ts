@@ -224,6 +224,15 @@ export class Sectorista implements OnInit {
     this.cargarHistorial();
     this.cargarPresupuestoRed();
     this.cargarAlertasPersonal();
+    this.cargarSindicatos();
+  }
+
+  // ── Sindicatos (para el formulario de capacitaciones de sindicato) ──
+  cargarSindicatos() {
+    this.pdpData.getSindicatos().subscribe({
+      next: (lista) => (this.SINDICATOS_LISTA = lista.map((s) => s.nombre)),
+      error: () => (this.SINDICATOS_LISTA = []),
+    });
   }
 
   // ── Alertas de personal (cese / cambio de red) ────
@@ -885,8 +894,8 @@ export class Sectorista implements OnInit {
   errorSindicatoForm = '';
   capacitacionesSindicato: any[] = [];
 
-  // Lista provisional — se reemplazará por consulta BD cuando la tabla esté disponible
-  readonly SINDICATOS_LISTA: string[] = ['SINAMED', 'SINATRAE', 'FENATRAE', 'CACEES', 'SINASIE'];
+  // Se carga desde /api/sindicatos (tabla `sindicatos`) en ngOnInit.
+  SINDICATOS_LISTA: string[] = [];
 
   filtroRedSolicitudes = '';
   filtroRedHistorial = '';

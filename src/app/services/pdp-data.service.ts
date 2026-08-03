@@ -113,6 +113,11 @@ export interface Documento {
   fecha_subida?: string;
 }
 
+export interface Sindicato {
+  id: number;
+  nombre: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PdpDataService {
   private api = '/api';
@@ -291,6 +296,11 @@ export class PdpDataService {
     if (ejeTematico) params = params.set('eje_tematico', ejeTematico);
     if (anio) params = params.set('anio', anio);
     return this.http.get<any>(`${this.api}/dashboard`, { params });
+  }
+
+  // ── Sindicatos ────────────────────────────────
+  getSindicatos(): Observable<Sindicato[]> {
+    return this.http.get<Sindicato[]>(`${this.api}/sindicatos`);
   }
 
   // ── Documentos ────────────────────────────────

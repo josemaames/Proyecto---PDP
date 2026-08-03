@@ -43,6 +43,7 @@ const TABLE_NAMES = [
   'lista_participantes',
   'personal',
   'presupuesto_redes',
+  'sindicatos',
   'solicitud_presupuesto',
   'solicitudes_revision',
   'usuarios_sistema',
@@ -89,6 +90,9 @@ const TABLE_COLUMNS = {
   ],
   presupuesto_redes: [
     ['red', ...str(100)], ['techo', NUM], ['anio', NUM],
+  ],
+  sindicatos: [
+    ['id', NUM], ['nombre', ...str(150)], ['created_at', TS],
   ],
   audit_log: [
     ['id', NUM], ['tipo', ...str(100)], ['descripcion', ...str(256)], ['actor_nombre', ...str(256)],

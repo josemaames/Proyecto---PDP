@@ -1857,6 +1857,45 @@ app.get('/api/audit-log', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// SINDICATOS (lista para el formulario de capacitaciones de sindicato del
+// Sectorista — reemplaza la lista hardcodeada de prueba del frontend).
+// ──────────────────────────────────────────────
+app.get('/api/sindicatos', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, nombre FROM sindicatos ORDER BY nombre');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sindicatos', async (req, res) => {
+  try {
+    const { nombre } = req.body;
+    if (!nombre?.trim()) return res.status(400).json({ error: 'El nombre del sindicato es obligatorio.' });
+    const { rows } = await pool.query(
+      'INSERT INTO sindicatos (nombre) VALUES ($1) RETURNING *',
+      [nombre.trim()],
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    if (String(err.message).includes('uq_sindicatos_nombre')) {
+      return res.status(409).json({ error: 'Ese sindicato ya está registrado.' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sindicatos/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM sindicatos WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
 // Techo presupuestal por red
 // ──────────────────────────────────────────────
 app.get('/api/presupuesto-redes', async (req, res) => {
