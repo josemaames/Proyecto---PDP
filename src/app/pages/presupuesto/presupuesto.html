@@ -146,8 +146,8 @@
 </div>
 
 <!-- MODAL: modificar presupuesto -->
-<div class="pre-overlay">
-  <div class="pre-modal">
+<div class="pre-overlay" *ngIf="mostrarModal" (click)="mostrarModal = false">
+  <div class="pre-modal" (click)="$event.stopPropagation()">
     <h3>Modificar presupuesto</h3>
     <div class="pre-campo">
       <label>Red</label>
