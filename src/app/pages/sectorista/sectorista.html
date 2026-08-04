@@ -873,12 +873,20 @@
           <div class="datos-grid tres-col">
             <div class="campo">
               <label>RUC del proveedor</label>
-              <input
-                type="text"
-                placeholder="20123456789"
-                maxlength="11"
-                [(ngModel)]="formularioSindicato.rucProveedor"
-              />
+              <div class="input-btn-row">
+                <input
+                  type="text"
+                  placeholder="20123456789"
+                  maxlength="11"
+                  [(ngModel)]="formularioSindicato.rucProveedor"
+                />
+                <button class="btn-buscar-ruc" (click)="buscarRucSindicato()" [disabled]="buscandoRucSindicato">
+                  {{ buscandoRucSindicato ? 'Buscando…' : ' Buscar' }}
+                </button>
+              </div>
+              @if (errorRucSindicato) {
+                <small class="error-ruc">{{ errorRucSindicato }}</small>
+              }
             </div>
             <div class="campo">
               <label>Nombre del proveedor</label>
@@ -964,13 +972,46 @@
           }
 
           <div class="datos-grid tres-col">
-            <div class="campo">
-              <label>DNI / CE</label>
-              <input
-                type="text"
-                placeholder="Ej: 12345678"
-                [(ngModel)]="nuevoParticipanteSindicato.dni_ce"
-              />
+            <div class="campo partic-campo-dni">
+              <label>
+                DNI / CE o nombre
+                @if (estadoBusquedaPartSindicato === 'buscando') {
+                  <span class="ac-badge ac-buscando">⏳ buscando…</span>
+                }
+                @if (estadoBusquedaPartSindicato === 'encontrado') {
+                  <span class="ac-badge ac-ok"> encontrado</span>
+                }
+                @if (estadoBusquedaPartSindicato === 'no_encontrado') {
+                  <span class="ac-badge ac-no">no encontrado</span>
+                }
+                @if (estadoBusquedaPartSindicato === 'ya_registrado') {
+                  <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span>
+                }
+              </label>
+              <div class="partic-autocomplete">
+                <input
+                  type="text"
+                  placeholder="DNI, apellido o nombre..."
+                  [(ngModel)]="nuevoParticipanteSindicato.dni_ce"
+                  (input)="buscarPorDniSindicato(nuevoParticipanteSindicato.dni_ce)"
+                  (keyup.enter)="agregarParticipanteSindicato()"
+                />
+                @if (sugerenciasPartSindicato.length) {
+                  <div class="partic-sugerencias">
+                    @for (s of sugerenciasPartSindicato; track s.dni_ce) {
+                      <div class="partic-sugerencia-item" (click)="seleccionarSugerenciaPartSindicato(s)">
+                        <span class="partic-sugerencia-nombre">{{ s.apellidos }}, {{ s.nombre }}</span>
+                        <span class="partic-sugerencia-dni">{{ s.dni_ce }} · {{ s.red || '—' }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              @if (estadoBusquedaPartSindicato === 'ya_registrado') {
+                <p class="partic-error-red">
+                  Ya está registrado en <strong>{{ capacitacionYaRegistradoSindicato }}</strong>. No puede estar en más de una capacitación.
+                </p>
+              }
             </div>
             <div class="campo">
               <label>Cód. Planilla</label>

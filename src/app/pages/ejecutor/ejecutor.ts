@@ -559,6 +559,12 @@ export class Ejecutor implements OnInit {
  this.errorParticCorreccion = 'DNI/CE, Apellidos y Nombre son obligatorios.';
  return;
  }
+ if (this.participantesCorreccion.length >= (this.formularioCorreccion?.totalParticipantes as number)) {
+ this.errorParticCorreccion = this.formularioCorreccion?.totalParticipantes
+ ? `Ya alcanzó el límite de ${this.formularioCorreccion.totalParticipantes} participante(s).`
+ : 'Ingrese primero el "Total de participantes" antes de agregarlos.';
+ return;
+ }
  this.errorParticCorreccion = '';
  this.estadoACCorr = 'idle';
  this.participantesCorreccion.push({ ...p });

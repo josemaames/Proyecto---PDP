@@ -865,6 +865,31 @@ export class Sectorista implements OnInit {
     });
   }
 
+  // Buscador de RUC para el formulario de Sindicatos (independiente del de la
+  // Matriz DNC, que usa sus propios campos `matriz.*`).
+  buscandoRucSindicato = false;
+  errorRucSindicato = '';
+
+  buscarRucSindicato() {
+    const ruc = this.formularioSindicato.rucProveedor.trim();
+    if (ruc.length !== 11 || !/^\d+$/.test(ruc)) {
+      this.errorRucSindicato = 'El RUC debe tener exactamente 11 dígitos numéricos.';
+      return;
+    }
+    this.errorRucSindicato = '';
+    this.buscandoRucSindicato = true;
+    this.http.get<any>(`http://localhost:3001/api/sunat/ruc?numero=${ruc}`).subscribe({
+      next: (data) => {
+        this.formularioSindicato.nombreProveedor = data.razon_social || data.razonSocial || data.nombre || '';
+        this.buscandoRucSindicato = false;
+      },
+      error: () => {
+        this.errorRucSindicato = 'No se encontró información para ese RUC.';
+        this.buscandoRucSindicato = false;
+      },
+    });
+  }
+
   agregarBeneficiario() {
     this.beneficiarios.push({
       nombre: '',
@@ -895,7 +920,14 @@ export class Sectorista implements OnInit {
   capacitacionesSindicato: any[] = [];
   cargandoCapacitacionesSindicato = false;
   filtroSindicatoLista = '';
-  errorParticipanteSindicatoDni = ''; // estado de "ya registrado en otra capacitación"
+
+  // Buscador/autocompletado de participantes (sin restricción de red: un
+  // sindicato puede juntar gente de varias redes).
+  estadoBusquedaPartSindicato: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'ya_registrado' = 'idle';
+  capacitacionYaRegistradoSindicato = '';
+  sugerenciasPartSindicato: any[] = [];
+  private dniTimerSindicato: any;
+  private sugerenciasTimerSindicato: any;
 
   // Se carga desde /api/sindicatos (tabla `sindicatos`) en ngOnInit.
   SINDICATOS_LISTA: string[] = [];
@@ -1004,8 +1036,94 @@ export class Sectorista implements OnInit {
     this.formularioSindicato.mesTermino = meses[d.getMonth()] ?? '';
   }
 
+  // Buscador de participantes: por DNI completo hace match exacto contra
+  // personal-essalud; con menos dígitos o por nombre muestra sugerencias.
+  // Sin restricción de red — un sindicato puede juntar gente de varias redes.
+  buscarPorDniSindicato(valorCrudo: string) {
+    clearTimeout(this.dniTimerSindicato);
+    clearTimeout(this.sugerenciasTimerSindicato);
+    this.estadoBusquedaPartSindicato = 'idle';
+    this.sugerenciasPartSindicato = [];
+    const valor = valorCrudo.trim();
+    if (valor.length < 3) return;
+
+    if (valor.length >= 8) {
+      this.estadoBusquedaPartSindicato = 'buscando';
+      this.dniTimerSindicato = setTimeout(() => {
+        this.http.get(`http://localhost:3001/api/personal-essalud/dni/${valor}`).subscribe({
+          next: (p: any) => this.verificarDuplicadoYLlenarSindicato(p),
+          error: () => (this.estadoBusquedaPartSindicato = 'no_encontrado'),
+        });
+      }, 400);
+    } else {
+      this.buscarSugerenciasPartSindicato(valor);
+    }
+  }
+
+  buscarSugerenciasPartSindicato(texto: string) {
+    clearTimeout(this.sugerenciasTimerSindicato);
+    if (texto.trim().length < 2) {
+      this.sugerenciasPartSindicato = [];
+      return;
+    }
+    this.sugerenciasTimerSindicato = setTimeout(() => {
+      const params = new URLSearchParams({ q: texto.trim(), limit: '8' });
+      this.http.get<{ data: any[] }>(`http://localhost:3001/api/personal-essalud?${params}`).subscribe({
+        next: (res) => (this.sugerenciasPartSindicato = res.data || []),
+        error: () => (this.sugerenciasPartSindicato = []),
+      });
+    }, 300);
+  }
+
+  seleccionarSugerenciaPartSindicato(p: any) {
+    this.sugerenciasPartSindicato = [];
+    this.verificarDuplicadoYLlenarSindicato(p);
+  }
+
+  // Un participante no puede estar ya en OTRA capacitación (regla general del sistema).
+  private verificarDuplicadoYLlenarSindicato(p: any) {
+    this.http
+      .get<{ registrado: boolean; nombre_actividad?: string }>(
+        `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce}`,
+      )
+      .subscribe({
+        next: (r) => {
+          if (r.registrado) {
+            this.estadoBusquedaPartSindicato = 'ya_registrado';
+            this.capacitacionYaRegistradoSindicato = r.nombre_actividad || '';
+            return;
+          }
+          this.llenarParticipanteSindicato(p);
+          this.estadoBusquedaPartSindicato = 'encontrado';
+        },
+        // Si falla la verificación no se bloquea — el backend igual revalida
+        // todo al guardar la capacitación completa.
+        error: () => {
+          this.llenarParticipanteSindicato(p);
+          this.estadoBusquedaPartSindicato = 'encontrado';
+        },
+      });
+  }
+
+  private llenarParticipanteSindicato(p: any) {
+    const obj = this.nuevoParticipanteSindicato;
+    obj.dni_ce = p.dni_ce || '';
+    obj.cod_planilla = p.cod_planilla || '';
+    obj.apellidos = p.apellidos || '';
+    obj.nombre = p.nombre || '';
+    obj.sexo = (p.sexo || '').toUpperCase();
+    obj.cargo = p.cargo || '';
+    obj.sub_programa = p.sub_programa || '';
+    obj.servicio_area = p.servicio_area || '';
+    obj.regimen_laboral = p.regimen_laboral || '';
+  }
+
   agregarParticipanteSindicato() {
     const p = this.nuevoParticipanteSindicato;
+    if (this.estadoBusquedaPartSindicato === 'ya_registrado') {
+      this.errorParticipanteSindicato = `Ya está registrado en "${this.capacitacionYaRegistradoSindicato}". No puede estar en más de una capacitación.`;
+      return;
+    }
     if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
       this.errorParticipanteSindicato = 'DNI/CE, Apellidos y Nombre son obligatorios.';
       return;
@@ -1014,28 +1132,16 @@ export class Sectorista implements OnInit {
       this.errorParticipanteSindicato = 'Ese DNI ya está en la lista de esta capacitación.';
       return;
     }
+    if (this.participantesSindicato.length >= (this.formularioSindicato.totalParticipantes as number)) {
+      this.errorParticipanteSindicato = this.formularioSindicato.totalParticipantes
+        ? `Ya alcanzó el límite de ${this.formularioSindicato.totalParticipantes} participante(s).`
+        : 'Ingrese primero el "Total de participantes" antes de agregarlos.';
+      return;
+    }
     this.errorParticipanteSindicato = '';
-    // Un participante no puede estar ya en OTRA capacitación (regla general del sistema).
-    this.http
-      .get<{ registrado: boolean; nombre_actividad?: string }>(
-        `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce.trim()}`,
-      )
-      .subscribe({
-        next: (r) => {
-          if (r.registrado) {
-            this.errorParticipanteSindicato = `${p.apellidos} ${p.nombre} ya está registrado en "${r.nombre_actividad}". No puede estar en más de una capacitación.`;
-            return;
-          }
-          this.participantesSindicato.push({ ...p });
-          this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
-        },
-        // Si falla la verificación no se bloquea al usuario — el backend
-        // igual revalida todo al guardar la capacitación completa.
-        error: () => {
-          this.participantesSindicato.push({ ...p });
-          this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
-        },
-      });
+    this.participantesSindicato.push({ ...p });
+    this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
+    this.estadoBusquedaPartSindicato = 'idle';
   }
 
   quitarParticipanteSindicato(idx: number) {
