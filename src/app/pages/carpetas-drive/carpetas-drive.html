@@ -50,14 +50,21 @@
     <div class="cd-card" *ngIf="!cargando">
       <table class="cd-tabla">
         <thead>
-          <tr><th>Red</th><th>Link de Drive</th><th class="c">Actualizado</th><th class="c">Acciones</th></tr>
+          <tr>
+            <th>Red</th>
+            <th>Link de Drive</th>
+            <th class="c">Actualizado</th>
+            <th class="c">Acciones</th>
+          </tr>
         </thead>
         <tbody>
           <tr *ngFor="let f of filas">
             <td class="cd-red">{{ f.red }}</td>
             <td class="cd-link-cell">
               <ng-container *ngIf="!f.editando">
-                <a *ngIf="f.drive_url" [href]="f.drive_url" target="_blank" class="cd-link">{{ f.drive_url }}</a>
+                <a *ngIf="f.drive_url" [href]="f.drive_url" target="_blank" class="cd-link">{{
+                  f.drive_url
+                }}</a>
                 <span *ngIf="!f.drive_url" class="cd-sin-link">Sin carpeta configurada</span>
               </ng-container>
               <input
@@ -77,18 +84,30 @@
             </td>
             <td class="c cd-acciones">
               <ng-container *ngIf="!f.editando">
-                <button class="cd-btn-sm" (click)="editar(f)">{{ f.drive_url ? 'Editar' : 'Agregar' }}</button>
-                <button class="cd-btn-sm cd-btn-abrir" *ngIf="f.drive_url" (click)="abrir(f)">Abrir</button>
+                <button class="cd-btn-sm" (click)="editar(f)">
+                  {{ f.drive_url ? 'Editar' : 'Agregar' }}
+                </button>
+                <button class="cd-btn-sm cd-btn-abrir" *ngIf="f.drive_url" (click)="abrir(f)">
+                  Abrir
+                </button>
               </ng-container>
               <ng-container *ngIf="f.editando">
-                <button class="cd-btn-sm cd-btn-guardar" (click)="guardar(f)" [disabled]="guardandoRed === f.red">
+                <button
+                  class="cd-btn-sm cd-btn-guardar"
+                  (click)="guardar(f)"
+                  [disabled]="guardandoRed === f.red"
+                >
                   {{ guardandoRed === f.red ? 'Guardando…' : 'Guardar' }}
                 </button>
-                <button class="cd-btn-sm" (click)="cancelar(f)" [disabled]="guardandoRed === f.red">Cancelar</button>
+                <button class="cd-btn-sm" (click)="cancelar(f)" [disabled]="guardandoRed === f.red">
+                  Cancelar
+                </button>
               </ng-container>
             </td>
           </tr>
-          <tr *ngIf="filas.length === 0"><td colspan="4" class="cd-vacio">No hay redes registradas.</td></tr>
+          <tr *ngIf="filas.length === 0">
+            <td colspan="4" class="cd-vacio">No hay redes registradas.</td>
+          </tr>
         </tbody>
       </table>
     </div>

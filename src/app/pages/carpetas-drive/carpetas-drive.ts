@@ -39,7 +39,12 @@ export class CarpetasDrive implements OnInit {
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
-    const f = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.cargar();
   }
@@ -83,7 +88,10 @@ export class CarpetasDrive implements OnInit {
 
   guardar(fila: FilaCarpeta): void {
     const url = fila.borrador.trim();
-    if (!url) { alert('Ingresa un link de Drive válido.'); return; }
+    if (!url) {
+      alert('Ingresa un link de Drive válido.');
+      return;
+    }
     this.guardandoRed = fila.red;
     this.cds.guardar(fila.red, url, this.usuario.nombre).subscribe({
       next: (r) => {
@@ -104,7 +112,14 @@ export class CarpetasDrive implements OnInit {
     if (fila.drive_url) window.open(fila.drive_url, '_blank');
   }
 
-  togglePerfilMenu(): void { this.mostrarPerfilMenu = !this.mostrarPerfilMenu; }
-  cerrarSesion(): void { localStorage.removeItem('usuario'); this.router.navigate(['/login']); }
-  volver(): void { this.router.navigate(['/dashboard']); }
+  togglePerfilMenu(): void {
+    this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+  }
+  cerrarSesion(): void {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/login']);
+  }
+  volver(): void {
+    this.router.navigate(['/dashboard']);
+  }
 }

@@ -1354,9 +1354,8 @@ export class Dashboard implements OnInit, OnDestroy {
     this.cerrarCambiarPassword();
   }
 
-  cerrarSesion() {
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
+  volverSomos() {
+    window.location.href = 'http://localhost:4200/somosessalud/';
   }
 
   get resumenRedesOrdenado() {

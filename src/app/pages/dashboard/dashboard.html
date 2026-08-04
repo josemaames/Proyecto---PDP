@@ -58,7 +58,9 @@
               </div>
             </div>
 
-            <button class="perfil-menu-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+            <button class="perfil-menu-salir" (click)="volverSomos()">
+              ← Volver a Somos EsSalud
+            </button>
           </div>
         }
       </div>
@@ -168,7 +170,7 @@
         </div>
       }
 
-      <div class="menu-item cerrar" (click)="cerrarSesion()">
+      <div class="menu-item cerrar" (click)="volverSomos()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <polyline points="16 17 21 12 16 7" />
@@ -664,7 +666,6 @@
         </div>
       </div>
 
-
       @if (departamentoLider) {
         <div class="dash-card departamento-lider-card">
           <div class="lider-contenido">
@@ -1063,145 +1064,200 @@
           </div>
         }
 
-      <!-- ═══════════ RESULTADOS DE NOTAS ═══════════ -->
-      <div class="grafico-full-width">
-      <div class="dash-card notas-dash-card">
-        <div class="notas-dash-head">
-          <div class="titulo-top">Resultados de Notas</div>
-          <div class="notas-dash-filtros">
-            <select [(ngModel)]="filtroNotasRed" (change)="cargarNotasStats()">
-              <option value="">Todas las redes</option>
-              <option *ngFor="let r of notasStats?.porRed" [value]="r.red">{{ r.red }}</option>
-            </select>
-            <div class="notas-buscador-cap">
-              <input
-                type="text"
-                placeholder="Buscar capacitación…"
-                [(ngModel)]="textoBusquedaCap"
-                (input)="buscarCapacitaciones()"
-                (focus)="mostrarSugerenciasCap = true"
-                (blur)="ocultarSugerenciasCapConDelay()"
-              />
-              <button *ngIf="filtroNotasCapacitacion" class="notas-buscador-cap-x" (click)="quitarFiltroCapacitacion()" title="Quitar filtro">&times;</button>
-              <div class="notas-buscador-cap-lista" *ngIf="mostrarSugerenciasCap && capacitacionesFiltradas.length">
-                <div
-                  class="notas-buscador-cap-item"
-                  *ngFor="let c of capacitacionesFiltradas"
-                  (mousedown)="seleccionarCapacitacion(c)"
-                >
-                  {{ c.nombre_actividad }}
+        <!-- ═══════════ RESULTADOS DE NOTAS ═══════════ -->
+        <div class="grafico-full-width">
+          <div class="dash-card notas-dash-card">
+            <div class="notas-dash-head">
+              <div class="titulo-top">Resultados de Notas</div>
+              <div class="notas-dash-filtros">
+                <select [(ngModel)]="filtroNotasRed" (change)="cargarNotasStats()">
+                  <option value="">Todas las redes</option>
+                  <option *ngFor="let r of notasStats?.porRed" [value]="r.red">{{ r.red }}</option>
+                </select>
+                <div class="notas-buscador-cap">
+                  <input
+                    type="text"
+                    placeholder="Buscar capacitación…"
+                    [(ngModel)]="textoBusquedaCap"
+                    (input)="buscarCapacitaciones()"
+                    (focus)="mostrarSugerenciasCap = true"
+                    (blur)="ocultarSugerenciasCapConDelay()"
+                  />
+                  <button
+                    *ngIf="filtroNotasCapacitacion"
+                    class="notas-buscador-cap-x"
+                    (click)="quitarFiltroCapacitacion()"
+                    title="Quitar filtro"
+                  >
+                    &times;
+                  </button>
+                  <div
+                    class="notas-buscador-cap-lista"
+                    *ngIf="mostrarSugerenciasCap && capacitacionesFiltradas.length"
+                  >
+                    <div
+                      class="notas-buscador-cap-item"
+                      *ngFor="let c of capacitacionesFiltradas"
+                      (mousedown)="seleccionarCapacitacion(c)"
+                    >
+                      {{ c.nombre_actividad }}
+                    </div>
+                  </div>
                 </div>
+                <select [(ngModel)]="filtroNotasSexo" (change)="cargarNotasStats()">
+                  <option value="">Todos los géneros</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                </select>
+                <button class="notas-btn-limpiar" (click)="limpiarFiltrosNotas()">Limpiar</button>
               </div>
             </div>
-            <select [(ngModel)]="filtroNotasSexo" (change)="cargarNotasStats()">
-              <option value="">Todos los géneros</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-            </select>
-            <button class="notas-btn-limpiar" (click)="limpiarFiltrosNotas()">Limpiar</button>
+
+            <div *ngIf="cargandoNotas" class="notas-cargando">Cargando…</div>
+
+            <ng-container *ngIf="!cargandoNotas && notasStats">
+              <div class="notas-kpis">
+                <div class="notas-kpi">
+                  <div class="notas-kpi-val">{{ notasStats.total | number }}</div>
+                  <div class="notas-kpi-lbl">Con nota registrada</div>
+                </div>
+                <div class="notas-kpi ok">
+                  <div class="notas-kpi-val">{{ notasStats.aprobados | number }}</div>
+                  <div class="notas-kpi-lbl">Aprobados</div>
+                </div>
+                <div class="notas-kpi bad">
+                  <div class="notas-kpi-val">{{ notasStats.desaprobados | number }}</div>
+                  <div class="notas-kpi-lbl">Desaprobados</div>
+                </div>
+                <div class="notas-kpi">
+                  <div class="notas-kpi-val">{{ notasStats.pctAprobacion }}%</div>
+                  <div class="notas-kpi-lbl">% Aprobación</div>
+                </div>
+                <div class="notas-kpi">
+                  <div class="notas-kpi-val">{{ notasStats.promedio }}</div>
+                  <div class="notas-kpi-lbl">Promedio</div>
+                </div>
+              </div>
+
+              <div *ngIf="notasStats.total === 0" class="notas-vacio">
+                Aún no hay notas registradas con estos filtros.
+              </div>
+
+              <div class="notas-graficos" *ngIf="notasStats.total > 0">
+                <!-- DONA -->
+                <div class="notas-grafico-card">
+                  <div class="notas-grafico-titulo">Aprobación general</div>
+                  <div class="notas-dona-wrap">
+                    <div class="notas-dona" [style.background]="notasGradoDona">
+                      <div class="notas-dona-centro">
+                        <div class="notas-dona-pct">{{ notasStats.pctAprobacion }}%</div>
+                      </div>
+                    </div>
+                    <div class="notas-dona-leyenda">
+                      <span
+                        ><i class="notas-dot ok"></i> Aprobados ({{ notasStats.aprobados }})</span
+                      >
+                      <span
+                        ><i class="notas-dot bad"></i> Desaprobados ({{
+                          notasStats.desaprobados
+                        }})</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- HISTOGRAMA -->
+                <div class="notas-grafico-card">
+                  <div class="notas-grafico-titulo">Distribución de notas</div>
+                  <div class="notas-histo">
+                    <div class="notas-histo-col" *ngFor="let b of notasStats.distribucion">
+                      <div class="notas-histo-barra">
+                        <div
+                          class="notas-histo-fill"
+                          [class.aprob]="b.rango === '13-16' || b.rango === '17-20'"
+                          [style.height.%]="(b.cantidad / notasMaxBucket) * 100"
+                        ></div>
+                      </div>
+                      <div class="notas-histo-num">{{ b.cantidad }}</div>
+                      <div class="notas-histo-rango">{{ b.rango }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- POR GÉNERO -->
+                <div class="notas-grafico-card" *ngIf="notasStats.porSexo.length">
+                  <div class="notas-grafico-titulo">Por género</div>
+                  <div class="notas-genero-row" *ngFor="let g of notasStats.porSexo">
+                    <div class="notas-genero-lbl">
+                      <span>{{ g.sexo }}</span>
+                      <span>{{ pctFila(g.aprobados, g.total) }}% aprob. ({{ g.total }})</span>
+                    </div>
+                    <div class="notas-barra-bg">
+                      <div
+                        class="notas-barra-fill"
+                        [style.width.%]="pctFila(g.aprobados, g.total)"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TABLA POR RED -->
+              <div class="notas-tabla-wrap" *ngIf="notasStats.porRed.length">
+                <div class="notas-grafico-titulo">Aprobación por Red</div>
+                <div class="tabla-scroll">
+                  <table class="notas-tabla">
+                    <thead>
+                      <tr>
+                        <th>Red</th>
+                        <th class="c">Total</th>
+                        <th class="c">Aprobados</th>
+                        <th class="c">Desaprobados</th>
+                        <th class="c">% Aprob.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let r of notasStats.porRed">
+                        <td>{{ r.red }}</td>
+                        <td class="c">{{ r.total }}</td>
+                        <td class="c ok">{{ r.aprobados }}</td>
+                        <td class="c bad">{{ r.desaprobados }}</td>
+                        <td class="c">{{ pctFila(r.aprobados, r.total) }}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- TABLA POR CAPACITACIÓN -->
+              <div class="notas-tabla-wrap" *ngIf="notasStats.porCapacitacion.length">
+                <div class="notas-grafico-titulo">Aprobación por Capacitación</div>
+                <div class="tabla-scroll">
+                  <table class="notas-tabla">
+                    <thead>
+                      <tr>
+                        <th>Capacitación</th>
+                        <th class="c">Total</th>
+                        <th class="c">Aprobados</th>
+                        <th class="c">Desaprobados</th>
+                        <th class="c">% Aprob.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let c of notasStats.porCapacitacion">
+                        <td>{{ c.nombre_actividad }}</td>
+                        <td class="c">{{ c.total }}</td>
+                        <td class="c ok">{{ c.aprobados }}</td>
+                        <td class="c bad">{{ c.desaprobados }}</td>
+                        <td class="c">{{ pctFila(c.aprobados, c.total) }}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
-
-        <div *ngIf="cargandoNotas" class="notas-cargando">Cargando…</div>
-
-        <ng-container *ngIf="!cargandoNotas && notasStats">
-          <div class="notas-kpis">
-            <div class="notas-kpi"><div class="notas-kpi-val">{{ notasStats.total | number }}</div><div class="notas-kpi-lbl">Con nota registrada</div></div>
-            <div class="notas-kpi ok"><div class="notas-kpi-val">{{ notasStats.aprobados | number }}</div><div class="notas-kpi-lbl">Aprobados</div></div>
-            <div class="notas-kpi bad"><div class="notas-kpi-val">{{ notasStats.desaprobados | number }}</div><div class="notas-kpi-lbl">Desaprobados</div></div>
-            <div class="notas-kpi"><div class="notas-kpi-val">{{ notasStats.pctAprobacion }}%</div><div class="notas-kpi-lbl">% Aprobación</div></div>
-            <div class="notas-kpi"><div class="notas-kpi-val">{{ notasStats.promedio }}</div><div class="notas-kpi-lbl">Promedio</div></div>
-          </div>
-
-          <div *ngIf="notasStats.total === 0" class="notas-vacio">Aún no hay notas registradas con estos filtros.</div>
-
-          <div class="notas-graficos" *ngIf="notasStats.total > 0">
-            <!-- DONA -->
-            <div class="notas-grafico-card">
-              <div class="notas-grafico-titulo">Aprobación general</div>
-              <div class="notas-dona-wrap">
-                <div class="notas-dona" [style.background]="notasGradoDona">
-                  <div class="notas-dona-centro">
-                    <div class="notas-dona-pct">{{ notasStats.pctAprobacion }}%</div>
-                  </div>
-                </div>
-                <div class="notas-dona-leyenda">
-                  <span><i class="notas-dot ok"></i> Aprobados ({{ notasStats.aprobados }})</span>
-                  <span><i class="notas-dot bad"></i> Desaprobados ({{ notasStats.desaprobados }})</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- HISTOGRAMA -->
-            <div class="notas-grafico-card">
-              <div class="notas-grafico-titulo">Distribución de notas</div>
-              <div class="notas-histo">
-                <div class="notas-histo-col" *ngFor="let b of notasStats.distribucion">
-                  <div class="notas-histo-barra">
-                    <div class="notas-histo-fill" [class.aprob]="b.rango === '13-16' || b.rango === '17-20'"
-                         [style.height.%]="(b.cantidad / notasMaxBucket) * 100"></div>
-                  </div>
-                  <div class="notas-histo-num">{{ b.cantidad }}</div>
-                  <div class="notas-histo-rango">{{ b.rango }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- POR GÉNERO -->
-            <div class="notas-grafico-card" *ngIf="notasStats.porSexo.length">
-              <div class="notas-grafico-titulo">Por género</div>
-              <div class="notas-genero-row" *ngFor="let g of notasStats.porSexo">
-                <div class="notas-genero-lbl">
-                  <span>{{ g.sexo }}</span>
-                  <span>{{ pctFila(g.aprobados, g.total) }}% aprob. ({{ g.total }})</span>
-                </div>
-                <div class="notas-barra-bg">
-                  <div class="notas-barra-fill" [style.width.%]="pctFila(g.aprobados, g.total)"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TABLA POR RED -->
-          <div class="notas-tabla-wrap" *ngIf="notasStats.porRed.length">
-            <div class="notas-grafico-titulo">Aprobación por Red</div>
-            <div class="tabla-scroll">
-              <table class="notas-tabla">
-                <thead><tr><th>Red</th><th class="c">Total</th><th class="c">Aprobados</th><th class="c">Desaprobados</th><th class="c">% Aprob.</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of notasStats.porRed">
-                    <td>{{ r.red }}</td>
-                    <td class="c">{{ r.total }}</td>
-                    <td class="c ok">{{ r.aprobados }}</td>
-                    <td class="c bad">{{ r.desaprobados }}</td>
-                    <td class="c">{{ pctFila(r.aprobados, r.total) }}%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- TABLA POR CAPACITACIÓN -->
-          <div class="notas-tabla-wrap" *ngIf="notasStats.porCapacitacion.length">
-            <div class="notas-grafico-titulo">Aprobación por Capacitación</div>
-            <div class="tabla-scroll">
-              <table class="notas-tabla">
-                <thead><tr><th>Capacitación</th><th class="c">Total</th><th class="c">Aprobados</th><th class="c">Desaprobados</th><th class="c">% Aprob.</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let c of notasStats.porCapacitacion">
-                    <td>{{ c.nombre_actividad }}</td>
-                    <td class="c">{{ c.total }}</td>
-                    <td class="c ok">{{ c.aprobados }}</td>
-                    <td class="c bad">{{ c.desaprobados }}</td>
-                    <td class="c">{{ pctFila(c.aprobados, c.total) }}%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </ng-container>
-      </div>
-      </div>
 
         <!-- RESUMEN POR RED ASISTENCIAL -->
         @if (esAdministrador) {
