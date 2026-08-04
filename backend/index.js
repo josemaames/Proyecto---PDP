@@ -1974,6 +1974,111 @@ app.delete('/api/sindicatos/:id', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// CAPACITACIONES DE SINDICATO
+// El Sectorista las crea directo (sin flujo de aprobación, ya que el Sectorista
+// es quien aprueba las normales). Se guardan en las mismas tablas que cualquier
+// capacitación (datos_actividad / lista_participantes) — la única diferencia es
+// la columna `sindicato`, que queda vacía para las capacitaciones normales.
+// No se restringe por red: un sindicato puede juntar gente de varias redes.
+// ──────────────────────────────────────────────
+app.post('/api/capacitaciones-sindicato', async (req, res) => {
+  try {
+    const f = req.body;
+    if (!f.sindicato?.trim()) return res.status(400).json({ error: 'Seleccione un sindicato.' });
+    if (!f.codigoAct?.trim()) return res.status(400).json({ error: 'El código de actividad es obligatorio.' });
+    if (!f.nombreActividad?.trim()) return res.status(400).json({ error: 'El nombre de la actividad es obligatorio.' });
+    if (!f.fechaInicio) return res.status(400).json({ error: 'La fecha de inicio es obligatoria.' });
+    if (!f.redAsistencial?.trim()) return res.status(400).json({ error: 'Seleccione una red asistencial.' });
+
+    const participantes = Array.isArray(f.participantes) ? f.participantes : [];
+
+    // Un participante no puede estar ya en otra capacitación (misma regla que
+    // el resto del sistema). Se valida TODA la lista antes de insertar nada.
+    const conflictos = [];
+    for (const p of participantes) {
+      const c = await buscarConflictoParticipante(p.dni_ce, f.codigoAct);
+      if (c) conflictos.push({ ...p, ...c });
+    }
+    if (conflictos.length) {
+      const detalle = conflictos
+        .map((c) => `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}) ya está en "${c.nombre_actividad || c.codigo_act}"`)
+        .join('; ');
+      return res.status(409).json({
+        error: `No se puede registrar: ${detalle}. Un participante no puede estar en más de una capacitación.`,
+      });
+    }
+
+    await pool.query(
+      `INSERT INTO datos_actividad
+         (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
+          servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
+          frecuencia, hora_inicio, hora_termino, modalidad, publico,
+          nivel_evaluacion, objetivo_estrategico, total_participantes,
+          ruc_proveedor, nombre_proveedor, sector_proveedor,
+          presupuesto_ejecutado, eje_tematico, sindicato)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
+      [
+        f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino, f.redAsistencial,
+        f.servicioArea, f.nombreActividad, f.totalHoras || null, f.horasFueraHorario || null,
+        f.frecuencia, f.horaInicio || null, f.horaTermino || null, f.modalidad, f.publico,
+        f.nivelEvaluacion, f.objetivoEstrategico || null, participantes.length || f.totalParticipantes || null,
+        f.rucProveedor, f.nombreProveedor, f.sectorProveedor, f.presupuestoEjecutado || null,
+        f.ejeTematico, f.sindicato.trim(),
+      ],
+    );
+
+    for (const p of participantes) {
+      const redNorm = expandirRed(p.red || f.redAsistencial || '');
+      await pool.query(
+        `INSERT INTO lista_participantes
+           (codigo_act, dni_ce, cod_planilla, apellidos, nombre,
+            sexo, red, sub_programa, servicio_area, cargo, regimen_laboral)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [
+          f.codigoAct, p.dni_ce || null, p.cod_planilla || null, p.apellidos || null, p.nombre || null,
+          p.sexo || null, redNorm || null, p.sub_programa || null, p.servicio_area || null,
+          p.cargo || null, p.regimen_laboral || null,
+        ],
+      );
+    }
+
+    invalidarCache();
+    logEvento(
+      'capacitacion_sindicato_creada',
+      `${f.actor_nombre || 'Sectorista'} registró la capacitación "${f.nombreActividad}" para el sindicato ${f.sindicato} (${participantes.length} participante(s))`,
+      f.actor_nombre,
+      'Sectorista',
+      f.codigoAct,
+    );
+    res.status(201).json({ ok: true, codigoAct: f.codigoAct });
+  } catch (err) {
+    if (String(err.message).includes('UQ_DATOS_ACTIVIDAD_CODIGO_ACT')) {
+      return res.status(409).json({ error: `Ya existe una capacitación con el código "${req.body.codigoAct}".` });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/capacitaciones-sindicato', async (req, res) => {
+  try {
+    const { sindicato } = req.query;
+    const cond = [`sindicato IS NOT NULL`];
+    const params = [];
+    if (sindicato) {
+      cond.push(`sindicato = $1`);
+      params.push(sindicato);
+    }
+    const { rows } = await pool.query(
+      `SELECT * FROM datos_actividad WHERE ${cond.join(' AND ')} ORDER BY id DESC`,
+      params,
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ──────────────────────────────────────────────
 // Techo presupuestal por red
 // ──────────────────────────────────────────────
 app.get('/api/presupuesto-redes', async (req, res) => {

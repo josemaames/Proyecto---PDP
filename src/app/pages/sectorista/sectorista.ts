@@ -893,6 +893,9 @@ export class Sectorista implements OnInit {
   guardandoSindicato = false;
   errorSindicatoForm = '';
   capacitacionesSindicato: any[] = [];
+  cargandoCapacitacionesSindicato = false;
+  filtroSindicatoLista = '';
+  errorParticipanteSindicatoDni = ''; // estado de "ya registrado en otra capacitación"
 
   // Se carga desde /api/sindicatos (tabla `sindicatos`) en ngOnInit.
   SINDICATOS_LISTA: string[] = [];
@@ -956,6 +959,29 @@ export class Sectorista implements OnInit {
 
   cambiarSeccion(s: 'inicio' | 'sindicatos') {
     this.seccionActiva = s;
+    if (s === 'sindicatos') this.cargarCapacitacionesSindicato();
+  }
+
+  cargarCapacitacionesSindicato() {
+    this.cargandoCapacitacionesSindicato = true;
+    const qs = this.filtroSindicatoLista ? `?sindicato=${encodeURIComponent(this.filtroSindicatoLista)}` : '';
+    this.http.get<any[]>(`http://localhost:3001/api/capacitaciones-sindicato${qs}`).subscribe({
+      next: (rows) => {
+        this.capacitacionesSindicato = rows.map((r) => ({
+          sindicato: r.sindicato,
+          codigoAct: r.codigo_act,
+          nombreActividad: r.nombre_actividad,
+          redAsistencial: r.red_asistencial,
+          modalidad: r.modalidad,
+          fechaInicio: r.fecha_inicio,
+          fechaFin: r.fecha_fin,
+          totalParticipantes: r.total_participantes,
+          presupuestoEjecutado: r.presupuesto_ejecutado,
+        }));
+        this.cargandoCapacitacionesSindicato = false;
+      },
+      error: () => (this.cargandoCapacitacionesSindicato = false),
+    });
   }
 
   actualizarMesTerminoSindicato() {
@@ -984,9 +1010,32 @@ export class Sectorista implements OnInit {
       this.errorParticipanteSindicato = 'DNI/CE, Apellidos y Nombre son obligatorios.';
       return;
     }
+    if (this.participantesSindicato.some((x) => x.dni_ce === p.dni_ce.trim())) {
+      this.errorParticipanteSindicato = 'Ese DNI ya está en la lista de esta capacitación.';
+      return;
+    }
     this.errorParticipanteSindicato = '';
-    this.participantesSindicato.push({ ...p });
-    this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
+    // Un participante no puede estar ya en OTRA capacitación (regla general del sistema).
+    this.http
+      .get<{ registrado: boolean; nombre_actividad?: string }>(
+        `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce.trim()}`,
+      )
+      .subscribe({
+        next: (r) => {
+          if (r.registrado) {
+            this.errorParticipanteSindicato = `${p.apellidos} ${p.nombre} ya está registrado en "${r.nombre_actividad}". No puede estar en más de una capacitación.`;
+            return;
+          }
+          this.participantesSindicato.push({ ...p });
+          this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
+        },
+        // Si falla la verificación no se bloquea al usuario — el backend
+        // igual revalida todo al guardar la capacitación completa.
+        error: () => {
+          this.participantesSindicato.push({ ...p });
+          this.nuevoParticipanteSindicato = this.participanteVacioEdicion();
+        },
+      });
   }
 
   quitarParticipanteSindicato(idx: number) {
@@ -1018,23 +1067,30 @@ export class Sectorista implements OnInit {
       return;
     }
 
-    this.guardandoSindicato = true;
+    if (this.participantesSindicato.length === 0) {
+      this.errorSindicatoForm = 'Agregue al menos un participante.';
+      return;
+    }
 
-    // TODO: reemplazar por llamada HTTP cuando el endpoint /api/capacitaciones-sindicato esté disponible
-    const registro = {
+    this.guardandoSindicato = true;
+    const payload = {
       ...f,
       participantes: [...this.participantesSindicato],
-      totalParticipantes: this.participantesSindicato.length || f.totalParticipantes,
-      fechaRegistro: new Date().toISOString(),
+      actor_nombre: this.usuario?.nombre || '',
     };
-    this.capacitacionesSindicato.unshift(registro);
-    this.formularioSindicato = this.formSindicatoVacio();
-    this.participantesSindicato = [];
-    this.guardandoSindicato = false;
 
-    alert(
-      ' Capacitación de sindicato registrada.\n\nSe sincronizará con la base de datos cuando el módulo esté habilitado.',
-    );
+    this.http.post('http://localhost:3001/api/capacitaciones-sindicato', payload).subscribe({
+      next: () => {
+        this.guardandoSindicato = false;
+        this.formularioSindicato = this.formSindicatoVacio();
+        this.participantesSindicato = [];
+        this.cargarCapacitacionesSindicato();
+      },
+      error: (err) => {
+        this.guardandoSindicato = false;
+        this.errorSindicatoForm = err.error?.error || 'No se pudo registrar la capacitación.';
+      },
+    });
   }
 
   guardarMatriz() {

@@ -570,9 +570,24 @@
                 }}</span>
               }
             </span>
+            <select
+              class="filtro-red-select"
+              style="margin-left: auto"
+              [(ngModel)]="filtroSindicatoLista"
+              (change)="cargarCapacitacionesSindicato()"
+            >
+              <option value="">Todos los sindicatos</option>
+              @for (s of SINDICATOS_LISTA; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
           </div>
 
-          @if (capacitacionesSindicato.length === 0) {
+          @if (cargandoCapacitacionesSindicato) {
+            <div class="sin-resultados">
+              <p>Cargando…</p>
+            </div>
+          } @else if (capacitacionesSindicato.length === 0) {
             <div class="sin-resultados">
               <p>Aún no se han registrado capacitaciones para sindicatos.</p>
             </div>
