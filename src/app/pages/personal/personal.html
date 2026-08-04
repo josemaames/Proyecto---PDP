@@ -226,7 +226,9 @@
                     class="check-red"
                     [class.check-red-activo]="rolSelMarcado(r)"
                     [class.check-red-bloqueado]="rolBloqueado(r)"
-                    [title]="rolBloqueado(r) ? 'Bloqueado: Convenios no aplica para el rol Ejecutor' : ''"
+                    [title]="
+                      rolBloqueado(r) ? 'Bloqueado: Convenios no aplica para el rol Ejecutor' : ''
+                    "
                   >
                     <input
                       type="checkbox"
@@ -519,3 +521,17 @@
     </main>
   </div>
 </div>
+
+@if (mostrarModalExito) {
+  <div class="modal-overlay">
+    <div class="modal-exito">
+      <div class="icono-exito">✓</div>
+
+      <h2>{{ tituloModalExito }}</h2>
+
+      <p>{{ mensajeModalExito }}</p>
+
+      <button class="btn-exito" (click)="cerrarModalExito()">Aceptar</button>
+    </div>
+  </div>
+}
