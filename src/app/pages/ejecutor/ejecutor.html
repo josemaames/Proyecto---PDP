@@ -805,6 +805,7 @@
  @if (estadoAC === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoAC === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
  @if (estadoAC === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
+ @if (estadoAC === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span> }
  </label>
  <div class="partic-autocomplete">
  <input
@@ -828,6 +829,11 @@
  @if (estadoAC === 'red_no_coincide') {
  <p class="partic-error-red">
  Pertenece a <strong>{{ redRealNoCoincide }}</strong>, no a tu red ({{ redEjecutor }}). No se puede agregar a esta capacitación.
+ </p>
+ }
+ @if (estadoAC === 'ya_registrado') {
+ <p class="partic-error-red">
+ Ya está registrado en <strong>{{ capacitacionYaRegistrado }}</strong>. Un participante no puede estar en más de una capacitación.
  </p>
  }
  </div>
@@ -1089,6 +1095,7 @@
  @if (estadoACCorr === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoACCorr === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
  @if (estadoACCorr === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
+ @if (estadoACCorr === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span> }
  </label>
  <div class="partic-autocomplete">
  <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce"
@@ -1108,6 +1115,11 @@
  @if (estadoACCorr === 'red_no_coincide') {
  <p class="partic-error-red">
  Pertenece a <strong>{{ redRealNoCoincideCorr }}</strong>, no a tu red ({{ redEjecutor }}). No se puede agregar.
+ </p>
+ }
+ @if (estadoACCorr === 'ya_registrado') {
+ <p class="partic-error-red">
+ Ya está registrado en <strong>{{ capacitacionYaRegistradoCorr }}</strong>. No puede estar en más de una capacitación.
  </p>
  }
  </div>

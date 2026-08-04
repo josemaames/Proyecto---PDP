@@ -109,10 +109,12 @@ export class Ejecutor implements OnInit {
  participantesSeleccionados: any[] = [];
  nuevoPartic = this.particVacio();
  errorPartic = '';
- estadoAC: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' = 'idle';
- estadoACCorr: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' = 'idle';
+ estadoAC: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' | 'ya_registrado' = 'idle';
+ estadoACCorr: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'red_no_coincide' | 'ya_registrado' = 'idle';
  redRealNoCoincide = ''; // red real de la persona cuando no coincide con la del ejecutor
  redRealNoCoincideCorr = '';
+ capacitacionYaRegistrado = ''; // nombre de la capacitación donde ya está inscrito, si aplica
+ capacitacionYaRegistradoCorr = '';
  sugerencias: any[] = [];
  sugerenciasCorr: any[] = [];
  private dniTimer: any;
@@ -494,6 +496,10 @@ export class Ejecutor implements OnInit {
  this.errorPartic = `Ese DNI pertenece a ${this.redRealNoCoincide || 'otra red'}, distinta a tu red asignada (${this.redEjecutor}). No se puede agregar.`;
  return;
  }
+ if (this.estadoAC === 'ya_registrado') {
+ this.errorPartic = `Este participante ya está registrado en "${this.capacitacionYaRegistrado || 'otra capacitación'}". No puede estar en más de una.`;
+ return;
+ }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
  this.errorPartic = 'DNI/CE, Apellidos y Nombre son obligatorios.';
  return;
@@ -545,6 +551,10 @@ export class Ejecutor implements OnInit {
  this.errorParticCorreccion = `Ese DNI pertenece a ${this.redRealNoCoincideCorr || 'otra red'}, distinta a tu red asignada (${this.redEjecutor}). No se puede agregar.`;
  return;
  }
+ if (this.estadoACCorr === 'ya_registrado') {
+ this.errorParticCorreccion = `Este participante ya está registrado en "${this.capacitacionYaRegistradoCorr || 'otra capacitación'}". No puede estar en más de una.`;
+ return;
+ }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
  this.errorParticCorreccion = 'DNI/CE, Apellidos y Nombre son obligatorios.';
  return;
@@ -581,6 +591,39 @@ export class Ejecutor implements OnInit {
  return normalizarRedKey(p.red) === normalizarRedKey(this.redEjecutor);
  }
 
+ // Un DNI no puede estar en más de una capacitación a la vez. Se valida contra
+ // el backend (fuente de verdad) antes de dejar autocompletar/agregar a la persona.
+ // `excluirCodigoAct` evita falsos positivos al re-editar la misma solicitud.
+ private verificarDuplicadoYLlenar(p: any, target: 'nuevo' | 'correccion') {
+ const codigoAct = target === 'nuevo' ? this.formulario.codigoAct : this.formularioCorreccion?.codigoAct;
+ const params = new URLSearchParams();
+ if (codigoAct) params.set('excluir_codigo_act', codigoAct);
+ const qs = params.toString();
+ this.http
+ .get<{ registrado: boolean; nombre_actividad?: string }>(
+ `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce}${qs ? '?' + qs : ''}`,
+ )
+ .subscribe({
+ next: (r) => {
+ if (r.registrado) {
+ if (target === 'nuevo') { this.estadoAC = 'ya_registrado'; this.capacitacionYaRegistrado = r.nombre_actividad || ''; }
+ else { this.estadoACCorr = 'ya_registrado'; this.capacitacionYaRegistradoCorr = r.nombre_actividad || ''; }
+ return;
+ }
+ this.llenarDesdePersonal(p, target);
+ if (target === 'nuevo') this.estadoAC = 'encontrado';
+ else this.estadoACCorr = 'encontrado';
+ },
+ // Si falla la verificación, se prioriza no bloquear al ejecutor con un
+ // falso error de red — igual queda la revalidación al aprobar como respaldo.
+ error: () => {
+ this.llenarDesdePersonal(p, target);
+ if (target === 'nuevo') this.estadoAC = 'encontrado';
+ else this.estadoACCorr = 'encontrado';
+ },
+ });
+ }
+
  autocompletarPorDni(dni: string, target: 'nuevo' | 'correccion' = 'nuevo') {
  clearTimeout(this.dniTimer);
  clearTimeout(this.sugerenciasTimer);
@@ -600,9 +643,7 @@ export class Ejecutor implements OnInit {
  else { this.estadoACCorr = 'red_no_coincide'; this.redRealNoCoincideCorr = p.red || ''; }
  return;
  }
- this.llenarDesdePersonal(p, target);
- if (target === 'nuevo') this.estadoAC = 'encontrado';
- else this.estadoACCorr = 'encontrado';
+ this.verificarDuplicadoYLlenar(p, target);
  },
  error: () => {
  if (target === 'nuevo') this.estadoAC = 'no_encontrado';
@@ -639,11 +680,11 @@ export class Ejecutor implements OnInit {
  }, 300);
  }
 
- // El backend ya filtra por red del ejecutor, así que cualquier sugerencia elegida es segura.
+ // El backend ya filtra por red del ejecutor, pero igual falta chequear duplicados.
  seleccionarSugerencia(p: any, target: 'nuevo' | 'correccion' = 'nuevo') {
- this.llenarDesdePersonal(p, target);
- if (target === 'nuevo') { this.estadoAC = 'encontrado'; this.sugerencias = []; }
- else { this.estadoACCorr = 'encontrado'; this.sugerenciasCorr = []; }
+ if (target === 'nuevo') this.sugerencias = [];
+ else this.sugerenciasCorr = [];
+ this.verificarDuplicadoYLlenar(p, target);
  }
 
  autocompletarPorPlanilla(cod: string, target: 'nuevo' | 'correccion' = 'nuevo') {
@@ -661,9 +702,7 @@ export class Ejecutor implements OnInit {
  else { this.estadoACCorr = 'red_no_coincide'; this.redRealNoCoincideCorr = p.red || ''; }
  return;
  }
- this.llenarDesdePersonal(p, target);
- if (target === 'nuevo') this.estadoAC = 'encontrado';
- else this.estadoACCorr = 'encontrado';
+ this.verificarDuplicadoYLlenar(p, target);
  },
  error: () => {
  if (target === 'nuevo') this.estadoAC = 'no_encontrado';

@@ -326,10 +326,55 @@ async function recalcularTotalParticipantes(codigo_act) {
   );
 }
 
+// Un DNI/CE no puede estar registrado en más de una capacitación a la vez
+// (sin importar red o fechas — regla vigente hoy, puede volverse más flexible
+// más adelante). Se usa tanto para el chequeo en vivo del Ejecutor como para
+// bloquear el alta directa (admin/Sectorista) y la aprobación de solicitudes.
+async function buscarConflictoParticipante(dni_ce, codigoActExcluir) {
+  if (!dni_ce) return null;
+  const params = [dni_ce];
+  let where = 'lp.dni_ce = $1';
+  if (codigoActExcluir) {
+    params.push(codigoActExcluir);
+    where += ' AND lp.codigo_act <> $2';
+  }
+  const { rows } = await pool.query(
+    `SELECT lp.codigo_act, lp.apellidos, lp.nombre, da.nombre_actividad
+     FROM lista_participantes lp
+     LEFT JOIN datos_actividad da ON da.codigo_act = lp.codigo_act
+     WHERE ${where}`,
+    params,
+  );
+  return rows[0] || null;
+}
+
+app.get('/api/participantes/verificar-dni/:dni', async (req, res) => {
+  try {
+    const conflicto = await buscarConflictoParticipante(req.params.dni, req.query.excluir_codigo_act);
+    if (!conflicto) return res.json({ registrado: false });
+    res.json({
+      registrado: true,
+      codigo_act: conflicto.codigo_act,
+      nombre_actividad: conflicto.nombre_actividad || conflicto.codigo_act,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/participantes', async (req, res) => {
   try {
     const f = req.body;
     const codigo_act = f.codigoAct || f.codigo_act;
+    const dni_ce = f.dniCe || f.dni_ce;
+
+    const conflicto = await buscarConflictoParticipante(dni_ce, codigo_act);
+    if (conflicto) {
+      return res.status(409).json({
+        error: `Este participante ya está registrado en la capacitación "${conflicto.nombre_actividad || conflicto.codigo_act}" (${conflicto.codigo_act}). No puede estar en más de una capacitación.`,
+      });
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO lista_participantes
          (codigo_act, dni_ce, cod_planilla, apellidos, nombre,
@@ -337,7 +382,7 @@ app.post('/api/participantes', async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
       [
         codigo_act,
-        f.dniCe || f.dni_ce,
+        dni_ce,
         f.codPlanilla || f.cod_planilla,
         f.apellidos,
         f.nombres || f.nombre,
@@ -1334,6 +1379,39 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     if (!['aprobado', 'observado', 'excluido', 'denegado'].includes(estado)) {
       return res.status(400).json({ error: 'estado no válido' });
     }
+
+    // Revalidación de seguridad: ningún participante de esta solicitud puede
+    // estar ya registrado en OTRA capacitación (el Ejecutor ya lo valida al
+    // agregar, pero puede haber quedado desactualizado entre el envío y la
+    // aprobación). Se chequea antes de tocar la solicitud para no dejarla a
+    // medio aprobar si hay un conflicto.
+    if (estado === 'aprobado') {
+      const pendiente = await pool.query('SELECT datos FROM solicitudes_revision WHERE id=$1', [
+        parseInt(req.params.id),
+      ]);
+      if (!pendiente.rows.length) return res.status(404).json({ error: 'No encontrada' });
+      const fPrevio = JSON.parse(pendiente.rows[0].datos);
+      const participantesPrevio = Array.isArray(fPrevio.participantesDetalle)
+        ? fPrevio.participantesDetalle
+        : [];
+      const conflictos = [];
+      for (const p of participantesPrevio) {
+        const c = await buscarConflictoParticipante(p.dni_ce, fPrevio.codigoAct);
+        if (c) conflictos.push({ ...p, ...c });
+      }
+      if (conflictos.length) {
+        const detalle = conflictos
+          .map(
+            (c) =>
+              `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}) ya está en "${c.nombre_actividad || c.codigo_act}"`,
+          )
+          .join('; ');
+        return res.status(409).json({
+          error: `No se puede aprobar: ${detalle}. Un participante no puede estar en más de una capacitación.`,
+        });
+      }
+    }
+
     const { rows } = await pool.query(
       `UPDATE solicitudes_revision
        SET estado=$1, motivo_rechazo=$2, reviewed_at=NOW()

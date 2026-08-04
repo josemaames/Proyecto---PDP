@@ -43,3 +43,9 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 backend/.env
+node_modules/
+.angular/
+dist/
+node_modules/
+.angular/
+dist/
