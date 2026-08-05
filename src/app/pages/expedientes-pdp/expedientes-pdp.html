@@ -1,347 +1,618 @@
-<div class="exp-container">
+<div class="app-layout">
+  <nav class="app-nav">
+    <div class="nav-izq">
+      <button class="nav-hamburger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
 
- <!-- ENCABEZADO -->
- <div class="exp-header">
- <div class="exp-titulo">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
- <polyline points="14 2 14 8 20 8"/>
- <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
- </svg>
- <div>
- <h2>Capacitaciones PDP</h2>
- <span class="exp-subtitulo">{{ total | number }} registros encontrados</span>
- </div>
- </div>
- </div>
+      <img src="somos-essalud.png" class="nav-logo" />
 
- <!-- BADGE RED ASIGNADA (sectorista / ejecutor) -->
- @if (redFiltro) {
- <div class="filtro-red-badge">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
- <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
- </svg>
- Mostrando solo capacitaciones de:
- @for (r of redesAsignadas; track r) {
- <span class="badge-red-item">{{ r }}</span>
- }
- @if (rolUsuario === 'Sectorista') {
- <button class="btn-gestionar" (click)="abrirModalAsignar()">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
- <circle cx="9" cy="7" r="4"/>
- <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
- </svg>
- Gestionar Ejecutores
- </button>
- }
- </div>
- }
+      <div class="nav-brand">
+        <div class="nav-brand-title">Sistema de Gestión PDP</div>
+        <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
+      </div>
+    </div>
 
- <!-- FILTROS -->
- <div class="filtros-bar">
- <div class="filtro-grupo">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
- <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
- </svg>
- <input type="text" placeholder="Buscar por nombre o código..." [(ngModel)]="busqueda" (keyup.enter)="buscar()" />
- </div>
- @if (!redFiltro) {
- <select class="filtro-select" [(ngModel)]="filtrored" (change)="buscar()">
- <option value="">Todas las redes</option>
- @for (red of redesDisponibles; track red) {
- <option [value]="red">{{ red }}</option>
- }
- </select>
- }
- <select class="filtro-select" [(ngModel)]="filtroEje" (change)="buscar()">
- <option value="">Todos los ejes temáticos</option>
- @for (eje of ejesTematicos; track eje) {
- <option [value]="eje">{{ eje }}</option>
- }
- </select>
- <select class="filtro-select" [(ngModel)]="filtroMod" (change)="buscar()">
- <option value="">Todas las modalidades</option>
- <option value="Presencial">Presencial</option>
- <option value="Virtual">Virtual</option>
- <option value="Semipresencial">Semipresencial</option>
- </select>
- <button class="btn-buscar" (click)="buscar()">Buscar</button>
- </div>
+    <div class="nav-der">
+      <span class="nav-fecha">{{ fechaHoy }}</span>
 
- <!-- TABLA -->
- <div class="tabla-wrap">
- @if (cargando && capacitaciones.length === 0) {
- <!-- Primera carga: sin datos previos → spinner completo -->
- <div class="estado-cargando">
- <div class="spinner"></div>
- <span>Cargando capacitaciones...</span>
- </div>
- } @else if (!cargando && capacitaciones.length === 0) {
- <div class="estado-vacio">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
- <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
- </svg>
- <p>No se encontraron capacitaciones.</p>
- </div>
- } @else {
- <!-- Tabla: visible incluso mientras carga la siguiente página -->
- <div class="tabla-relativa">
- @if (cargando) {
- <div class="overlay-cargando"><div class="spinner-sm"></div></div>
- }
- <table class="tabla-cap">
- <thead>
- <tr>
- <th>N°</th>
- <th>Código ACT</th>
- <th>Nombre de la Capacitación</th>
- <th>Red Asistencial</th>
- <th>Modalidad</th>
- <th>Fecha Inicio</th>
- <th>Fecha Fin</th>
- <th>Horas</th>
- <th>Participantes</th>
- <th>Presupuesto</th>
- <th></th>
- </tr>
- </thead>
- <tbody>
- @for (cap of capacitaciones; track cap.id) {
- <tr>
- <td class="td-num">{{ cap.numero ?? '—' }}</td>
- <td class="td-codigo"><span class="badge-codigo">{{ cap.codigo_act }}</span></td>
- <td class="td-nombre">{{ cap.nombre_actividad || '—' }}</td>
- <td class="td-red">{{ cap.red_asistencial || '—' }}</td>
- <td>
- @if (cap.modalidad) {
- <span class="badge-mod" [class.mod-presencial]="cap.modalidad === 'Presencial'"
- [class.mod-virtual]="cap.modalidad === 'Virtual'"
- [class.mod-semipres]="cap.modalidad === 'Semipresencial'">
- {{ cap.modalidad }}
- </span>
- } @else { <span>—</span> }
- </td>
- <td>{{ cap.fecha_inicio ? (cap.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
- <td>{{ cap.fecha_fin ? (cap.fecha_fin | date:'dd/MM/yyyy') : '—' }}</td>
- <td class="td-num">{{ cap.total_horas ?? '—' }}</td>
- <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
- <td>{{ cap.presupuesto_ejecutado != null ? (cap.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</td>
- <td>
- <div style="display:flex;gap:8px;flex-wrap:wrap">
- <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
- <button class="btn-ver" (click)="verNotas(cap)" style="background:#0f6b3f">Resultados</button>
- </div>
- </td>
- </tr>
- }
- </tbody>
- </table>
- </div>
- }
+      <div class="perfil-wrap">
+        <button class="nav-avatar" (click)="togglePerfilMenu()">
+          {{ inicialUsuario }}
+        </button>
 
- <!-- PAGINACIÓN — siempre visible cuando hay más de una página -->
- @if (totalPaginas > 1 || pagina > 1) {
- <div class="paginacion">
- <span class="pag-info">Página {{ pagina }} de {{ totalPaginas }}</span>
- <div class="pag-botones">
- <button [disabled]="pagina === 1 || cargando" (click)="anterior()">← Anterior</button>
- <button [disabled]="pagina === totalPaginas || cargando" (click)="siguiente()">Siguiente →</button>
- </div>
- </div>
- }
- </div>
+        @if (mostrarPerfilMenu) {
+          <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
 
+          <div class="perfil-menu">
+            <div class="perfil-menu-head">
+              <div class="perfil-menu-avatar">
+                {{ inicialUsuario }}
+              </div>
+
+              <div>
+                <div class="perfil-menu-nombre">
+                  {{ usuarioActual?.nombre }}
+                </div>
+
+                <div class="perfil-menu-rol">
+                  {{ usuarioActual?.rol }}
+                </div>
+              </div>
+            </div>
+
+            <div class="perfil-menu-datos">
+              <div class="perfil-dato">
+                <span>DNI</span>
+                <strong>{{ usuarioActual?.dni }}</strong>
+              </div>
+
+              <div class="perfil-dato">
+                <span>Correo</span>
+                <strong>{{ usuarioActual?.somos?.correo }}</strong>
+              </div>
+
+              <div class="perfil-dato">
+                <span>Cargo</span>
+                <strong>{{ usuarioActual?.cargo }}</strong>
+              </div>
+
+              <div class="perfil-dato">
+                <span>Planilla</span>
+                <strong>{{ usuarioActual?.somos?.codigoPlanilla }}</strong>
+              </div>
+
+              <div class="perfil-dato">
+                <span>Régimen</span>
+                <strong>{{ usuarioActual?.somos?.regimen }}</strong>
+              </div>
+
+              <div class="perfil-dato">
+                <span>Dependencia</span>
+                <strong>{{ usuarioActual?.somos?.dependencia }}</strong>
+              </div>
+            </div>
+
+            <button class="perfil-menu-salir" (click)="volverSomos()">
+              ← Volver a Somos EsSalud
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <div class="perfil-superior">
+    <nav class="menu-superior">
+      <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
+
+      <div class="menu-item activo">Expedientes</div>
+
+      <div class="menu-item" (click)="irA('/documentos')">Documentos</div>
+
+      <div class="menu-item" (click)="irA('/personal')">Personal</div>
+
+      <div class="menu-item" (click)="irA('/participantes')">Participantes</div>
+
+      <!-- Hoja de Ruta -->
+      <div class="menu-item" (click)="irA('/hoja-ruta')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="6" cy="18" r="2"></circle>
+          <circle cx="18" cy="6" r="2"></circle>
+          <path d="M8 18c6 0 8-4 8-10"></path>
+        </svg>
+        <span>Hoja de Ruta</span>
+      </div>
+
+      <!-- Historial -->
+      <div class="menu-item" (click)="irA('/historial')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Historial</span>
+      </div>
+
+      <!-- Administración -->
+      <div class="menu-item" (click)="irA('/administracion')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"
+          ></path>
+        </svg>
+        <span>Administración</span>
+      </div>
+
+      <div class="menu-item" (click)="irA('/presupuesto')">Presupuesto</div>
+
+      <div class="menu-item" (click)="irA('/convenios')">Convenios</div>
+
+      <div class="menu-item" (click)="irA('/carpetas-drive')">Carpetas Drive</div>
+    </nav>
+  </div>
+
+  <div class="exp-container">
+    <!-- ENCABEZADO -->
+    <div class="exp-header">
+      <div class="exp-titulo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+        </svg>
+        <div>
+          <h2>Capacitaciones PDP</h2>
+          <span class="exp-subtitulo">{{ total | number }} registros encontrados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BADGE RED ASIGNADA (sectorista / ejecutor) -->
+    @if (redFiltro) {
+      <div class="filtro-red-badge">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          width="15"
+          height="15"
+        >
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+        Mostrando solo capacitaciones de:
+        @for (r of redesAsignadas; track r) {
+          <span class="badge-red-item">{{ r }}</span>
+        }
+        @if (rolUsuario === 'Sectorista') {
+          <button class="btn-gestionar" (click)="abrirModalAsignar()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="14"
+              height="14"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Gestionar Ejecutores
+          </button>
+        }
+      </div>
+    }
+
+    <!-- FILTROS -->
+    <div class="filtros-bar">
+      <div class="filtro-grupo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por nombre o código..."
+          [(ngModel)]="busqueda"
+          (keyup.enter)="buscar()"
+        />
+      </div>
+      @if (!redFiltro) {
+        <select class="filtro-select" [(ngModel)]="filtrored" (change)="buscar()">
+          <option value="">Todas las redes</option>
+          @for (red of redesDisponibles; track red) {
+            <option [value]="red">{{ red }}</option>
+          }
+        </select>
+      }
+      <select class="filtro-select" [(ngModel)]="filtroEje" (change)="buscar()">
+        <option value="">Todos los ejes temáticos</option>
+        @for (eje of ejesTematicos; track eje) {
+          <option [value]="eje">{{ eje }}</option>
+        }
+      </select>
+      <select class="filtro-select" [(ngModel)]="filtroMod" (change)="buscar()">
+        <option value="">Todas las modalidades</option>
+        <option value="Presencial">Presencial</option>
+        <option value="Virtual">Virtual</option>
+        <option value="Semipresencial">Semipresencial</option>
+      </select>
+      <button class="btn-buscar" (click)="buscar()">Buscar</button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="tabla-wrap">
+      @if (cargando && capacitaciones.length === 0) {
+        <!-- Primera carga: sin datos previos → spinner completo -->
+        <div class="estado-cargando">
+          <div class="spinner"></div>
+          <span>Cargando capacitaciones...</span>
+        </div>
+      } @else if (!cargando && capacitaciones.length === 0) {
+        <div class="estado-vacio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p>No se encontraron capacitaciones.</p>
+        </div>
+      } @else {
+        <!-- Tabla: visible incluso mientras carga la siguiente página -->
+        <div class="tabla-relativa">
+          @if (cargando) {
+            <div class="overlay-cargando"><div class="spinner-sm"></div></div>
+          }
+          <table class="tabla-cap">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Código ACT</th>
+                <th>Nombre de la Capacitación</th>
+                <th>Red Asistencial</th>
+                <th>Modalidad</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Horas</th>
+                <th>Participantes</th>
+                <th>Presupuesto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cap of capacitaciones; track cap.id) {
+                <tr>
+                  <td class="td-num">{{ cap.numero ?? '—' }}</td>
+                  <td class="td-codigo">
+                    <span class="badge-codigo">{{ cap.codigo_act }}</span>
+                  </td>
+                  <td class="td-nombre">{{ cap.nombre_actividad || '—' }}</td>
+                  <td class="td-red">{{ cap.red_asistencial || '—' }}</td>
+                  <td>
+                    @if (cap.modalidad) {
+                      <span
+                        class="badge-mod"
+                        [class.mod-presencial]="cap.modalidad === 'Presencial'"
+                        [class.mod-virtual]="cap.modalidad === 'Virtual'"
+                        [class.mod-semipres]="cap.modalidad === 'Semipresencial'"
+                      >
+                        {{ cap.modalidad }}
+                      </span>
+                    } @else {
+                      <span>—</span>
+                    }
+                  </td>
+                  <td>{{ cap.fecha_inicio ? (cap.fecha_inicio | date: 'dd/MM/yyyy') : '—' }}</td>
+                  <td>{{ cap.fecha_fin ? (cap.fecha_fin | date: 'dd/MM/yyyy') : '—' }}</td>
+                  <td class="td-num">{{ cap.total_horas ?? '—' }}</td>
+                  <td class="td-num">{{ cap.total_participantes ?? '—' }}</td>
+                  <td>
+                    {{
+                      cap.presupuesto_ejecutado != null
+                        ? (cap.presupuesto_ejecutado | currency: 'PEN' : 'symbol' : '1.2-2')
+                        : '—'
+                    }}
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                      <button class="btn-ver" (click)="ver(cap)">Ver detalle</button>
+                      <button class="btn-ver" (click)="verNotas(cap)" style="background: #0f6b3f">
+                        Resultados
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- PAGINACIÓN — siempre visible cuando hay más de una página -->
+      @if (totalPaginas > 1 || pagina > 1) {
+        <div class="paginacion">
+          <span class="pag-info">Página {{ pagina }} de {{ totalPaginas }}</span>
+          <div class="pag-botones">
+            <button [disabled]="pagina === 1 || cargando" (click)="anterior()">← Anterior</button>
+            <button [disabled]="pagina === totalPaginas || cargando" (click)="siguiente()">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- MODAL GESTIONAR EJECUTORES -->
+  @if (mostrarModalAsignar) {
+    <div class="modal-overlay" (click)="cerrarModalAsignar()">
+      <div class="modal-asignar" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="20"
+              height="20"
+              style="vertical-align: middle; margin-right: 8px; stroke: #005baa"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <h3 style="display: inline">Gestionar Ejecutores por Red</h3>
+          </div>
+          <button class="btn-cerrar" (click)="cerrarModalAsignar()"></button>
+        </div>
+
+        <div class="modal-asignar-cuerpo">
+          <!-- TABLA DE ASIGNACIONES ACTUALES -->
+          <table class="asig-tabla">
+            <thead>
+              <tr>
+                <th>Red Asistencial</th>
+                <th>Ejecutor Asignado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (red of redesSectorista; track red) {
+                <tr [class.asig-fila-activa]="asignRedSeleccionada === red">
+                  <td>
+                    <span class="badge-red-item">{{ red }}</span>
+                  </td>
+                  <td>
+                    @if (getEjecutorAsignado(red); as asig) {
+                      <span class="asig-nombre">{{ asig.nombre }}</span>
+                    } @else {
+                      <span class="asig-vacio">Sin asignar</span>
+                    }
+                  </td>
+                  <td class="asig-acciones">
+                    @if (!getEjecutorAsignado(red)) {
+                      <button class="btn-asig-accion" (click)="prepararAsignacion(red)">
+                        Asignar
+                      </button>
+                    } @else {
+                      <span class="asig-vacio" title="Para reasignar, hazlo desde Administración"
+                        >—</span
+                      >
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- FORMULARIO DE ASIGNACIÓN -->
+          @if (asignRedSeleccionada) {
+            <div class="asig-form">
+              <p class="asig-form-titulo">
+                Asignar ejecutor a <strong>{{ asignRedSeleccionada }}</strong>
+              </p>
+              <select class="asig-select" [(ngModel)]="asignEjecutorDni">
+                <option value="">— Seleccione un ejecutor —</option>
+                @for (ej of ejecutoresSinRed; track ej.dni) {
+                  <option [value]="ej.dni">{{ ej.nombre }} ({{ ej.dni }})</option>
+                }
+              </select>
+              @if (!ejecutoresSinRed.length) {
+                <p class="asig-vacio">
+                  No hay ejecutores libres — todos ya tienen una red asignada (revisa
+                  Administración).
+                </p>
+              }
+              <div class="asig-form-btns">
+                <button
+                  class="btn-asig-guardar"
+                  [disabled]="!asignEjecutorDni"
+                  (click)="guardarAsignacion()"
+                >
+                  Guardar asignación
+                </button>
+                <button class="btn-asig-cancelar" (click)="asignRedSeleccionada = ''">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- MENSAJE DE ÉXITO -->
+          @if (asigExito) {
+            <div class="asig-exito">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                width="16"
+                height="16"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Asignación guardada. El ejecutor verá los datos de la red al iniciar sesión.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DETALLE -->
+  @if (seleccionada) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal-detalle" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <span class="badge-codigo">{{ seleccionada.codigo_act }}</span>
+            <h3>{{ seleccionada.nombre_actividad || 'Sin nombre' }}</h3>
+          </div>
+          <button class="btn-cerrar" (click)="cerrarModal()"></button>
+        </div>
+
+        <div class="modal-cuerpo">
+          <div class="modal-seccion">
+            <h4>Información General</h4>
+            <div class="modal-grid">
+              <div class="dato">
+                <span class="dato-label">Red Asistencial</span
+                ><span>{{ seleccionada.red_asistencial || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Servicio / Área</span
+                ><span>{{ seleccionada.servicio_area || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Eje Temático</span
+                ><span>{{ seleccionada.eje_tematico || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Público Objetivo</span
+                ><span>{{ seleccionada.publico || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Modalidad</span
+                ><span>{{ seleccionada.modalidad || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Frecuencia</span
+                ><span>{{ seleccionada.frecuencia || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-seccion">
+            <h4>Fechas y Horarios</h4>
+            <div class="modal-grid">
+              <div class="dato">
+                <span class="dato-label">Fecha Inicio</span
+                ><span>{{
+                  seleccionada.fecha_inicio ? (seleccionada.fecha_inicio | date: 'dd/MM/yyyy') : '—'
+                }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Fecha Fin</span
+                ><span>{{
+                  seleccionada.fecha_fin ? (seleccionada.fecha_fin | date: 'dd/MM/yyyy') : '—'
+                }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Mes Término</span
+                ><span>{{ seleccionada.mes_termino || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Hora Inicio</span
+                ><span>{{ seleccionada.hora_inicio || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Hora Término</span
+                ><span>{{ seleccionada.hora_termino || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-seccion">
+            <h4>Horas y Evaluación</h4>
+            <div class="modal-grid">
+              <div class="dato">
+                <span class="dato-label">Total Horas</span
+                ><span>{{ seleccionada.total_horas ?? '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Horas fuera de horario</span
+                ><span>{{ seleccionada.horas_fuera_horario ?? '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Nivel de Evaluación</span
+                ><span>{{ seleccionada.nivel_evaluacion || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Objetivo Estratégico</span
+                ><span>{{ seleccionada.objetivo_estrategico || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-seccion">
+            <h4>Participantes y Presupuesto</h4>
+            <div class="modal-grid">
+              <div class="dato">
+                <span class="dato-label">Total Participantes</span
+                ><span>{{ seleccionada.total_participantes ?? '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Presupuesto Ejecutado</span
+                ><span>{{
+                  seleccionada.presupuesto_ejecutado != null
+                    ? (seleccionada.presupuesto_ejecutado | currency: 'PEN' : 'symbol' : '1.2-2')
+                    : '—'
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-seccion">
+            <h4>Comprobante de pago</h4>
+            @if (documentosSeleccionada.length === 0) {
+              <p style="font-size: 0.85rem; color: #6b7280">No se ha subido ningún comprobante.</p>
+            } @else {
+              @for (doc of documentosSeleccionada; track doc.id) {
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px 12px;
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    margin-bottom: 6px;
+                  "
+                >
+                  <span style="font-size: 0.85rem"> {{ doc.nombre_archivo }}</span>
+                  <button
+                    type="button"
+                    class="btn-cerrar"
+                    style="width: auto; padding: 4px 12px; font-size: 0.8rem"
+                    (click)="descargarDocumentoSeleccionada(doc)"
+                  >
+                    Descargar
+                  </button>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="modal-seccion">
+            <h4>Proveedor</h4>
+            <div class="modal-grid">
+              <div class="dato">
+                <span class="dato-label">RUC Proveedor</span
+                ><span>{{ seleccionada.ruc_proveedor || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Nombre Proveedor</span
+                ><span>{{ seleccionada.nombre_proveedor || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Sector Proveedor</span
+                ><span>{{ seleccionada.sector_proveedor || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
-
-<!-- MODAL GESTIONAR EJECUTORES -->
-@if (mostrarModalAsignar) {
- <div class="modal-overlay" (click)="cerrarModalAsignar()">
- <div class="modal-asignar" (click)="$event.stopPropagation()">
-
- <div class="modal-head">
- <div>
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="vertical-align:middle;margin-right:8px;stroke:#005baa">
- <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
- <circle cx="9" cy="7" r="4"/>
- <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
- </svg>
- <h3 style="display:inline">Gestionar Ejecutores por Red</h3>
- </div>
- <button class="btn-cerrar" (click)="cerrarModalAsignar()"></button>
- </div>
-
- <div class="modal-asignar-cuerpo">
-
- <!-- TABLA DE ASIGNACIONES ACTUALES -->
- <table class="asig-tabla">
- <thead>
- <tr>
- <th>Red Asistencial</th>
- <th>Ejecutor Asignado</th>
- <th></th>
- </tr>
- </thead>
- <tbody>
- @for (red of redesSectorista; track red) {
- <tr [class.asig-fila-activa]="asignRedSeleccionada === red">
- <td><span class="badge-red-item">{{ red }}</span></td>
- <td>
- @if (getEjecutorAsignado(red); as asig) {
- <span class="asig-nombre">{{ asig.nombre }}</span>
- } @else {
- <span class="asig-vacio">Sin asignar</span>
- }
- </td>
- <td class="asig-acciones">
- @if (!getEjecutorAsignado(red)) {
- <button class="btn-asig-accion" (click)="prepararAsignacion(red)">Asignar</button>
- } @else {
- <span class="asig-vacio" title="Para reasignar, hazlo desde Administración">—</span>
- }
- </td>
- </tr>
- }
- </tbody>
- </table>
-
- <!-- FORMULARIO DE ASIGNACIÓN -->
- @if (asignRedSeleccionada) {
- <div class="asig-form">
- <p class="asig-form-titulo">
- Asignar ejecutor a <strong>{{ asignRedSeleccionada }}</strong>
- </p>
- <select class="asig-select" [(ngModel)]="asignEjecutorDni">
- <option value="">— Seleccione un ejecutor —</option>
- @for (ej of ejecutoresSinRed; track ej.dni) {
- <option [value]="ej.dni">{{ ej.nombre }} ({{ ej.dni }})</option>
- }
- </select>
- @if (!ejecutoresSinRed.length) {
- <p class="asig-vacio">No hay ejecutores libres — todos ya tienen una red asignada (revisa Administración).</p>
- }
- <div class="asig-form-btns">
- <button class="btn-asig-guardar" [disabled]="!asignEjecutorDni" (click)="guardarAsignacion()">
- Guardar asignación
- </button>
- <button class="btn-asig-cancelar" (click)="asignRedSeleccionada = ''">Cancelar</button>
- </div>
- </div>
- }
-
- <!-- MENSAJE DE ÉXITO -->
- @if (asigExito) {
- <div class="asig-exito">
- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
- <polyline points="20 6 9 17 4 12"/>
- </svg>
- Asignación guardada. El ejecutor verá los datos de la red al iniciar sesión.
- </div>
- }
-
- </div>
- </div>
- </div>
-}
-
-<!-- MODAL DETALLE -->
-@if (seleccionada) {
- <div class="modal-overlay" (click)="cerrarModal()">
- <div class="modal-detalle" (click)="$event.stopPropagation()">
-
- <div class="modal-head">
- <div>
- <span class="badge-codigo">{{ seleccionada.codigo_act }}</span>
- <h3>{{ seleccionada.nombre_actividad || 'Sin nombre' }}</h3>
- </div>
- <button class="btn-cerrar" (click)="cerrarModal()"></button>
- </div>
-
- <div class="modal-cuerpo">
-
- <div class="modal-seccion">
- <h4>Información General</h4>
- <div class="modal-grid">
- <div class="dato"><span class="dato-label">Red Asistencial</span><span>{{ seleccionada.red_asistencial || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Servicio / Área</span><span>{{ seleccionada.servicio_area || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Eje Temático</span><span>{{ seleccionada.eje_tematico || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Público Objetivo</span><span>{{ seleccionada.publico || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Modalidad</span><span>{{ seleccionada.modalidad || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Frecuencia</span><span>{{ seleccionada.frecuencia || '—' }}</span></div>
- </div>
- </div>
-
- <div class="modal-seccion">
- <h4>Fechas y Horarios</h4>
- <div class="modal-grid">
- <div class="dato"><span class="dato-label">Fecha Inicio</span><span>{{ seleccionada.fecha_inicio ? (seleccionada.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</span></div>
- <div class="dato"><span class="dato-label">Fecha Fin</span><span>{{ seleccionada.fecha_fin ? (seleccionada.fecha_fin | date:'dd/MM/yyyy') : '—' }}</span></div>
- <div class="dato"><span class="dato-label">Mes Término</span><span>{{ seleccionada.mes_termino || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Hora Inicio</span><span>{{ seleccionada.hora_inicio || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Hora Término</span><span>{{ seleccionada.hora_termino || '—' }}</span></div>
- </div>
- </div>
-
- <div class="modal-seccion">
- <h4>Horas y Evaluación</h4>
- <div class="modal-grid">
- <div class="dato"><span class="dato-label">Total Horas</span><span>{{ seleccionada.total_horas ?? '—' }}</span></div>
- <div class="dato"><span class="dato-label">Horas fuera de horario</span><span>{{ seleccionada.horas_fuera_horario ?? '—' }}</span></div>
- <div class="dato"><span class="dato-label">Nivel de Evaluación</span><span>{{ seleccionada.nivel_evaluacion || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Objetivo Estratégico</span><span>{{ seleccionada.objetivo_estrategico || '—' }}</span></div>
- </div>
- </div>
-
- <div class="modal-seccion">
- <h4>Participantes y Presupuesto</h4>
- <div class="modal-grid">
- <div class="dato"><span class="dato-label">Total Participantes</span><span>{{ seleccionada.total_participantes ?? '—' }}</span></div>
- <div class="dato"><span class="dato-label">Presupuesto Ejecutado</span><span>{{ seleccionada.presupuesto_ejecutado != null ? (seleccionada.presupuesto_ejecutado | currency:'PEN':'symbol':'1.2-2') : '—' }}</span></div>
- </div>
- </div>
-
- <div class="modal-seccion">
- <h4> Comprobante de pago</h4>
- @if (documentosSeleccionada.length === 0) {
- <p style="font-size: 0.85rem; color: #6b7280">No se ha subido ningún comprobante.</p>
- } @else {
- @for (doc of documentosSeleccionada; track doc.id) {
- <div
- style="
- display: flex;
- justify-content: space-between;
- align-items: center;
- padding: 8px 12px;
- background: #f8fafc;
- border: 1px solid #e2e8f0;
- border-radius: 8px;
- margin-bottom: 6px;
- "
- >
- <span style="font-size: 0.85rem"> {{ doc.nombre_archivo }}</span>
- <button
- type="button"
- class="btn-cerrar"
- style="width: auto; padding: 4px 12px; font-size: 0.8rem"
- (click)="descargarDocumentoSeleccionada(doc)"
- >
- Descargar
- </button>
- </div>
- }
- }
- </div>
-
- <div class="modal-seccion">
- <h4>Proveedor</h4>
- <div class="modal-grid">
- <div class="dato"><span class="dato-label">RUC Proveedor</span><span>{{ seleccionada.ruc_proveedor || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Nombre Proveedor</span><span>{{ seleccionada.nombre_proveedor || '—' }}</span></div>
- <div class="dato"><span class="dato-label">Sector Proveedor</span><span>{{ seleccionada.sector_proveedor || '—' }}</span></div>
- </div>
- </div>
-
- </div>
- </div>
- </div>
-}

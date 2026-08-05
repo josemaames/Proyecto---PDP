@@ -115,9 +115,8 @@ export class CarpetasDrive implements OnInit {
   togglePerfilMenu(): void {
     this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
   }
-  cerrarSesion(): void {
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
+  volverSomos() {
+    window.location.href = 'http://localhost:4200/somosessalud/';
   }
   volver(): void {
     this.router.navigate(['/dashboard']);

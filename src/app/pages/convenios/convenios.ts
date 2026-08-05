@@ -771,8 +771,7 @@ export class Convenios implements OnInit {
   dashboard(id: number): any {
     return this.dashboardPorMarco.get(id);
   }
-  cerrarSesion(): void {
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
+  volverSomos() {
+    window.location.href = 'http://localhost:4200/somosessalud/';
   }
 }

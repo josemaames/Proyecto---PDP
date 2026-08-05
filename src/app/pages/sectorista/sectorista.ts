@@ -5,7 +5,12 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin, firstValueFrom } from 'rxjs';
-import { PdpDataService, Actividad, Participante, AlertaPersonal } from '../../services/pdp-data.service';
+import {
+  PdpDataService,
+  Actividad,
+  Participante,
+  AlertaPersonal,
+} from '../../services/pdp-data.service';
 import { tieneRol } from '../../utils/roles.util';
 import * as ExcelJS from 'exceljs';
 
@@ -880,7 +885,8 @@ export class Sectorista implements OnInit {
     this.buscandoRucSindicato = true;
     this.http.get<any>(`http://localhost:3001/api/sunat/ruc?numero=${ruc}`).subscribe({
       next: (data) => {
-        this.formularioSindicato.nombreProveedor = data.razon_social || data.razonSocial || data.nombre || '';
+        this.formularioSindicato.nombreProveedor =
+          data.razon_social || data.razonSocial || data.nombre || '';
         this.buscandoRucSindicato = false;
       },
       error: () => {
@@ -923,7 +929,8 @@ export class Sectorista implements OnInit {
 
   // Buscador/autocompletado de participantes (sin restricción de red: un
   // sindicato puede juntar gente de varias redes).
-  estadoBusquedaPartSindicato: 'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'ya_registrado' = 'idle';
+  estadoBusquedaPartSindicato:
+    'idle' | 'buscando' | 'encontrado' | 'no_encontrado' | 'ya_registrado' = 'idle';
   capacitacionYaRegistradoSindicato = '';
   sugerenciasPartSindicato: any[] = [];
   private dniTimerSindicato: any;
@@ -996,7 +1003,9 @@ export class Sectorista implements OnInit {
 
   cargarCapacitacionesSindicato() {
     this.cargandoCapacitacionesSindicato = true;
-    const qs = this.filtroSindicatoLista ? `?sindicato=${encodeURIComponent(this.filtroSindicatoLista)}` : '';
+    const qs = this.filtroSindicatoLista
+      ? `?sindicato=${encodeURIComponent(this.filtroSindicatoLista)}`
+      : '';
     this.http.get<any[]>(`http://localhost:3001/api/capacitaciones-sindicato${qs}`).subscribe({
       next: (rows) => {
         this.capacitacionesSindicato = rows.map((r) => ({
@@ -1068,10 +1077,12 @@ export class Sectorista implements OnInit {
     }
     this.sugerenciasTimerSindicato = setTimeout(() => {
       const params = new URLSearchParams({ q: texto.trim(), limit: '8' });
-      this.http.get<{ data: any[] }>(`http://localhost:3001/api/personal-essalud?${params}`).subscribe({
-        next: (res) => (this.sugerenciasPartSindicato = res.data || []),
-        error: () => (this.sugerenciasPartSindicato = []),
-      });
+      this.http
+        .get<{ data: any[] }>(`http://localhost:3001/api/personal-essalud?${params}`)
+        .subscribe({
+          next: (res) => (this.sugerenciasPartSindicato = res.data || []),
+          error: () => (this.sugerenciasPartSindicato = []),
+        });
     }, 300);
   }
 
@@ -1132,7 +1143,9 @@ export class Sectorista implements OnInit {
       this.errorParticipanteSindicato = 'Ese DNI ya está en la lista de esta capacitación.';
       return;
     }
-    if (this.participantesSindicato.length >= (this.formularioSindicato.totalParticipantes as number)) {
+    if (
+      this.participantesSindicato.length >= (this.formularioSindicato.totalParticipantes as number)
+    ) {
       this.errorParticipanteSindicato = this.formularioSindicato.totalParticipantes
         ? `Ya alcanzó el límite de ${this.formularioSindicato.totalParticipantes} participante(s).`
         : 'Ingrese primero el "Total de participantes" antes de agregarlos.';

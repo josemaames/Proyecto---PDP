@@ -109,9 +109,8 @@ export class Personal implements OnInit {
     this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
   }
 
-  cerrarSesion() {
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
+  volverSomos() {
+    window.location.href = 'http://localhost:4200/somosessalud/';
   }
 
   nuevoUsuario() {

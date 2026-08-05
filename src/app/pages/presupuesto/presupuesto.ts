@@ -53,10 +53,16 @@ export class Presupuesto implements OnInit {
   ngOnInit(): void {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     this.inicialUsuario = (this.usuario?.nombre as string)?.charAt(0)?.toUpperCase() || 'U';
-    const f = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const f = new Date().toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
     this.esPresupuesto = tieneRol(this.usuario, 'Presupuesto');
-    this.esAdmin = tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
+    this.esAdmin =
+      tieneRol(this.usuario, 'Administrador') || tieneRol(this.usuario, 'Administrativo');
     this.tieneSectorista = tieneRol(this.usuario, 'Sectorista');
     this.cargar();
   }
@@ -69,7 +75,9 @@ export class Presupuesto implements OnInit {
     }).subscribe({
       next: ({ techos, resumen }) => {
         this.redes = (techos || []).map((t) => {
-          const match = (resumen || []).find((e) => normalizarRedKey(e.red) === normalizarRedKey(t.red));
+          const match = (resumen || []).find(
+            (e) => normalizarRedKey(e.red) === normalizarRedKey(t.red),
+          );
           const techo = Number(t.techo) || 0;
           const ejecutado = Number(match?.presupuesto) || 0;
           const saldo = techo - ejecutado;
@@ -78,14 +86,19 @@ export class Presupuesto implements OnInit {
         });
         this.cargarSolicitudes();
       },
-      error: () => { this.cargando = false; },
+      error: () => {
+        this.cargando = false;
+      },
     });
   }
 
   cargarSolicitudes(): void {
     // Historial de cambios de presupuesto (visible para todos los que entran a la página)
     this.ps.getSolicitudes({}).subscribe({
-      next: (s) => { this.misSolicitudes = s; this.cargando = false; },
+      next: (s) => {
+        this.misSolicitudes = s;
+        this.cargando = false;
+      },
       error: () => (this.cargando = false),
     });
   }
@@ -107,28 +120,36 @@ export class Presupuesto implements OnInit {
 
   enviarSolicitud(): void {
     this.errorModal = '';
-    if (!this.form.monto || this.form.monto <= 0) { this.errorModal = 'Ingrese un monto válido.'; return; }
-    if (this.form.tipo === 'reasignacion' && !this.form.red_destino) { this.errorModal = 'Seleccione la red destino.'; return; }
+    if (!this.form.monto || this.form.monto <= 0) {
+      this.errorModal = 'Ingrese un monto válido.';
+      return;
+    }
+    if (this.form.tipo === 'reasignacion' && !this.form.red_destino) {
+      this.errorModal = 'Seleccione la red destino.';
+      return;
+    }
     this.enviando = true;
-    this.ps.modificar({
-      tipo: this.form.tipo,
-      red: this.form.red,
-      red_destino: this.form.tipo === 'reasignacion' ? this.form.red_destino : null,
-      monto: this.form.monto,
-      motivo: this.form.motivo,
-      actor_dni: this.usuario.dni,
-      actor_nombre: this.usuario.nombre,
-    }).subscribe({
-      next: () => {
-        this.enviando = false;
-        this.mostrarModal = false;
-        this.cargar(); // recarga presupuestos (techo actualizado) + historial → se refleja al instante
-      },
-      error: (err) => {
-        this.enviando = false;
-        this.errorModal = err.error?.error || 'No se pudo aplicar el cambio.';
-      },
-    });
+    this.ps
+      .modificar({
+        tipo: this.form.tipo,
+        red: this.form.red,
+        red_destino: this.form.tipo === 'reasignacion' ? this.form.red_destino : null,
+        monto: this.form.monto,
+        motivo: this.form.motivo,
+        actor_dni: this.usuario.dni,
+        actor_nombre: this.usuario.nombre,
+      })
+      .subscribe({
+        next: () => {
+          this.enviando = false;
+          this.mostrarModal = false;
+          this.cargar(); // recarga presupuestos (techo actualizado) + historial → se refleja al instante
+        },
+        error: (err) => {
+          this.enviando = false;
+          this.errorModal = err.error?.error || 'No se pudo aplicar el cambio.';
+        },
+      });
   }
 
   // ── Revisar (rol Administrador) ────────────────────
@@ -141,30 +162,38 @@ export class Presupuesto implements OnInit {
   decidir(decision: 'aprobado' | 'denegado'): void {
     if (!this.solicitudRevisar) return;
     this.procesando = true;
-    this.ps.revisar(this.solicitudRevisar.id, {
-      decision,
-      revisor_dni: this.usuario.dni,
-      revisor_nombre: this.usuario.nombre,
-      respuesta: this.respuestaRevisar,
-    }).subscribe({
-      next: () => {
-        this.procesando = false;
-        this.mostrarRevisar = false;
-        this.solicitudRevisar = null;
-        this.cargar(); // recarga presupuestos (el techo pudo cambiar) + pendientes
-      },
-      error: (err) => {
-        this.procesando = false;
-        alert(err.error?.error || 'No se pudo procesar la solicitud.');
-      },
-    });
+    this.ps
+      .revisar(this.solicitudRevisar.id, {
+        decision,
+        revisor_dni: this.usuario.dni,
+        revisor_nombre: this.usuario.nombre,
+        respuesta: this.respuestaRevisar,
+      })
+      .subscribe({
+        next: () => {
+          this.procesando = false;
+          this.mostrarRevisar = false;
+          this.solicitudRevisar = null;
+          this.cargar(); // recarga presupuestos (el techo pudo cambiar) + pendientes
+        },
+        error: (err) => {
+          this.procesando = false;
+          alert(err.error?.error || 'No se pudo procesar la solicitud.');
+        },
+      });
   }
 
   etiquetaTipo(t: string): string {
     return t === 'aumento' ? 'Aumento' : t === 'reduccion' ? 'Reducción' : 'Reasignación';
   }
 
-  togglePerfilMenu(): void { this.mostrarPerfilMenu = !this.mostrarPerfilMenu; }
-  irASectorista(): void { this.router.navigate(['/sectorista']); }
-  cerrarSesion(): void { localStorage.removeItem('usuario'); this.router.navigate(['/login']); }
+  togglePerfilMenu(): void {
+    this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+  }
+  irASectorista(): void {
+    this.router.navigate(['/sectorista']);
+  }
+  volverSomos() {
+    window.location.href = 'http://localhost:4200/somosessalud/';
+  }
 }
