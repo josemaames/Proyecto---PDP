@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 import { ExpedienteService } from '../../services/expediente.service';
 import { PdpDataService, AlertaPersonal } from '../../services/pdp-data.service';
 import { normalizarRedKey } from '../../utils/roles.util';
+import { TIPOS_ACTIVIDAD } from '../../utils/tipos-actividad.util';
+import { CATEGORIAS_CAPACITACION } from '../../utils/categoria-capacitacion.util';
 
 @Component({
  selector: 'app-ejecutor',
@@ -29,6 +31,13 @@ export class Ejecutor implements OnInit {
  capacitacionExtranjero = false;
  errorFormulario = '';
  camposInvalidos: string[] = [];
+ // "Pasantía" queda restringida al Ejecutor de INCOR — el resto de redes no
+ // la ve como opción en el desplegable.
+ get tiposActividad(): string[] {
+ const esIncor = (this.redEjecutor || '').toUpperCase().trim() === 'INCOR';
+ return esIncor ? TIPOS_ACTIVIDAD : TIPOS_ACTIVIDAD.filter((t) => t !== 'Pasantía');
+ }
+ categoriasCapacitacion = CATEGORIAS_CAPACITACION;
 
  // BÚSQUEDA DE EXPEDIENTES
  mostrarBusqueda = false;
@@ -169,6 +178,8 @@ export class Ejecutor implements OnInit {
  redAsistencial: '',
  servicioArea: '',
  nombreActividad: '',
+ tipoActividad: '',
+ categoriaCapacitacion: '',
  totalHoras: 0,
  horasFueraHorario: 0,
  frecuencia: '',
@@ -255,6 +266,28 @@ export class Ejecutor implements OnInit {
  this.presupuestoGastado = fila ? Number(fila.presupuesto) : 0;
  },
  error: () => { this.presupuestoGastado = 0; },
+ });
+ }
+
+ // CÓDIGO DE ACTIVIDAD AUTOGENERADO
+ generandoCodigoAct = false;
+ elegirCategoriaCapacitacion(cat: string) {
+ this.formulario.categoriaCapacitacion = cat;
+ if (!this.formulario.redAsistencial) return;
+ this.generandoCodigoAct = true;
+ this.http
+ .get<{ codigo: string }>('http://localhost:3001/api/actividades/proximo-codigo', {
+ params: { categoria: cat, red: this.formulario.redAsistencial },
+ })
+ .subscribe({
+ next: (r) => {
+ this.formulario.codigoAct = r.codigo;
+ this.generandoCodigoAct = false;
+ this.cargarComprobantes();
+ },
+ error: () => {
+ this.generandoCodigoAct = false;
+ },
  });
  }
 
@@ -438,6 +471,7 @@ export class Ejecutor implements OnInit {
  if (!f.mesTermino) errores.push('Mes de término');
  if (!f.redAsistencial.trim()) errores.push('Red asistencial / Unidad orgánica');
  if (!f.nombreActividad.trim()) errores.push('Nombre de la actividad');
+ if (!f.categoriaCapacitacion) errores.push('Tipo de capacitación (Plan Local / Actividad Estrategias)');
  if (!f.totalHoras || f.totalHoras <= 0) errores.push('Total horas ejecutadas');
  if (!f.frecuencia) errores.push('Frecuencia de desarrollo');
  if (!f.modalidad) errores.push('Modalidad');
@@ -497,7 +531,7 @@ export class Ejecutor implements OnInit {
  return;
  }
  if (this.estadoAC === 'ya_registrado') {
- this.errorPartic = `Este participante ya está registrado en "${this.capacitacionYaRegistrado || 'otra capacitación'}". No puede estar en más de una.`;
+ this.errorPartic = this.capacitacionYaRegistrado || 'Este participante ya alcanzó el límite de capacitaciones permitido.';
  return;
  }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
@@ -552,7 +586,7 @@ export class Ejecutor implements OnInit {
  return;
  }
  if (this.estadoACCorr === 'ya_registrado') {
- this.errorParticCorreccion = `Este participante ya está registrado en "${this.capacitacionYaRegistradoCorr || 'otra capacitación'}". No puede estar en más de una.`;
+ this.errorParticCorreccion = this.capacitacionYaRegistradoCorr || 'Este participante ya alcanzó el límite de capacitaciones permitido.';
  return;
  }
  if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
@@ -597,23 +631,27 @@ export class Ejecutor implements OnInit {
  return normalizarRedKey(p.red) === normalizarRedKey(this.redEjecutor);
  }
 
- // Un DNI no puede estar en más de una capacitación a la vez. Se valida contra
- // el backend (fuente de verdad) antes de dejar autocompletar/agregar a la persona.
- // `excluirCodigoAct` evita falsos positivos al re-editar la misma solicitud.
+ // Un DNI tiene un máximo de capacitaciones por año según su tipo (2 Plan
+ // Local / 1 Actividad Estrategias). Se valida contra el backend (fuente de
+ // verdad) antes de dejar autocompletar/agregar a la persona.
+ // `excluir_codigo_act` evita falsos positivos al re-editar la misma solicitud.
  private verificarDuplicadoYLlenar(p: any, target: 'nuevo' | 'correccion') {
  const codigoAct = target === 'nuevo' ? this.formulario.codigoAct : this.formularioCorreccion?.codigoAct;
+ const categoria =
+ target === 'nuevo' ? this.formulario.categoriaCapacitacion : this.formularioCorreccion?.categoriaCapacitacion;
  const params = new URLSearchParams();
  if (codigoAct) params.set('excluir_codigo_act', codigoAct);
+ if (categoria) params.set('categoria', categoria);
  const qs = params.toString();
  this.http
- .get<{ registrado: boolean; nombre_actividad?: string }>(
+ .get<{ registrado: boolean; mensaje?: string }>(
  `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce}${qs ? '?' + qs : ''}`,
  )
  .subscribe({
  next: (r) => {
  if (r.registrado) {
- if (target === 'nuevo') { this.estadoAC = 'ya_registrado'; this.capacitacionYaRegistrado = r.nombre_actividad || ''; }
- else { this.estadoACCorr = 'ya_registrado'; this.capacitacionYaRegistradoCorr = r.nombre_actividad || ''; }
+ if (target === 'nuevo') { this.estadoAC = 'ya_registrado'; this.capacitacionYaRegistrado = r.mensaje || ''; }
+ else { this.estadoACCorr = 'ya_registrado'; this.capacitacionYaRegistradoCorr = r.mensaje || ''; }
  return;
  }
  this.llenarDesdePersonal(p, target);
@@ -766,6 +804,8 @@ export class Ejecutor implements OnInit {
  redAsistencial: this.redEjecutor,
  servicioArea: '',
  nombreActividad: '',
+ tipoActividad: '',
+ categoriaCapacitacion: '',
  totalHoras: 0,
  horasFueraHorario: 0,
  frecuencia: '',

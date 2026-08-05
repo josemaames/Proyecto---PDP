@@ -43,6 +43,8 @@ export interface Actividad {
   sector_proveedor?: string;
   presupuesto_ejecutado?: number;
   eje_tematico?: string;
+  tipo_actividad?: string;
+  categoria_capacitacion?: string;
 }
 
 export interface PersonalEssalud {

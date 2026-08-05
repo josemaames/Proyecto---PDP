@@ -192,9 +192,10 @@
  <label>Código act.</label>
  <input
  type="text"
- placeholder="Ej: CAP-2024-001"
- [(ngModel)]="formulario.codigoAct"
- (blur)="cargarComprobantes()"
+ placeholder="Se genera al elegir el Tipo de capacitación"
+ [ngModel]="generandoCodigoAct ? 'Generando…' : formulario.codigoAct"
+ disabled
+ class="input-bloqueado"
  />
  </div>
  <div class="campo">
@@ -252,6 +253,30 @@
  placeholder="Ej: Gestión Documental Electrónica"
  [(ngModel)]="formulario.nombreActividad"
  />
+ </div>
+ <div class="campo" style="margin-bottom: 18px">
+ <label>Tipo de Actividad</label>
+ <select [(ngModel)]="formulario.tipoActividad">
+ <option value="">Seleccione...</option>
+ @for (tipo of tiposActividad; track tipo) {
+ <option [value]="tipo">{{ tipo }}</option>
+ }
+ </select>
+ </div>
+ <div class="campo" style="margin-bottom: 18px">
+ <label>Tipo de capacitación</label>
+ <div class="categoria-toggle-group">
+ @for (cat of categoriasCapacitacion; track cat) {
+ <button
+ type="button"
+ class="btn-categoria-toggle"
+ [class.activo]="formulario.categoriaCapacitacion === cat"
+ (click)="elegirCategoriaCapacitacion(cat)"
+ >
+ {{ cat }}
+ </button>
+ }
+ </div>
  </div>
  <div class="datos-grid tres-col">
  <div class="campo">
@@ -805,7 +830,7 @@
  @if (estadoAC === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoAC === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
  @if (estadoAC === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
- @if (estadoAC === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span> }
+ @if (estadoAC === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">límite de capacitaciones alcanzado</span> }
  </label>
  <div class="partic-autocomplete">
  <input
@@ -832,9 +857,7 @@
  </p>
  }
  @if (estadoAC === 'ya_registrado') {
- <p class="partic-error-red">
- Ya está registrado en <strong>{{ capacitacionYaRegistrado }}</strong>. Un participante no puede estar en más de una capacitación.
- </p>
+ <p class="partic-error-red">{{ capacitacionYaRegistrado }}</p>
  }
  </div>
  <div class="partic-campo">
@@ -1095,7 +1118,7 @@
  @if (estadoACCorr === 'encontrado') { <span class="ac-badge ac-ok"> encontrado</span> }
  @if (estadoACCorr === 'no_encontrado') { <span class="ac-badge ac-no">no encontrado</span> }
  @if (estadoACCorr === 'red_no_coincide') { <span class="ac-badge ac-red-mismatch">no pertenece a tu red</span> }
- @if (estadoACCorr === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span> }
+ @if (estadoACCorr === 'ya_registrado') { <span class="ac-badge ac-red-mismatch">límite de capacitaciones alcanzado</span> }
  </label>
  <div class="partic-autocomplete">
  <input type="text" [(ngModel)]="nuevoParticCorreccion.dni_ce"
@@ -1118,9 +1141,7 @@
  </p>
  }
  @if (estadoACCorr === 'ya_registrado') {
- <p class="partic-error-red">
- Ya está registrado en <strong>{{ capacitacionYaRegistradoCorr }}</strong>. No puede estar en más de una capacitación.
- </p>
+ <p class="partic-error-red">{{ capacitacionYaRegistradoCorr }}</p>
  }
  </div>
  <div class="campo">

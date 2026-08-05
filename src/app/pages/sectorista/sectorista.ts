@@ -12,6 +12,8 @@ import {
   AlertaPersonal,
 } from '../../services/pdp-data.service';
 import { tieneRol } from '../../utils/roles.util';
+import { TIPOS_ACTIVIDAD } from '../../utils/tipos-actividad.util';
+import { CATEGORIAS_CAPACITACION } from '../../utils/categoria-capacitacion.util';
 import * as ExcelJS from 'exceljs';
 
 @Component({
@@ -964,6 +966,8 @@ export class Sectorista implements OnInit {
   }
 
   formularioSindicato = this.formSindicatoVacio();
+  tiposActividad = TIPOS_ACTIVIDAD;
+  categoriasCapacitacion = CATEGORIAS_CAPACITACION;
   participantesSindicato: any[] = [];
   nuevoParticipanteSindicato = this.participanteVacioEdicion();
   errorParticipanteSindicato = '';
@@ -978,6 +982,8 @@ export class Sectorista implements OnInit {
       redAsistencial: '',
       servicioArea: '',
       nombreActividad: '',
+      tipoActividad: '',
+      categoriaCapacitacion: '',
       totalHoras: null as number | null,
       horasFueraHorario: null as number | null,
       frecuencia: '',
@@ -1091,17 +1097,24 @@ export class Sectorista implements OnInit {
     this.verificarDuplicadoYLlenarSindicato(p);
   }
 
-  // Un participante no puede estar ya en OTRA capacitación (regla general del sistema).
+  // Máximo de capacitaciones por año según su tipo (2 Plan Local / 1 Actividad
+  // Estrategias) — misma regla que en el formulario del Ejecutor.
   private verificarDuplicadoYLlenarSindicato(p: any) {
+    const params = new URLSearchParams();
+    if (this.formularioSindicato.codigoAct) params.set('excluir_codigo_act', this.formularioSindicato.codigoAct);
+    if (this.formularioSindicato.categoriaCapacitacion) {
+      params.set('categoria', this.formularioSindicato.categoriaCapacitacion);
+    }
+    const qs = params.toString();
     this.http
-      .get<{ registrado: boolean; nombre_actividad?: string }>(
-        `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce}`,
+      .get<{ registrado: boolean; mensaje?: string }>(
+        `http://localhost:3001/api/participantes/verificar-dni/${p.dni_ce}${qs ? '?' + qs : ''}`,
       )
       .subscribe({
         next: (r) => {
           if (r.registrado) {
             this.estadoBusquedaPartSindicato = 'ya_registrado';
-            this.capacitacionYaRegistradoSindicato = r.nombre_actividad || '';
+            this.capacitacionYaRegistradoSindicato = r.mensaje || '';
             return;
           }
           this.llenarParticipanteSindicato(p);
@@ -1132,7 +1145,8 @@ export class Sectorista implements OnInit {
   agregarParticipanteSindicato() {
     const p = this.nuevoParticipanteSindicato;
     if (this.estadoBusquedaPartSindicato === 'ya_registrado') {
-      this.errorParticipanteSindicato = `Ya está registrado en "${this.capacitacionYaRegistradoSindicato}". No puede estar en más de una capacitación.`;
+      this.errorParticipanteSindicato =
+        this.capacitacionYaRegistradoSindicato || 'Este participante ya alcanzó el límite de capacitaciones permitido.';
       return;
     }
     if (!p.dni_ce.trim() || !p.apellidos.trim() || !p.nombre.trim()) {
@@ -1161,12 +1175,38 @@ export class Sectorista implements OnInit {
     this.participantesSindicato.splice(idx, 1);
   }
 
+  // CÓDIGO DE ACTIVIDAD AUTOGENERADO — igual que en el Ejecutor, pero sin
+  // sigla de red (formato {año}-{PL|AC}-{secuencial}), aunque comparte la
+  // misma numeración global.
+  generandoCodigoActSindicato = false;
+  elegirCategoriaCapacitacionSindicato(cat: string) {
+    this.formularioSindicato.categoriaCapacitacion = cat;
+    this.generandoCodigoActSindicato = true;
+    this.http
+      .get<{ codigo: string }>('http://localhost:3001/api/actividades/proximo-codigo', {
+        params: { categoria: cat },
+      })
+      .subscribe({
+        next: (r) => {
+          this.formularioSindicato.codigoAct = r.codigo;
+          this.generandoCodigoActSindicato = false;
+        },
+        error: () => {
+          this.generandoCodigoActSindicato = false;
+        },
+      });
+  }
+
   guardarCapacitacionSindicato() {
     this.errorSindicatoForm = '';
     const f = this.formularioSindicato;
 
     if (!f.sindicato) {
       this.errorSindicatoForm = 'Seleccione un sindicato.';
+      return;
+    }
+    if (!f.categoriaCapacitacion) {
+      this.errorSindicatoForm = 'Seleccione el Tipo de capacitación (Plan Local / Actividad Estrategias).';
       return;
     }
     if (!f.codigoAct.trim()) {

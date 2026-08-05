@@ -81,7 +81,8 @@ const TABLE_COLUMNS = {
     ['modalidad', ...str(256)], ['publico', ...str(256)], ['nivel_evaluacion', ...str(256)],
     ['objetivo_estrategico', ...str(256)], ['total_participantes', NUM], ['ruc_proveedor', ...str(256)],
     ['nombre_proveedor', ...str(500)], ['sector_proveedor', ...str(256)], ['presupuesto_ejecutado', NUM],
-    ['eje_tematico', ...str(256)], ['sindicato', ...str(150)],
+    ['eje_tematico', ...str(256)], ['sindicato', ...str(150)], ['tipo_actividad', ...str(50)],
+    ['categoria_capacitacion', ...str(60)],
   ],
   usuarios_sistema: [
     ['id', NUM], ['dni', ...str(15)], ['nombre', ...str(255)], ['password', ...str(256)], ['rol', ...str(120)],

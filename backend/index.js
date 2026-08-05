@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const StorageSDK = require('./storage-sdk');
+const { siglaDeRed, siglaDeCategoria } = require('./siglas-red');
 
 const app = express();
 app.use(cors());
@@ -326,37 +327,68 @@ async function recalcularTotalParticipantes(codigo_act) {
   );
 }
 
-// Un DNI/CE no puede estar registrado en más de una capacitación a la vez
-// (sin importar red o fechas — regla vigente hoy, puede volverse más flexible
-// más adelante). Se usa tanto para el chequeo en vivo del Ejecutor como para
-// bloquear el alta directa (admin/Sectorista) y la aprobación de solicitudes.
-async function buscarConflictoParticipante(dni_ce, codigoActExcluir) {
+// Límite de capacitaciones por participante, por AÑO (el año se toma del
+// código de actividad, que siempre empieza con {año} tanto en el formato
+// viejo "2025PL700" como en el nuevo "2026-PL-RPALM-0001"): máximo 2 "Plan
+// Local de Capacitación" y 1 "Actividad Estrategias de Capacitación" — hasta
+// 3 en total. Reemplaza la regla anterior de "solo 1 capacitación a la vez".
+const LIMITE_CAPACITACIONES_POR_ANIO = {
+  'Plan Local de Capacitación': 2,
+  'Actividad Estrategias de Capacitación': 1,
+};
+
+function anioDeCodigoAct(codigoAct) {
+  const m = String(codigoAct || '').match(/^(\d{4})/);
+  return m ? m[1] : null;
+}
+
+// Devuelve null si el participante todavía puede entrar a esa categoría este
+// año, o un objeto con el detalle del límite alcanzado si no puede.
+async function verificarLimiteParticipante(dni_ce, categoriaCapacitacion, codigoActReferencia, codigoActExcluir) {
   if (!dni_ce) return null;
-  const params = [dni_ce];
-  let where = 'lp.dni_ce = $1';
+  const limite = LIMITE_CAPACITACIONES_POR_ANIO[categoriaCapacitacion];
+  if (!limite) return null; // categoría no reconocida (no debería pasar, es obligatoria en el formulario)
+
+  const anio = anioDeCodigoAct(codigoActReferencia) || String(new Date().getFullYear());
+
+  const params = [dni_ce, `${anio}%`];
+  let where = 'lp.dni_ce = $1 AND lp.codigo_act LIKE $2';
   if (codigoActExcluir) {
     params.push(codigoActExcluir);
-    where += ' AND lp.codigo_act <> $2';
+    where += ` AND lp.codigo_act <> $${params.length}`;
   }
   const { rows } = await pool.query(
-    `SELECT lp.codigo_act, lp.apellidos, lp.nombre, da.nombre_actividad
+    `SELECT lp.codigo_act, da.categoria_capacitacion
      FROM lista_participantes lp
      LEFT JOIN datos_actividad da ON da.codigo_act = lp.codigo_act
      WHERE ${where}`,
     params,
   );
-  return rows[0] || null;
+
+  const yaTiene = rows.filter((r) => r.categoria_capacitacion === categoriaCapacitacion).length;
+  if (yaTiene >= limite) {
+    return { categoria: categoriaCapacitacion, limite, anio, yaTiene };
+  }
+  return null;
+}
+
+function mensajeLimiteParticipante(limiteInfo) {
+  const { categoria, limite, anio } = limiteInfo;
+  const sustantivo = limite > 1 ? 'capacitaciones' : 'capacitación';
+  return `Este participante ya alcanzó el máximo de ${limite} ${sustantivo} "${categoria}" en ${anio}. No se puede agregar.`;
 }
 
 app.get('/api/participantes/verificar-dni/:dni', async (req, res) => {
   try {
-    const conflicto = await buscarConflictoParticipante(req.params.dni, req.query.excluir_codigo_act);
-    if (!conflicto) return res.json({ registrado: false });
-    res.json({
-      registrado: true,
-      codigo_act: conflicto.codigo_act,
-      nombre_actividad: conflicto.nombre_actividad || conflicto.codigo_act,
-    });
+    const { categoria, excluir_codigo_act, codigo_act_referencia } = req.query;
+    const limiteInfo = await verificarLimiteParticipante(
+      req.params.dni,
+      categoria,
+      codigo_act_referencia || excluir_codigo_act,
+      excluir_codigo_act,
+    );
+    if (!limiteInfo) return res.json({ registrado: false });
+    res.json({ registrado: true, mensaje: mensajeLimiteParticipante(limiteInfo) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -368,11 +400,9 @@ app.post('/api/participantes', async (req, res) => {
     const codigo_act = f.codigoAct || f.codigo_act;
     const dni_ce = f.dniCe || f.dni_ce;
 
-    const conflicto = await buscarConflictoParticipante(dni_ce, codigo_act);
-    if (conflicto) {
-      return res.status(409).json({
-        error: `Este participante ya está registrado en la capacitación "${conflicto.nombre_actividad || conflicto.codigo_act}" (${conflicto.codigo_act}). No puede estar en más de una capacitación.`,
-      });
+    const limiteInfo = await verificarLimiteParticipante(dni_ce, f.categoriaCapacitacion, codigo_act, codigo_act);
+    if (limiteInfo) {
+      return res.status(409).json({ error: mensajeLimiteParticipante(limiteInfo) });
     }
 
     const { rows } = await pool.query(
@@ -418,6 +448,70 @@ app.delete('/api/participantes/:id', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════
+// CÓDIGO DE ACTIVIDAD AUTOGENERADO
+// Formato: {año}-{PL|AC}-{sigla-red}-{secuencial 4 dígitos}, ej. 2026-PL-RPALM-0001
+// El secuencial es GLOBAL por año (no distingue red ni tipo). Para no repetir
+// un número ya usado por otra solicitud que todavía no fue aprobada, se
+// revisan tanto las actividades ya confirmadas (datos_actividad) como las
+// solicitudes pendientes/procesadas de este año (solicitudes_revision).
+// ══════════════════════════════════════════════
+async function generarCodigoActividad(categoriaCapacitacion, redAsistencial, opciones = {}) {
+  const { incluirRed = true } = opciones;
+  const tipo = siglaDeCategoria(categoriaCapacitacion);
+  if (!tipo) return null;
+  let sigla = null;
+  if (incluirRed) {
+    sigla = siglaDeRed(redAsistencial);
+    if (!sigla) return null;
+  }
+
+  const anio = new Date().getFullYear();
+  // La sigla de red es opcional en el patrón: así el secuencial es realmente
+  // global entre las capacitaciones del Ejecutor (con red) y las de
+  // Sindicatos (sin red) — comparten la misma numeración.
+  const regex = new RegExp(`^${anio}-(?:PL|AC)-(?:[A-Z]+-)?(\\d{4})$`);
+
+  const [actRes, solRes] = await Promise.all([
+    pool.query(`SELECT codigo_act FROM datos_actividad WHERE codigo_act LIKE $1`, [`${anio}-%`]),
+    pool.query(`SELECT datos FROM solicitudes_revision`),
+  ]);
+
+  let max = 0;
+  for (const row of actRes.rows) {
+    const m = String(row.codigo_act || '').match(regex);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  for (const row of solRes.rows) {
+    try {
+      const datos = JSON.parse(row.datos);
+      const m = String(datos.codigoAct || '').match(regex);
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    } catch {
+      /* datos mal formado, se ignora */
+    }
+  }
+
+  const siguiente = String(max + 1).padStart(4, '0');
+  return incluirRed ? `${anio}-${tipo}-${sigla}-${siguiente}` : `${anio}-${tipo}-${siguiente}`;
+}
+
+// GET /api/actividades/proximo-codigo?categoria=Plan Local de Capacitación&red=RP ALMENARA
+// Sin el parámetro "red" (caso Sindicatos), el código sale sin sigla de red:
+// {año}-{PL|AC}-{secuencial}, compartiendo la misma numeración global.
+// Vista previa (no reserva el número) — el código definitivo se genera de
+// nuevo al momento de enviar la solicitud, para evitar choques.
+app.get('/api/actividades/proximo-codigo', async (req, res) => {
+  try {
+    const { categoria, red } = req.query;
+    const codigo = await generarCodigoActividad(categoria, red, { incluirRed: !!red });
+    if (!codigo) return res.status(400).json({ error: 'categoria inválida' });
+    res.json({ codigo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ══════════════════════════════════════════════
 // ACTIVIDADES
 // GET  /api/actividades?q=&red=&modalidad=&page=1&limit=50
 // POST /api/actividades
@@ -429,7 +523,7 @@ app.get('/api/actividades', async (req, res) => {
     const { q = '', red = '', modalidad = '', eje_tematico = '', page = 1, limit = 50 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const cacheKey = `actividades:${q}:${red}:${modalidad}:${eje_tematico}:${page}:${limit}`;
+    const cacheKey = `actividades:${q}:${red}:${modalidad}:${eje_tematico}:${req.query.tipo_actividad || ''}:${req.query.categoria_capacitacion || ''}:${page}:${limit}`;
     const cached = getCache(cacheKey);
     if (cached) return res.json(cached);
 
@@ -470,12 +564,23 @@ app.get('/api/actividades', async (req, res) => {
       params.push(`%${eje_tematico}%`);
       idx++;
     }
+    if (req.query.tipo_actividad) {
+      conditions.push(`tipo_actividad = $${idx}`);
+      params.push(req.query.tipo_actividad);
+      idx++;
+    }
+    if (req.query.categoria_capacitacion) {
+      conditions.push(`categoria_capacitacion = $${idx}`);
+      params.push(req.query.categoria_capacitacion);
+      idx++;
+    }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const [dataRes, countRes] = await Promise.all([
       pool.query(
-        `SELECT id, numero, codigo_act, nombre_actividad, red_asistencial, modalidad,
+        `SELECT id, numero, codigo_act, nombre_actividad, tipo_actividad, categoria_capacitacion,
+                red_asistencial, modalidad,
                 fecha_inicio, fecha_fin, mes_termino, total_horas, horas_fuera_horario,
                 frecuencia, hora_inicio, hora_termino, publico, nivel_evaluacion,
                 objetivo_estrategico, total_participantes, ruc_proveedor,
@@ -501,12 +606,12 @@ app.post('/api/actividades', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO datos_actividad
          (codigo_act, fecha_inicio, fecha_fin, mes_termino, red_asistencial,
-          servicio_area, nombre_actividad, total_horas, horas_fuera_horario,
+          servicio_area, nombre_actividad, tipo_actividad, total_horas, horas_fuera_horario,
           frecuencia, hora_inicio, hora_termino, modalidad, publico,
           nivel_evaluacion, objetivo_estrategico, total_participantes,
           ruc_proveedor, nombre_proveedor, sector_proveedor,
-          presupuesto_ejecutado, eje_tematico)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+          presupuesto_ejecutado, eje_tematico, categoria_capacitacion)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
        RETURNING *`,
       [
         f.codigo_act,
@@ -516,6 +621,7 @@ app.post('/api/actividades', async (req, res) => {
         f.red_asistencial,
         f.servicio_area,
         f.nombre_actividad,
+        f.tipo_actividad || null,
         f.total_horas || null,
         f.horas_fuera_horario || null,
         f.frecuencia,
@@ -531,6 +637,7 @@ app.post('/api/actividades', async (req, res) => {
         f.sector_proveedor,
         f.presupuesto_ejecutado || null,
         f.eje_tematico,
+        f.categoria_capacitacion || null,
       ],
     );
     invalidarCache();
@@ -548,7 +655,8 @@ app.put('/api/actividades/:id', async (req, res) => {
          codigo_act=$1, fecha_inicio=$2, fecha_fin=$3, mes_termino=$4,
          red_asistencial=$5, servicio_area=$6, nombre_actividad=$7,
          total_horas=$8, modalidad=$9, publico=$10,
-         total_participantes=$11, presupuesto_ejecutado=$12, eje_tematico=$13
+         total_participantes=$11, presupuesto_ejecutado=$12, eje_tematico=$13,
+         tipo_actividad=$15, categoria_capacitacion=$16
        WHERE id=$14 RETURNING *`,
       [
         f.codigo_act,
@@ -565,6 +673,8 @@ app.put('/api/actividades/:id', async (req, res) => {
         f.presupuesto_ejecutado || null,
         f.eje_tematico,
         parseInt(req.params.id),
+        f.tipo_actividad || null,
+        f.categoria_capacitacion || null,
       ],
     );
     if (!rows.length) return res.status(404).json({ error: 'No encontrado' });
@@ -1263,6 +1373,21 @@ app.post('/api/solicitudes', async (req, res) => {
   try {
     const { datos, ejecutor_nombre, ejecutor_dni } = req.body;
     const red = datos.redAsistencial || datos.red_asistencial || null;
+
+    if (!datos.categoriaCapacitacion) {
+      return res.status(400).json({
+        error: 'Seleccione el Tipo de capacitación (Plan Local de Capacitación / Actividad Estrategias de Capacitación).',
+      });
+    }
+
+    // El código de actividad se genera acá (autoritativo), no se confía en lo
+    // que mande el navegador: evita choques si dos ejecutores envían casi
+    // al mismo tiempo.
+    if (red) {
+      const codigoGenerado = await generarCodigoActividad(datos.categoriaCapacitacion, red);
+      if (codigoGenerado) datos.codigoAct = codigoGenerado;
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO solicitudes_revision (datos, red_asistencial, ejecutor_nombre, ejecutor_dni)
        VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -1381,34 +1506,39 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
     }
 
     // Revalidación de seguridad: ningún participante de esta solicitud puede
-    // estar ya registrado en OTRA capacitación (el Ejecutor ya lo valida al
-    // agregar, pero puede haber quedado desactualizado entre el envío y la
-    // aprobación). Se chequea antes de tocar la solicitud para no dejarla a
-    // medio aprobar si hay un conflicto.
+    // haber superado el límite de capacitaciones por año (el Ejecutor ya lo
+    // valida al agregar, pero puede haber quedado desactualizado entre el
+    // envío y la aprobación). Se chequea antes de tocar la solicitud para no
+    // dejarla a medio aprobar si hay un conflicto.
     if (estado === 'aprobado') {
       const pendiente = await pool.query('SELECT datos FROM solicitudes_revision WHERE id=$1', [
         parseInt(req.params.id),
       ]);
       if (!pendiente.rows.length) return res.status(404).json({ error: 'No encontrada' });
       const fPrevio = JSON.parse(pendiente.rows[0].datos);
+      if (!fPrevio.categoriaCapacitacion) {
+        return res.status(400).json({
+          error: 'La solicitud no tiene "Tipo de capacitación" (Plan Local / Actividad Estrategias). No se puede aprobar.',
+        });
+      }
       const participantesPrevio = Array.isArray(fPrevio.participantesDetalle)
         ? fPrevio.participantesDetalle
         : [];
       const conflictos = [];
       for (const p of participantesPrevio) {
-        const c = await buscarConflictoParticipante(p.dni_ce, fPrevio.codigoAct);
-        if (c) conflictos.push({ ...p, ...c });
+        const limiteInfo = await verificarLimiteParticipante(
+          p.dni_ce,
+          fPrevio.categoriaCapacitacion,
+          fPrevio.codigoAct,
+          fPrevio.codigoAct,
+        );
+        if (limiteInfo) conflictos.push({ ...p, mensaje: mensajeLimiteParticipante(limiteInfo) });
       }
       if (conflictos.length) {
         const detalle = conflictos
-          .map(
-            (c) =>
-              `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}) ya está en "${c.nombre_actividad || c.codigo_act}"`,
-          )
+          .map((c) => `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}): ${c.mensaje}`)
           .join('; ');
-        return res.status(409).json({
-          error: `No se puede aprobar: ${detalle}. Un participante no puede estar en más de una capacitación.`,
-        });
+        return res.status(409).json({ error: `No se puede aprobar: ${detalle}` });
       }
     }
 
@@ -1444,6 +1574,8 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
         f.sectorProveedor,
         f.presupuestoEjecutado || null,
         f.ejeTematico,
+        f.tipoActividad || null,
+        f.categoriaCapacitacion || null,
       ];
       // Oracle no tiene ON CONFLICT: se intenta UPDATE por codigo_act y, si no
       // afectó ninguna fila (no existía), se hace el INSERT.
@@ -1454,8 +1586,8 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
            frecuencia=$9, hora_inicio=$10, hora_termino=$11, modalidad=$12, publico=$13,
            nivel_evaluacion=$14, objetivo_estrategico=$15, total_participantes=$16,
            ruc_proveedor=$17, nombre_proveedor=$18, sector_proveedor=$19,
-           presupuesto_ejecutado=$20, eje_tematico=$21
-         WHERE codigo_act=$22`,
+           presupuesto_ejecutado=$20, eje_tematico=$21, tipo_actividad=$22, categoria_capacitacion=$23
+         WHERE codigo_act=$24`,
         [...camposActividad, f.codigoAct],
       );
       if (updAct.rowCount === 0) {
@@ -1466,8 +1598,8 @@ app.put('/api/solicitudes/:id/revisar', async (req, res) => {
               frecuencia, hora_inicio, hora_termino, modalidad, publico,
               nivel_evaluacion, objetivo_estrategico, total_participantes,
               ruc_proveedor, nombre_proveedor, sector_proveedor,
-              presupuesto_ejecutado, eje_tematico)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+              presupuesto_ejecutado, eje_tematico, tipo_actividad, categoria_capacitacion)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
           [f.codigoAct, ...camposActividad],
         );
       }
@@ -1985,27 +2117,37 @@ app.post('/api/capacitaciones-sindicato', async (req, res) => {
   try {
     const f = req.body;
     if (!f.sindicato?.trim()) return res.status(400).json({ error: 'Seleccione un sindicato.' });
-    if (!f.codigoAct?.trim()) return res.status(400).json({ error: 'El código de actividad es obligatorio.' });
     if (!f.nombreActividad?.trim()) return res.status(400).json({ error: 'El nombre de la actividad es obligatorio.' });
     if (!f.fechaInicio) return res.status(400).json({ error: 'La fecha de inicio es obligatoria.' });
     if (!f.redAsistencial?.trim()) return res.status(400).json({ error: 'Seleccione una red asistencial.' });
+    if (!f.categoriaCapacitacion) {
+      return res.status(400).json({ error: 'Seleccione el Tipo de capacitación (Plan Local / Actividad Estrategias).' });
+    }
+
+    // Código de actividad autoritativo, generado acá — SIN sigla de red (a
+    // diferencia del flujo del Ejecutor), pero comparte la misma numeración
+    // global por año. No se confía en lo que mande el navegador.
+    const codigoGenerado = await generarCodigoActividad(f.categoriaCapacitacion, f.redAsistencial, {
+      incluirRed: false,
+    });
+    if (codigoGenerado) f.codigoAct = codigoGenerado;
+    if (!f.codigoAct?.trim()) return res.status(400).json({ error: 'El código de actividad es obligatorio.' });
 
     const participantes = Array.isArray(f.participantes) ? f.participantes : [];
 
-    // Un participante no puede estar ya en otra capacitación (misma regla que
-    // el resto del sistema). Se valida TODA la lista antes de insertar nada.
+    // Ningún participante puede haber superado el límite de capacitaciones
+    // por año (2 Plan Local / 1 Actividad Estrategias). Se valida TODA la
+    // lista antes de insertar nada.
     const conflictos = [];
     for (const p of participantes) {
-      const c = await buscarConflictoParticipante(p.dni_ce, f.codigoAct);
-      if (c) conflictos.push({ ...p, ...c });
+      const limiteInfo = await verificarLimiteParticipante(p.dni_ce, f.categoriaCapacitacion, f.codigoAct, f.codigoAct);
+      if (limiteInfo) conflictos.push({ ...p, mensaje: mensajeLimiteParticipante(limiteInfo) });
     }
     if (conflictos.length) {
       const detalle = conflictos
-        .map((c) => `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}) ya está en "${c.nombre_actividad || c.codigo_act}"`)
+        .map((c) => `${c.apellidos || ''} ${c.nombre || ''} (DNI ${c.dni_ce}): ${c.mensaje}`)
         .join('; ');
-      return res.status(409).json({
-        error: `No se puede registrar: ${detalle}. Un participante no puede estar en más de una capacitación.`,
-      });
+      return res.status(409).json({ error: `No se puede registrar: ${detalle}` });
     }
 
     await pool.query(
@@ -2015,15 +2157,15 @@ app.post('/api/capacitaciones-sindicato', async (req, res) => {
           frecuencia, hora_inicio, hora_termino, modalidad, publico,
           nivel_evaluacion, objetivo_estrategico, total_participantes,
           ruc_proveedor, nombre_proveedor, sector_proveedor,
-          presupuesto_ejecutado, eje_tematico, sindicato)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
+          presupuesto_ejecutado, eje_tematico, sindicato, tipo_actividad, categoria_capacitacion)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
       [
         f.codigoAct, f.fechaInicio || null, f.fechaFin || null, f.mesTermino, f.redAsistencial,
         f.servicioArea, f.nombreActividad, f.totalHoras || null, f.horasFueraHorario || null,
         f.frecuencia, f.horaInicio || null, f.horaTermino || null, f.modalidad, f.publico,
         f.nivelEvaluacion, f.objetivoEstrategico || null, participantes.length || f.totalParticipantes || null,
         f.rucProveedor, f.nombreProveedor, f.sectorProveedor, f.presupuestoEjecutado || null,
-        f.ejeTematico, f.sindicato.trim(),
+        f.ejeTematico, f.sindicato.trim(), f.tipoActividad || null, f.categoriaCapacitacion || null,
       ],
     );
 

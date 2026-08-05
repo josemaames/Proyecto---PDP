@@ -663,8 +663,10 @@
               <label>Código act.</label>
               <input
                 type="text"
-                placeholder="Ej: CAP-2025-001"
-                [(ngModel)]="formularioSindicato.codigoAct"
+                placeholder="Se genera al elegir el Tipo de capacitación"
+                [ngModel]="generandoCodigoActSindicato ? 'Generando…' : formularioSindicato.codigoAct"
+                disabled
+                class="input-bloqueado"
               />
             </div>
             <div class="campo">
@@ -739,6 +741,30 @@
               placeholder="Ej: Gestión Documental Electrónica"
               [(ngModel)]="formularioSindicato.nombreActividad"
             />
+          </div>
+          <div class="campo" style="margin-bottom: 18px">
+            <label>Tipo de Actividad</label>
+            <select [(ngModel)]="formularioSindicato.tipoActividad">
+              <option value="">Seleccione...</option>
+              @for (tipo of tiposActividad; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo" style="margin-bottom: 18px">
+            <label>Tipo de capacitación</label>
+            <div class="categoria-toggle-group">
+              @for (cat of categoriasCapacitacion; track cat) {
+                <button
+                  type="button"
+                  class="btn-categoria-toggle"
+                  [class.activo]="formularioSindicato.categoriaCapacitacion === cat"
+                  (click)="elegirCategoriaCapacitacionSindicato(cat)"
+                >
+                  {{ cat }}
+                </button>
+              }
+            </div>
           </div>
           <div class="datos-grid tres-col">
             <div class="campo">
@@ -985,7 +1011,7 @@
                   <span class="ac-badge ac-no">no encontrado</span>
                 }
                 @if (estadoBusquedaPartSindicato === 'ya_registrado') {
-                  <span class="ac-badge ac-red-mismatch">ya está en otra capacitación</span>
+                  <span class="ac-badge ac-red-mismatch">límite de capacitaciones alcanzado</span>
                 }
               </label>
               <div class="partic-autocomplete">
@@ -1008,9 +1034,7 @@
                 }
               </div>
               @if (estadoBusquedaPartSindicato === 'ya_registrado') {
-                <p class="partic-error-red">
-                  Ya está registrado en <strong>{{ capacitacionYaRegistradoSindicato }}</strong>. No puede estar en más de una capacitación.
-                </p>
+                <p class="partic-error-red">{{ capacitacionYaRegistradoSindicato }}</p>
               }
             </div>
             <div class="campo">
