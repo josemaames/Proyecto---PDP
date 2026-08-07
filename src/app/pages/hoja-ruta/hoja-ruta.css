@@ -21,7 +21,7 @@
   background: #fff;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
   position: sticky;
   top: 24px;
   max-height: calc(100vh - 48px);
@@ -46,7 +46,9 @@
   outline: none;
   transition: border-color 0.2s;
 }
-.hr-search:focus { border-color: #005baa; }
+.hr-search:focus {
+  border-color: #005baa;
+}
 
 .hr-lista {
   list-style: none;
@@ -62,7 +64,9 @@
   transition: background 0.15s;
   border: 2px solid transparent;
 }
-.hr-item:hover { background: #f0f4ff; }
+.hr-item:hover {
+  background: #f0f4ff;
+}
 .hr-item.activo {
   background: #e8f0fe;
   border-color: #005baa;
@@ -109,8 +113,13 @@
   padding: 80px 40px;
   color: #9ca3af;
 }
-.hr-empty-icon { font-size: 56px; margin-bottom: 16px; }
-.hr-empty p { font-size: 15px; }
+.hr-empty-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+.hr-empty p {
+  font-size: 15px;
+}
 
 /* ══════════════════════════════
    CARD
@@ -120,7 +129,7 @@
   background: #fff;
   border-radius: 18px;
   padding: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 /* ENCABEZADO */
@@ -176,13 +185,27 @@
   font-size: 13px;
   font-weight: 700;
 }
-.semaforo-verde   { background: #dcfce7; color: #15803d; }
-.semaforo-amarillo{ background: #fef3c7; color: #b45309; }
-.semaforo-rojo    { background: #fee2e2; color: #dc2626; }
-.semaforo-gris    { background: #f3f4f6; color: #6b7280; }
+.semaforo-verde {
+  background: #dcfce7;
+  color: #15803d;
+}
+.semaforo-amarillo {
+  background: #fef3c7;
+  color: #b45309;
+}
+.semaforo-rojo {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.semaforo-gris {
+  background: #f3f4f6;
+  color: #6b7280;
+}
 
 /* BARRA DE AVANCE */
-.hr-avance-wrap { margin-bottom: 24px; }
+.hr-avance-wrap {
+  margin-bottom: 24px;
+}
 .hr-avance-info {
   display: flex;
   justify-content: space-between;
@@ -190,8 +213,13 @@
   font-size: 14px;
   color: #374151;
 }
-.hr-pct { color: #005baa; font-size: 16px; }
-.hr-pct.pct-verde { color: #15803d; }
+.hr-pct {
+  color: #005baa;
+  font-size: 16px;
+}
+.hr-pct.pct-verde {
+  color: #15803d;
+}
 
 .hr-barra-bg {
   height: 16px;
@@ -237,11 +265,21 @@
   font-size: 14px;
 }
 
-.info-c-dias { border-left-color: #b8860b; }
-.info-alerta-rojo { border-left-color: #dc2626 !important; }
-.info-alerta-rojo p { color: #dc2626; }
-.info-alerta-amarillo { border-left-color: #d97706 !important; }
-.info-alerta-amarillo p { color: #d97706; }
+.info-c-dias {
+  border-left-color: #b8860b;
+}
+.info-alerta-rojo {
+  border-left-color: #dc2626 !important;
+}
+.info-alerta-rojo p {
+  color: #dc2626;
+}
+.info-alerta-amarillo {
+  border-left-color: #d97706 !important;
+}
+.info-alerta-amarillo p {
+  color: #d97706;
+}
 
 /* ══════════════════════════════
    TIMELINE INTERACTIVO
@@ -274,15 +312,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
   position: relative;
   z-index: 1;
 }
 .hr-step:not(:disabled):hover {
   transform: scale(1.12);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
-.hr-step:disabled { cursor: default; }
+.hr-step:disabled {
+  cursor: default;
+}
 
 .step-completado {
   background: #2e7d32;
@@ -302,8 +344,13 @@
   animation: pulse 1s infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .hr-step-label {
@@ -348,12 +395,25 @@
 ══════════════════════════════ */
 
 @media (max-width: 1100px) {
-  .hr-info-grid { grid-template-columns: repeat(2, 1fr); }
+  .hr-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .hr-page { flex-direction: column; }
-  .hr-aside { width: 100%; min-width: unset; position: static; max-height: 280px; }
-  .hr-info-grid { grid-template-columns: 1fr 1fr; }
-  .hr-enc { flex-direction: column; }
+  .hr-page {
+    flex-direction: column;
+  }
+  .hr-aside {
+    width: 100%;
+    min-width: unset;
+    position: static;
+    max-height: 280px;
+  }
+  .hr-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hr-enc {
+    flex-direction: column;
+  }
 }

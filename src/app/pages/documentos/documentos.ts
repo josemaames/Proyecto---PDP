@@ -156,6 +156,6 @@ export class Documentos implements OnInit {
   }
 
   volverSomos() {
-    window.location.href = 'http://localhost:4200/somosessalud/';
+    window.location.replace('http://localhost:4200/somosessalud/');
   }
 }

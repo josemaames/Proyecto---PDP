@@ -73,6 +73,10 @@ export class ExpedientesPdp implements OnInit {
       .filter(Boolean);
   }
 
+  get esAdministrador(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
+
   ngOnInit() {
     this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
 

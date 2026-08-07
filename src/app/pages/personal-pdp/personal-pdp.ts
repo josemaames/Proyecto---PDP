@@ -18,7 +18,7 @@ export class PersonalPdp implements OnInit {
   private router = inject(Router);
   private pdpData = inject(PdpDataService);
 
-  usuario: any = {};
+  usuarioActual: any = {};
   fechaHoy = '';
   inicialUsuario = 'U';
   mostrarPerfilMenu = false;
@@ -41,7 +41,7 @@ export class PersonalPdp implements OnInit {
   resultadoActualizar: ResultadoActualizarPersonal | null = null;
 
   get esAdministrador(): boolean {
-    return this.usuario?.rol === 'Administrador';
+    return this.usuarioActual?.rol === 'Administrador';
   }
 
   get totalPaginas(): number {
@@ -49,18 +49,67 @@ export class PersonalPdp implements OnInit {
   }
 
   ngOnInit() {
-    this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
+    this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+    this.inicialUsuario = this.usuarioActual?.nombre?.charAt(0)?.toUpperCase() || 'U';
+
     const f = new Date().toLocaleDateString('es-PE', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
+
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
 
     this.redFiltro = this.pdpData.getRedFiltro();
+
     this.cargarPersonal();
+  }
+
+  irModulo(modulo: string) {
+    switch (modulo) {
+      case 'Inicio':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'Expedientes':
+        this.router.navigate(['/expedientes']);
+        break;
+      case 'Hoja de Ruta':
+        this.router.navigate(['/hoja-ruta']);
+        break;
+      case 'Documentos':
+        this.router.navigate(['/documentos']);
+        break;
+      case 'Personal':
+        this.router.navigate(['/personal-pdp']);
+        break;
+      case 'Participantes':
+        this.router.navigate(['/lista-participantes']);
+        break;
+
+      case 'Reportes':
+        alert(' Módulo Reportes en desarrollo');
+        break;
+
+      case 'Presupuesto':
+        this.router.navigate(['/presupuesto']);
+        break;
+
+      case 'Convenios':
+        this.router.navigate(['/convenios']);
+        break;
+
+      case 'Carpetas Drive':
+        this.router.navigate(['/carpetas-drive']);
+        break;
+
+      case 'Administración':
+        this.router.navigate(['/personal']);
+        break;
+      default:
+        alert(` El módulo "${modulo}" aún está en desarrollo`);
+    }
   }
 
   cargarPersonal() {
@@ -133,8 +182,8 @@ export class PersonalPdp implements OnInit {
     this.pdpData
       .actualizarPersonal(
         this.archivoActualizar,
-        this.usuario?.nombre || 'Administrador',
-        this.usuario?.rol || '',
+        this.usuarioActual?.nombre || 'Administrador',
+        this.usuarioActual?.rol || '',
       )
       .subscribe({
         next: (res) => {
@@ -158,6 +207,6 @@ export class PersonalPdp implements OnInit {
   }
 
   volverSomos() {
-    window.location.href = 'http://localhost:4200/somosessalud/';
+    window.location.replace('http://localhost:4200/somosessalud/');
   }
 }
