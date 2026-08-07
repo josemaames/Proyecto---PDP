@@ -762,16 +762,22 @@ export class Convenios implements OnInit {
   }
 
   // ── Navegación ────────────────────────────────────
-  togglePerfilMenu(): void {
-    this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
-  }
   irASectorista(): void {
     this.router.navigate(['/sectorista']);
   }
   dashboard(id: number): any {
     return this.dashboardPorMarco.get(id);
   }
+
+  irA(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
+  togglePerfilMenu() {
+    this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
+  }
+
   volverSomos() {
-    window.location.href = 'http://localhost:4200/somosessalud/';
+    window.location.replace('http://localhost:4200/somosessalud/');
   }
 }

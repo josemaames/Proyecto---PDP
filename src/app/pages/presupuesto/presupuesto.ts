@@ -67,6 +67,10 @@ export class Presupuesto implements OnInit {
     this.cargar();
   }
 
+  irASectorista(): void {
+    this.router.navigate(['/sectorista']);
+  }
+
   cargar(): void {
     this.cargando = true;
     forkJoin({
@@ -187,13 +191,15 @@ export class Presupuesto implements OnInit {
     return t === 'aumento' ? 'Aumento' : t === 'reduccion' ? 'Reducción' : 'Reasignación';
   }
 
-  togglePerfilMenu(): void {
+  irA(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
+  togglePerfilMenu() {
     this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
   }
-  irASectorista(): void {
-    this.router.navigate(['/sectorista']);
-  }
+
   volverSomos() {
-    window.location.href = 'http://localhost:4200/somosessalud/';
+    window.location.replace('http://localhost:4200/somosessalud/');
   }
 }
