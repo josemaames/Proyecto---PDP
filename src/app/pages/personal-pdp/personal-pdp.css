@@ -69,6 +69,11 @@
   box-shadow: 0 0 0 3px rgba(26, 79, 168, 0.1);
 }
 
+input.select-filtro {
+  cursor: text;
+  min-width: 160px;
+}
+
 .campo-busqueda {
   flex: 1;
   min-width: 220px;

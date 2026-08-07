@@ -277,14 +277,25 @@ export class PdpDataService {
     limit = 50,
     red = '',
     regimen_laboral = '',
+    sub_programa = '',
+    servicio_area = '',
   ): Observable<ApiResponse<PersonalEssalud>> {
     const params = new HttpParams()
       .set('q', q)
       .set('page', String(page))
       .set('limit', String(limit))
       .set('red', red)
-      .set('regimen_laboral', regimen_laboral);
+      .set('regimen_laboral', regimen_laboral)
+      .set('sub_programa', sub_programa)
+      .set('servicio_area', servicio_area);
     return this.http.get<ApiResponse<PersonalEssalud>>(`${this.api}/personal-essalud`, { params });
+  }
+
+  // Listas de valores distintos para los filtros de la pantalla de Personal.
+  getFiltrosPersonal(): Observable<{ redes: string[]; subProgramas: string[]; serviciosArea: string[] }> {
+    return this.http.get<{ redes: string[]; subProgramas: string[]; serviciosArea: string[] }>(
+      `${this.api}/personal-essalud/filtros`,
+    );
   }
 
   // Buscar por DNI para autocompletar formulario

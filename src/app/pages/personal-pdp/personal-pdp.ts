@@ -30,6 +30,15 @@ export class PersonalPdp implements OnInit {
   totalRegistros = 0;
   cargando = false;
   redFiltro = '';
+  // Filtros manuales (solo disponibles para Administrador/Administrativo —
+  // Sectorista/Ejecutor ya vienen restringidos por `redFiltro`, derivado de su
+  // red asignada, y no deben poder ver otras redes).
+  redSeleccionada = '';
+  subProgramaFiltro = '';
+  servicioAreaFiltro = '';
+  redesDisponibles: string[] = [];
+  subProgramasDisponibles: string[] = [];
+  serviciosAreaDisponibles: string[] = [];
 
   personal: PersonalEssalud[] = [];
 
@@ -65,6 +74,16 @@ export class PersonalPdp implements OnInit {
     this.redFiltro = this.pdpData.getRedFiltro();
 
     this.cargarPersonal();
+
+    // Sectorista/Ejecutor ya tienen su red fija en `redFiltro`; el desplegable
+    // manual de red solo aplica cuando no hay esa restricción (Administrador).
+    this.pdpData.getFiltrosPersonal().subscribe({
+      next: (r) => {
+        if (!this.redFiltro) this.redesDisponibles = r.redes;
+        this.subProgramasDisponibles = r.subProgramas;
+        this.serviciosAreaDisponibles = r.serviciosArea;
+      },
+    });
   }
 
   irModulo(modulo: string) {
@@ -119,8 +138,10 @@ export class PersonalPdp implements OnInit {
         this.busqueda,
         this.pagina,
         this.limit,
-        this.redFiltro,
+        this.redFiltro || this.redSeleccionada,
         this.regimenFiltro,
+        this.subProgramaFiltro,
+        this.servicioAreaFiltro,
       )
       .subscribe({
         next: (res) => {

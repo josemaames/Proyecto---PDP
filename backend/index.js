@@ -816,7 +816,15 @@ app.put('/api/hoja-ruta/:actividad_id/pasos/:paso', async (req, res) => {
 // ══════════════════════════════════════════════
 app.get('/api/personal-essalud', async (req, res) => {
   try {
-    const { q = '', red = '', regimen_laboral = '', page = 1, limit = 50 } = req.query;
+    const {
+      q = '',
+      red = '',
+      regimen_laboral = '',
+      sub_programa = '',
+      servicio_area = '',
+      page = 1,
+      limit = 50,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let conditions = [],
@@ -862,6 +870,16 @@ app.get('/api/personal-essalud', async (req, res) => {
       params.push(`%${regimen_laboral}%`);
       idx++;
     }
+    if (sub_programa) {
+      conditions.push(`sub_programa ILIKE $${idx}`);
+      params.push(`%${sub_programa}%`);
+      idx++;
+    }
+    if (servicio_area) {
+      conditions.push(`servicio_area ILIKE $${idx}`);
+      params.push(`%${servicio_area}%`);
+      idx++;
+    }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -871,6 +889,25 @@ app.get('/api/personal-essalud', async (req, res) => {
     );
     const { rows: c } = await pool.query(`SELECT COUNT(*) FROM personal ${where}`, params);
     res.json({ data: rows, total: parseInt(c[0].count) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/personal-essalud/filtros — listas de valores distintos de red,
+// sub_programa y servicio_area (para llenar los filtros en la pantalla de Personal).
+app.get('/api/personal-essalud/filtros', async (req, res) => {
+  try {
+    const [redes, subProgramas, serviciosArea] = await Promise.all([
+      pool.query(`SELECT DISTINCT red FROM personal WHERE red IS NOT NULL ORDER BY red`),
+      pool.query(`SELECT DISTINCT sub_programa FROM personal WHERE sub_programa IS NOT NULL ORDER BY sub_programa`),
+      pool.query(`SELECT DISTINCT servicio_area FROM personal WHERE servicio_area IS NOT NULL ORDER BY servicio_area`),
+    ]);
+    res.json({
+      redes: redes.rows.map((r) => r.red).filter(Boolean),
+      subProgramas: subProgramas.rows.map((r) => r.sub_programa).filter(Boolean),
+      serviciosArea: serviciosArea.rows.map((r) => r.servicio_area).filter(Boolean),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

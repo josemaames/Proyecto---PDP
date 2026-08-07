@@ -296,6 +296,43 @@
                 (input)="buscar()"
               />
             </div>
+            @if (!redFiltro) {
+              <select class="select-filtro" [(ngModel)]="redSeleccionada" (change)="buscar()">
+                <option value="">Todas las redes</option>
+                @for (red of redesDisponibles; track red) {
+                  <option [value]="red">{{ red }}</option>
+                }
+              </select>
+            }
+
+            <input
+              type="text"
+              class="select-filtro"
+              list="lista-subprogramas"
+              placeholder="Sub-Programa..."
+              [(ngModel)]="subProgramaFiltro"
+              (input)="buscar()"
+            />
+            <datalist id="lista-subprogramas">
+              @for (sp of subProgramasDisponibles; track sp) {
+                <option [value]="sp"></option>
+              }
+            </datalist>
+
+            <input
+              type="text"
+              class="select-filtro"
+              list="lista-servicios-area"
+              placeholder="Servicio / Área..."
+              [(ngModel)]="servicioAreaFiltro"
+              (input)="buscar()"
+            />
+            <datalist id="lista-servicios-area">
+              @for (sa of serviciosAreaDisponibles; track sa) {
+                <option [value]="sa"></option>
+              }
+            </datalist>
+
             <select class="select-filtro" [(ngModel)]="regimenFiltro" (change)="buscar()">
               <option value="">Todos los regímenes</option>
               <option value="276">276</option>
