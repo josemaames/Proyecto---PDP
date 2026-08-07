@@ -417,3 +417,26 @@
     flex-direction: column;
   }
 }
+
+.menu-superior {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 12px; /* antes 8px */
+  padding: 0 14px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px; /* antes 10px 12px */
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.menu-item svg {
+  width: 18px;
+  height: 18px;
+}

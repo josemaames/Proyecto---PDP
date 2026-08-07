@@ -143,6 +143,42 @@
       </nav>
     </aside>
 
+    <div class="perfil-superior">
+      <nav class="menu-superior">
+        <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
+
+        @if (esAdministrador) {
+          <div class="menu-item" (click)="irA('/expedientes')">Expedientes</div>
+
+          <div class="menu-item" (click)="irA('/documentos')">Documentos</div>
+
+          <div class="menu-item" (click)="irA('/personal-pdp')">Personal</div>
+
+          <div class="menu-item activo">Participantes</div>
+
+          <div class="menu-item" (click)="irA('/hoja-ruta')">Hoja de Ruta</div>
+
+          <div class="menu-item" (click)="irA('/historial')">Historial</div>
+
+          <div class="menu-item" (click)="irA('/presupuesto')">Presupuesto</div>
+
+          <div class="menu-item" (click)="irA('/convenios')">Convenios</div>
+
+          <div class="menu-item" (click)="irA('/carpetas-drive')">Carpetas Drive</div>
+
+          <div class="menu-item" (click)="irA('/administracion')">Administración</div>
+        } @else {
+          <div class="menu-item" (click)="irA('/expedientes')">Expedientes</div>
+
+          <div class="menu-item" (click)="irA('/personal-pdp')">Personal</div>
+
+          <div class="menu-item activo">Participantes</div>
+
+          <div class="menu-item cerrar" (click)="volverSomos()">Salir</div>
+        }
+      </nav>
+    </div>
+
     <!-- ===== CONTENIDO ===== -->
     <main class="app-contenido">
       <div class="contenido-encabezado">

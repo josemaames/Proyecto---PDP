@@ -48,22 +48,17 @@ export class ListaParticipantes implements OnInit {
   // ── Ciclo de vida ─────────────────────────────
   ngOnInit() {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
     this.inicialUsuario = this.usuario?.nombre?.charAt(0)?.toUpperCase() || 'U';
+
     const f = new Date().toLocaleDateString('es-PE', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
+
     this.fechaHoy = f.charAt(0).toUpperCase() + f.slice(1);
-
-    this.redFiltro = this.pdpData.getRedFiltro();
-
-    const codigoDesdeUrl = this.route.snapshot.queryParamMap.get('codigo_act');
-    if (codigoDesdeUrl) this.codigoFiltro = codigoDesdeUrl;
-
-    this.cargarParticipantes();
-    this.cargarAlertas();
   }
 
   // ── Alertas de personal ───────────────────────
@@ -185,6 +180,10 @@ export class ListaParticipantes implements OnInit {
   // ── Paginación ────────────────────────────────
   get totalPaginas(): number {
     return Math.max(1, Math.ceil(this.totalRegistros / this.limit));
+  }
+
+  get esAdministrador(): boolean {
+    return this.usuario?.rol === 'Administrador';
   }
 
   paginaAnterior() {

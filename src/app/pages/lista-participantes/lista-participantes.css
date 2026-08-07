@@ -58,7 +58,9 @@
   background: #fff;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   white-space: nowrap;
 }
 .select-filtro:focus {
@@ -77,7 +79,9 @@
   border: 1.5px solid #dde3ef;
   border-radius: 10px;
   padding: 0 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .campo-busqueda:focus-within {
@@ -120,7 +124,9 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
 }
 
 .btn-toggle-form svg {
@@ -141,8 +147,14 @@
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .datos-grid {
@@ -179,7 +191,9 @@
   color: #1a1a2e;
   background: #fff;
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .campo input:focus,
@@ -555,4 +569,27 @@
 }
 .btn-asig-cancelar:hover {
   background: #e2eaf6;
+}
+
+.menu-superior {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 12px; /* antes 8px */
+  padding: 0 14px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px; /* antes 10px 12px */
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.menu-item svg {
+  width: 18px;
+  height: 18px;
 }

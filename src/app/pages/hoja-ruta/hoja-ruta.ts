@@ -14,6 +14,7 @@ const API = 'http://localhost:3001';
 export class HojaRuta implements OnInit {
   private router = inject(Router);
 
+  rolUsuario = '';
   usuarioActual: any = {};
   fechaHoy = '';
   inicialUsuario = 'U';
@@ -115,6 +116,10 @@ export class HojaRuta implements OnInit {
         : [cap.mes_termino.toString().slice(5, 7), cap.mes_termino.toString().slice(0, 4)];
     const limite = new Date(parseInt(anio), parseInt(mes) - 1 + 1, 0);
     return Math.ceil((limite.getTime() - new Date().getTime()) / 86400000);
+  }
+
+  get esAdministrador(): boolean {
+    return this.rolUsuario === 'Administrador';
   }
 
   togglePaso(paso: { paso: string; completado: boolean }) {

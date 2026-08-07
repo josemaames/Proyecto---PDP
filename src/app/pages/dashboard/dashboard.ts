@@ -1272,6 +1272,10 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
+  irA(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
   cargandoHistorial = false;
 
   abrirHistorial() {

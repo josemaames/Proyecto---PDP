@@ -77,6 +77,18 @@ export class ExpedientesPdp implements OnInit {
     return this.rolUsuario === 'Administrador';
   }
 
+  get esSindicato(): boolean {
+    return this.rolUsuario === 'Sindicato';
+  }
+
+  get esSectorista(): boolean {
+    return this.rolUsuario === 'Sectorista';
+  }
+
+  get esEjecutor(): boolean {
+    return this.rolUsuario === 'Ejecutor';
+  }
+
   ngOnInit() {
     this.usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
 
@@ -245,6 +257,6 @@ export class ExpedientesPdp implements OnInit {
   }
 
   irA(ruta: string) {
-    this.router.navigate([ruta]);
+    this.router.navigateByUrl(ruta);
   }
 }
