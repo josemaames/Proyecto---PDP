@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { forkJoin, firstValueFrom } from 'rxjs';
@@ -25,6 +25,7 @@ import * as ExcelJS from 'exceljs';
 export class Sectorista implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   private pdpData = inject(PdpDataService);
 
@@ -232,6 +233,12 @@ export class Sectorista implements OnInit {
     this.cargarPresupuestoRed();
     this.cargarAlertasPersonal();
     this.cargarSindicatos();
+
+    // Al volver desde otra pantalla con "?tab=sindicatos" (ver app-top-menu),
+    // abre directo esa sección en vez de quedarse en Inicio.
+    if (this.route.snapshot.queryParamMap.get('tab') === 'sindicatos') {
+      this.cambiarSeccion('sindicatos');
+    }
   }
 
   // ── Sindicatos (para el formulario de capacitaciones de sindicato) ──
