@@ -18,7 +18,12 @@ import { Convenios } from './pages/convenios/convenios';
 import { Notas } from './pages/notas/notas';
 import { CarpetasDrive } from './pages/carpetas-drive/carpetas-drive';
 
-const ADMIN = ['Administrador', 'Administrativo'];
+// SuperAdministrador ve todo lo que ve Administrador/Administrativo, más la
+// pantalla de Administración (gestión de usuarios y roles) — de ahí que
+// entre en el grupo ADMIN general. La pantalla de Administración en sí usa
+// el grupo SUPERADMIN aparte, que la restringe solo a ese rol.
+const SUPERADMIN = ['SuperAdministrador'];
+const ADMIN = ['Administrador', 'Administrativo', ...SUPERADMIN];
 const SECTORISTA = ['Sectorista'];
 const EJECUTOR = ['Ejecutor'];
 const PRESUPUESTO = ['Presupuesto'];
@@ -93,7 +98,7 @@ export const routes: Routes = [
   {
     path: 'personal',
     component: Personal,
-    canActivate: [authGuard, roleGuard(ADMIN)],
+    canActivate: [authGuard, roleGuard(SUPERADMIN)],
   },
 
   {
@@ -127,19 +132,17 @@ export const routes: Routes = [
   },
 
   {
-    path: '**',
-    redirectTo: 'login',
-  },
-
-  {
     path: 'historial',
     component: Dashboard,
     canActivate: [authGuard, roleGuard(TODOS)],
   },
 
+  // El comodín SIEMPRE va al final: Angular hace match en orden y, si esto
+  // quedara antes, se comería cualquier ruta declarada después (como pasaba
+  // antes con 'historial', que redirigía a login sin llegar nunca a
+  // registrarse).
   {
-    path: 'personal',
-    component: Personal,
-    canActivate: [authGuard, roleGuard(ADMIN)],
+    path: '**',
+    redirectTo: 'login',
   },
 ];

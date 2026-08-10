@@ -2,11 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PdpDataService, Participante, AlertaPersonal } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-lista-participantes',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TopMenu],
   templateUrl: './lista-participantes.html',
   styleUrl: './lista-participantes.css',
 })
@@ -183,7 +184,7 @@ export class ListaParticipantes implements OnInit {
   }
 
   get esAdministrador(): boolean {
-    return this.usuario?.rol === 'Administrador';
+    return this.usuario?.rol === 'Administrador' || this.usuario?.rol === 'SuperAdministrador';
   }
 
   paginaAnterior() {

@@ -1,0 +1,78 @@
+/* Barra de navegación superior compartida — estilos propios y aislados
+   (encapsulados por Angular), para que ninguna página vuelva a pisar estos
+   valores con su propio ".menu-item" y desalinear tamaños entre pantallas. */
+
+.perfil-superior {
+  min-height: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  width: 100%;
+}
+
+.menu-superior {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 1400px;
+  padding: 6px 12px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #4a5568;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.menu-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.menu-item span {
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  background: #eef4ff;
+  color: #1a4fa8;
+}
+
+.menu-item.activo {
+  background: #eef3fc;
+  color: #1a4fa8;
+  font-weight: 600;
+}
+
+.menu-item.cerrar {
+  color: #e53e3e;
+}
+
+.menu-item.cerrar:hover {
+  background: #fff5f5;
+  color: #c53030;
+}
+
+@media (max-width: 900px) {
+  .menu-item span {
+    display: none;
+  }
+  .menu-item {
+    padding: 10px;
+  }
+}

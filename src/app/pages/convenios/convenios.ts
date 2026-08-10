@@ -12,11 +12,12 @@ import {
   ContraprestacionResumen,
 } from '../../services/convenios.service';
 import { tieneRol } from '../../utils/roles.util';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-convenios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TopMenu],
   templateUrl: './convenios.html',
   styleUrl: './convenios.css',
 })
@@ -145,8 +146,10 @@ export class Convenios implements OnInit {
     this.cargar();
   }
 
+  // Solo quien tiene el rol Convenios puede gestionar — Administrador y
+  // SuperAdministrador ven esta pantalla pero de solo lectura.
   get puedeGestionar(): boolean {
-    return this.esAdmin || this.esConvenios;
+    return this.esConvenios;
   }
 
   cargar(): void {

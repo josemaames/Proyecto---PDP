@@ -13,6 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { NotasStatsService, NotasStats } from '../../services/notas-stats.service';
 import { AlertaPersonal } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 type ResumenRed = {
   red: string;
@@ -32,6 +33,7 @@ type ResumenRed = {
     NgxEchartsDirective,
     CommonModule,
     FormsModule,
+    TopMenu,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
@@ -842,7 +844,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.usuarioActual = datos;
     this.nombre = datos.nombre;
     this.rol = datos.rol;
-    this.esAdministrador = ['Administrador', 'Administrativo'].includes(datos.rol);
+    this.esAdministrador = ['Administrador', 'Administrativo', 'SuperAdministrador'].includes(datos.rol);
 
     this.esSectorista = datos.rol === 'Sectorista';
     this.esEjecutor = datos.rol === 'Ejecutor';

@@ -3,10 +3,11 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { PdpDataService } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-personal',
-  imports: [FormsModule],
+  imports: [FormsModule, TopMenu],
   templateUrl: './personal.html',
   styleUrl: './personal.css',
 })

@@ -2,12 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 const API = 'http://localhost:3001';
 
 @Component({
   selector: 'app-hoja-ruta',
-  imports: [FormsModule],
+  imports: [FormsModule, TopMenu],
   templateUrl: './hoja-ruta.html',
   styleUrl: './hoja-ruta.css',
 })
@@ -119,7 +120,7 @@ export class HojaRuta implements OnInit {
   }
 
   get esAdministrador(): boolean {
-    return this.rolUsuario === 'Administrador';
+    return this.rolUsuario === 'Administrador' || this.rolUsuario === 'SuperAdministrador';
   }
 
   togglePaso(paso: { paso: string; completado: boolean }) {

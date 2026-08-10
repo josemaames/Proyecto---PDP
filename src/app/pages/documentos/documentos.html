@@ -82,32 +82,7 @@
   </nav>
 
   <!-- ===== MENÚ ===== -->
-
-  <div class="perfil-superior">
-    <nav class="menu-superior">
-      <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
-
-      <div class="menu-item" (click)="irA('/expedientes')">Expedientes</div>
-
-      <div class="menu-item" (click)="irA('/hoja-ruta')">Hoja de Ruta</div>
-
-      <div class="menu-item activo">Documentos</div>
-
-      <div class="menu-item" (click)="irA('/personal')">Personal</div>
-
-      <div class="menu-item" (click)="irA('/participantes')">Participantes</div>
-
-      <div class="menu-item" (click)="irA('/historial')">Historial</div>
-
-      <div class="menu-item" (click)="irA('/Presupuesto')">Presupuesto</div>
-
-      <div class="menu-item" (click)="irA('/Convenios')">Convenios</div>
-
-      <div class="menu-item" (click)="irA('/Carpetas Drive')">Carpetas Drive</div>
-
-      <div class="menu-item" (click)="irA('/Administración')">Administración</div>
-    </nav>
-  </div>
+  <app-top-menu (salir)="volverSomos()"></app-top-menu>
 
   <div class="app-cuerpo">
     <main class="app-contenido">

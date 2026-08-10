@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CarpetasDriveService } from '../../services/carpetas-drive.service';
 import { PresupuestoService } from '../../services/presupuesto.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 interface FilaCarpeta {
   red: string;
@@ -18,7 +19,7 @@ interface FilaCarpeta {
 @Component({
   selector: 'app-carpetas-drive',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TopMenu],
   templateUrl: './carpetas-drive.html',
   styleUrl: './carpetas-drive.css',
 })

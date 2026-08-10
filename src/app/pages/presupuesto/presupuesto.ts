@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PresupuestoService, SolicitudPresupuesto } from '../../services/presupuesto.service';
 import { rolesDe, tieneRol, normalizarRedKey } from '../../utils/roles.util';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 interface RedPresupuesto {
   red: string;
@@ -17,7 +18,7 @@ interface RedPresupuesto {
 @Component({
   selector: 'app-presupuesto',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TopMenu],
   templateUrl: './presupuesto.html',
   styleUrl: './presupuesto.css',
 })
@@ -107,8 +108,10 @@ export class Presupuesto implements OnInit {
     });
   }
 
+  // Solo quien tiene el rol Presupuesto puede modificar — Administrador y
+  // SuperAdministrador ven esta pantalla pero de solo lectura.
   get puedeModificar(): boolean {
-    return this.esPresupuesto || this.esAdmin;
+    return this.esPresupuesto;
   }
 
   // ── Crear solicitud (rol Presupuesto) ──────────────

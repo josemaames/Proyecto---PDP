@@ -14,6 +14,7 @@ export function homeDeRol(rol: string): string {
   switch (rol) {
     case 'Administrador':
     case 'Administrativo':
+    case 'SuperAdministrador':
       return '/dashboard';
     case 'Sectorista':
       return '/sectorista';

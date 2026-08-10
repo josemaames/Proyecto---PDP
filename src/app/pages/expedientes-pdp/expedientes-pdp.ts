@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { PdpDataService, Actividad } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-expedientes-pdp',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, DatePipe, DecimalPipe],
+  imports: [FormsModule, CurrencyPipe, DatePipe, DecimalPipe, TopMenu],
   templateUrl: './expedientes-pdp.html',
   styleUrl: './expedientes-pdp.css',
 })
@@ -74,7 +75,7 @@ export class ExpedientesPdp implements OnInit {
   }
 
   get esAdministrador(): boolean {
-    return this.rolUsuario === 'Administrador';
+    return this.rolUsuario === 'Administrador' || this.rolUsuario === 'SuperAdministrador';
   }
 
   get esSindicato(): boolean {

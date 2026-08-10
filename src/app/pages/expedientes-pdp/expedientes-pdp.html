@@ -1,14 +1,6 @@
 <div class="app-layout">
   <nav class="app-nav">
     <div class="nav-izq">
-      <button class="nav-hamburger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-
       <img src="somos-essalud.png" class="nav-logo" />
 
       <div class="nav-brand">
@@ -86,142 +78,9 @@
     </div>
   </nav>
 
-  <div class="app-layout">
-    <!-- ===== NAVBAR ===== -->
-    <nav class="app-nav">
-      <div class="nav-izq">
-        <img src="somos-essalud.png" class="nav-logo" />
+  <app-top-menu (salir)="volverSomos()"></app-top-menu>
 
-        <div class="nav-brand">
-          <div class="nav-brand-title">Sistema de Gestión PDP</div>
-          <div class="nav-brand-subtitle">Plan de Desarrollo de Personas</div>
-        </div>
-      </div>
-
-      <div class="nav-der">
-        <span class="nav-fecha">{{ fechaHoy }}</span>
-
-        <div class="perfil-wrap">
-          <button class="nav-avatar" (click)="togglePerfilMenu()">
-            {{ inicialUsuario }}
-          </button>
-
-          @if (mostrarPerfilMenu) {
-            <div class="perfil-backdrop" (click)="mostrarPerfilMenu = false"></div>
-
-            <div class="perfil-menu">
-              <div class="perfil-menu-head">
-                <div class="perfil-menu-avatar">
-                  {{ inicialUsuario }}
-                </div>
-
-                <div>
-                  <div class="perfil-menu-nombre">
-                    {{ usuarioActual?.nombre }}
-                  </div>
-
-                  <div class="perfil-menu-rol">
-                    {{ usuarioActual?.rol }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="perfil-menu-datos">
-                <div class="perfil-dato">
-                  <span>DNI</span>
-                  <strong>{{ usuarioActual?.dni }}</strong>
-                </div>
-
-                <div class="perfil-dato">
-                  <span>Correo</span>
-                  <strong>{{ usuarioActual?.somos?.correo }}</strong>
-                </div>
-
-                <div class="perfil-dato">
-                  <span>Cargo</span>
-                  <strong>{{ usuarioActual?.cargo }}</strong>
-                </div>
-
-                <div class="perfil-dato">
-                  <span>Planilla</span>
-                  <strong>{{ usuarioActual?.somos?.codigoPlanilla }}</strong>
-                </div>
-
-                <div class="perfil-dato">
-                  <span>Régimen</span>
-                  <strong>{{ usuarioActual?.somos?.regimen }}</strong>
-                </div>
-
-                <div class="perfil-dato">
-                  <span>Dependencia</span>
-                  <strong>{{ usuarioActual?.somos?.dependencia }}</strong>
-                </div>
-              </div>
-
-              <button class="perfil-menu-salir" (click)="volverSomos()">
-                ← Volver a Somos EsSalud
-              </button>
-            </div>
-          }
-        </div>
-      </div>
-    </nav>
-
-    <div class="perfil-superior">
-      <nav class="menu-superior">
-        @if (esAdministrador) {
-          <div class="menu-item activo">Expedientes</div>
-
-          <div class="menu-item" (click)="irA('/documentos')">Documentos</div>
-
-          <div class="menu-item" (click)="irA('/personal-pdp')">Personal</div>
-
-          <div class="menu-item" (click)="irA('/lista-participantes')">Participantes</div>
-
-          <div class="menu-item" (click)="irA('/hoja-ruta')">Hoja de Ruta</div>
-
-          <div class="menu-item" (click)="irA('/historial')">Historial</div>
-
-          <div class="menu-item" (click)="irA('/presupuesto')">Presupuesto</div>
-
-          <div class="menu-item" (click)="irA('/convenios')">Convenios</div>
-
-          <div class="menu-item" (click)="irA('/carpetas-drive')">Carpetas Drive</div>
-
-          <div class="menu-item" (click)="irA('/personal')">Administración</div>
-        }
-
-        @if (esSindicato) {
-          <div class="menu-item activo">Expedientes</div>
-
-          <div class="menu-item" (click)="irA('/sindicato')">Sindicato</div>
-
-          <div class="menu-item cerrar" (click)="volverSomos()">Salir</div>
-        }
-
-        @if (esSectorista) {
-          <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
-
-          <div class="menu-item activo">Expedientes</div>
-
-          <div class="menu-item cerrar" (click)="volverSomos()">Salir</div>
-        }
-
-        @if (esEjecutor) {
-          <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
-
-          <div class="menu-item activo">Expedientes</div>
-
-          <div class="menu-item" (click)="irA('/personal-pdp')">Personal</div>
-
-          <div class="menu-item" (click)="irA('/lista-participantes')">Participantes</div>
-
-          <div class="menu-item cerrar" (click)="volverSomos()">Salir</div>
-        }
-      </nav>
-    </div>
-
-    <div class="exp-container">
+  <div class="exp-container">
       <!-- ENCABEZADO -->
       <div class="exp-header">
         <div class="exp-titulo">
@@ -705,4 +564,4 @@
       </div>
     }
   </div>
-</div>
+

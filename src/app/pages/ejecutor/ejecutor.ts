@@ -8,11 +8,12 @@ import { PdpDataService, AlertaPersonal } from '../../services/pdp-data.service'
 import { normalizarRedKey } from '../../utils/roles.util';
 import { TIPOS_ACTIVIDAD } from '../../utils/tipos-actividad.util';
 import { CATEGORIAS_CAPACITACION } from '../../utils/categoria-capacitacion.util';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
  selector: 'app-ejecutor',
  standalone: true,
- imports: [FormsModule, DecimalPipe, DatePipe],
+ imports: [FormsModule, DecimalPipe, DatePipe, TopMenu],
  templateUrl: './ejecutor.html',
  styleUrl: './ejecutor.css',
 })

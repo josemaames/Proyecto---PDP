@@ -6,11 +6,12 @@ import {
   PersonalEssalud,
   ResultadoActualizarPersonal,
 } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-personal-pdp',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TopMenu],
   templateUrl: './personal-pdp.html',
   styleUrl: './personal-pdp.css',
 })
@@ -50,7 +51,7 @@ export class PersonalPdp implements OnInit {
   resultadoActualizar: ResultadoActualizarPersonal | null = null;
 
   get esAdministrador(): boolean {
-    return this.usuarioActual?.rol === 'Administrador';
+    return this.usuarioActual?.rol === 'Administrador' || this.usuarioActual?.rol === 'SuperAdministrador';
   }
 
   get totalPaginas(): number {

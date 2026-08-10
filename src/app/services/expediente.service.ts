@@ -225,7 +225,7 @@ export class ExpedienteService {
     const expedientes = this.getExpedientes();
 
     // ADMIN
-    if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') {
+    if (['Administrador', 'Administrativo', 'SuperAdministrador'].includes(usuario.rol)) {
       return expedientes;
     }
 

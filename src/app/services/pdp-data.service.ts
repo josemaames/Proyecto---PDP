@@ -168,7 +168,7 @@ export class PdpDataService {
   getRedFiltro(): string {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     if (!usuario.rol) return '';
-    if (usuario.rol === 'Administrador' || usuario.rol === 'Administrativo') return '';
+    if (['Administrador', 'Administrativo', 'SuperAdministrador'].includes(usuario.rol)) return '';
     if (usuario.rol === 'Sectorista') {
       let sedesArr: string[];
       if (Array.isArray(usuario.sedes)) {

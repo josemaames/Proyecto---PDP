@@ -2,11 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PdpDataService, Documento } from '../../services/pdp-data.service';
+import { TopMenu } from '../../components/top-menu/top-menu';
 
 @Component({
   selector: 'app-documentos',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TopMenu],
   templateUrl: './documentos.html',
   styleUrl: './documentos.css',
 })
