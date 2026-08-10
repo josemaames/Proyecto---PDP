@@ -2,7 +2,7 @@
   <!-- ===== NAVBAR (igual que el resto del PDP) ===== -->
   <nav class="app-nav">
     <div class="nav-izq">
-      <button class="nav-hamburger" (click)="volver()" title="Volver al Inicio">
+      <button class="nav-hamburger" (click)="volverSomos()" title="Volver al Inicio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
@@ -36,6 +36,32 @@
       </div>
     </div>
   </nav>
+
+  <div class="perfil-superior">
+    <nav class="menu-superior">
+      <div class="menu-item" (click)="irA('/dashboard')">Inicio</div>
+
+      <div class="menu-item" (click)="irA('/expedientes')">Expedientes</div>
+
+      <div class="menu-item activo">Carpetas Drive</div>
+
+      <div class="menu-item" (click)="irA('/personal')">Personal</div>
+
+      <div class="menu-item" (click)="irA('/participantes')">Participantes</div>
+
+      <div class="menu-item" (click)="irA('/hoja-ruta')">Hoja de Ruta</div>
+
+      <div class="menu-item" (click)="irA('/historial')">Historial</div>
+
+      <div class="menu-item" (click)="irA('/presupuesto')">Presupuesto</div>
+
+      <div class="menu-item" (click)="irA('/Documentos')">Documentos</div>
+
+      <div class="menu-item" (click)="irA('/Convenios')">Convenios</div>
+
+      <div class="menu-item" (click)="irA('/administracion')">Administración</div>
+    </nav>
+  </div>
 
   <main class="cd-main">
     <div class="cd-titulo">

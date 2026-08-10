@@ -112,13 +112,15 @@ export class CarpetasDrive implements OnInit {
     if (fila.drive_url) window.open(fila.drive_url, '_blank');
   }
 
-  togglePerfilMenu(): void {
+  irA(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
+  togglePerfilMenu() {
     this.mostrarPerfilMenu = !this.mostrarPerfilMenu;
   }
+
   volverSomos() {
-    window.location.href = 'http://localhost:4200/somosessalud/';
-  }
-  volver(): void {
-    this.router.navigate(['/dashboard']);
+    window.location.replace('http://localhost:4200/somosessalud/');
   }
 }
