@@ -636,3 +636,25 @@
 .btn-exito:hover {
   background: #163e88;
 }
+.menu-superior {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 12px; /* antes 8px */
+  padding: 0 14px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: -20px -20px; /* antes 10px 12px */
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.menu-item svg {
+  width: 18px;
+  height: 18px;
+}

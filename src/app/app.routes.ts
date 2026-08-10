@@ -130,4 +130,16 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'login',
   },
+
+  {
+    path: 'historial',
+    component: Dashboard,
+    canActivate: [authGuard, roleGuard(TODOS)],
+  },
+
+  {
+    path: 'personal',
+    component: Personal,
+    canActivate: [authGuard, roleGuard(ADMIN)],
+  },
 ];

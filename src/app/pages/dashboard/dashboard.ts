@@ -865,11 +865,16 @@ export class Dashboard implements OnInit, OnDestroy {
       this.cargarNotasStats();
     }
 
-    // La alerta de personal (cese/cambio de red) solo le compete al sectorista
-    // y al ejecutor, que son quienes deben revisar/quitar al participante. Al
-    // administrador le queda visible por la bitácora de auditoría, no aquí.
-    if (this.esSectorista || this.esEjecutor) {
-      this.cargarAlertasPersonal();
+    // Si se ingresa directamente a /historial,
+    // abrir automáticamente el módulo de historial.
+    if (this.router.url === '/historial') {
+      console.log('✅ RUTA HISTORIAL DETECTADA');
+
+      this.mostrarHistorial = true;
+
+      console.log('mostrarHistorial:', this.mostrarHistorial);
+
+      this.abrirHistorial();
     }
   }
 
@@ -1279,9 +1284,13 @@ export class Dashboard implements OnInit, OnDestroy {
   cargandoHistorial = false;
 
   abrirHistorial() {
+    console.log('🔥 ABRIENDO HISTORIAL');
+
     this.filtroHistorial = '';
     this.mostrarHistorial = true;
     this.cargandoHistorial = true;
+
+    // resto del código...
 
     this.http.get<any[]>('http://localhost:3001/api/audit-log?limit=300').subscribe({
       next: (apiLogs) => {

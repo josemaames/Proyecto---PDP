@@ -593,3 +593,26 @@
   width: 18px;
   height: 18px;
 }
+
+.menu-superior {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 20px; /* antes 8px */
+  padding: 0 18px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: -20px -20px; /* antes 10px 12px */
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.menu-item svg {
+  width: 30px;
+  height: 30px;
+}

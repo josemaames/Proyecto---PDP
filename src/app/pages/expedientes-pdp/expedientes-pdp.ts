@@ -257,6 +257,52 @@ export class ExpedientesPdp implements OnInit {
   }
 
   irA(ruta: string) {
-    this.router.navigateByUrl(ruta);
+    switch (ruta) {
+      case 'Historial':
+        this.router.navigate(['/historial']);
+        break;
+
+      case 'Administración':
+        this.router.navigate(['/personal']);
+        break;
+
+      case 'Expedientes':
+        this.router.navigate(['/expedientes']);
+        break;
+
+      case 'Documentos':
+        this.router.navigate(['/documentos']);
+        break;
+
+      case 'Personal':
+        this.router.navigate(['/personal-pdp']);
+        break;
+
+      case 'Participantes':
+        this.router.navigate(['/lista-participantes']);
+        break;
+
+      case 'Hoja de Ruta':
+        this.router.navigate(['/hoja-ruta']);
+        break;
+
+      case 'Presupuesto':
+        this.router.navigate(['/presupuesto']);
+        break;
+
+      case 'Convenios':
+        this.router.navigate(['/convenios']);
+        break;
+
+      case 'Carpetas Drive':
+        this.router.navigate(['/carpetas-drive']);
+        break;
+
+      default:
+        // Si ya se recibe una ruta como "/documentos",
+        // "/historial", etc., la usamos directamente.
+        this.router.navigateByUrl(ruta);
+        break;
+    }
   }
 }

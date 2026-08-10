@@ -431,8 +431,8 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 11px; /* antes 10px 12px */
-  font-size: 15px;
+  padding: -20px -20px; /* antes 10px 12px */
+  font-size: 16px;
   white-space: nowrap;
 }
 
